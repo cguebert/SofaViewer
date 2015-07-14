@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>share/icons/icon.png</file>
+        <file>share/icons/new.png</file>
+        <file>share/icons/open.png</file>
+        <file>share/icons/save.png</file>
+        <file>share/icons/cut.png</file>
+        <file>share/icons/copy.png</file>
+        <file>share/icons/paste.png</file>
+        <file>share/icons/find.png</file>
+        <file>share/icons/play.png</file>
+        <file>share/icons/step.png</file>
+        <file>share/icons/stop.png</file>
+        <file>share/shaders/shader.frag</file>
+        <file>share/shaders/shader.vert</file>
+    </qresource>
+</RCC>
