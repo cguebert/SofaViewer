@@ -1,3 +1,4 @@
+#include <ui/GraphModel.h>
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
 #include <core/Document.h>
@@ -7,9 +8,18 @@
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
-	m_view = new OpenGLView(this);
 	m_document = std::make_shared<Document>();
 
+	m_graph = new QTreeView(this);
+	m_graph->setUniformRowHeights(true);
+	m_graph->header()->hide();
+	auto graphDock = new QDockWidget(tr("Graph"), this);
+	graphDock->setObjectName("GraphDock");
+	graphDock->setWidget(m_graph);
+	graphDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	addDockWidget(Qt::LeftDockWidgetArea, graphDock);
+
+	m_view = new OpenGLView(this);
 	setCentralWidget(m_view);
 
 	createActions();
@@ -204,10 +214,20 @@ bool MainWindow::loadFile(const QString& fileName)
 	if (!m_document->loadFile(fileName))
 	{
 		statusBar()->showMessage(tr("Loading failed"), 2000);
+
+		auto oldModel = m_graph->model();
+		m_graph->setModel(nullptr);
+		if(oldModel)
+			delete oldModel;
 		return false;
 	}
 
 	m_view->setDocument(m_document.get());
+
+	auto oldModel = m_graph->model();
+	m_graph->setModel(new GraphModel(this, m_document->graph()));
+	if(oldModel)
+		delete oldModel;
 
 	setCurrentFile(fileName);
 	statusBar()->showMessage(tr("File loaded"), 2000);

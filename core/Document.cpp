@@ -43,6 +43,9 @@ bool Document::loadFile(const QString& path)
 		// Create the models for rendering
 		parseScene();
 
+		// Update the scene graph
+		createGraph();
+
 		return true;
 	}
 }
@@ -150,4 +153,33 @@ void Document::parseScene()
 		if (model)
 			m_scene.addModel(model);
 	}
+}
+
+void parseNode(Graph::NodePtr parent, sfe::Node node)
+{
+	for(auto& object : node.objects())
+	{
+		auto n = Graph::Node::create();
+		n->name = object.name();
+		n->parent = parent.get();
+		parent->objects.push_back(n);
+	}
+
+	for(auto& child : node.children())
+	{
+		auto n = Graph::Node::create();
+		n->name = child.name();
+		n->parent = parent.get();
+		parseNode(n, child);
+		parent->children.push_back(n);
+	}
+}
+
+void Document::createGraph()
+{
+	auto root = m_simulation.root();
+	auto rootNode = Graph::Node::create();
+	rootNode->name = root.name();
+	parseNode(rootNode, root);
+	m_graph.setRoot(rootNode);
 }

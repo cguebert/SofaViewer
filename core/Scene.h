@@ -5,7 +5,6 @@
 #include <glm/gtc/quaternion.hpp>
 
 #include <memory>
-#include <QString>
 
 class Scene : public QOpenGLFunctions_3_3_Core
 {

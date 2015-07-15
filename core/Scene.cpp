@@ -25,6 +25,7 @@ void Scene::initOpenGL()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
+	m_program.removeAllShaders();
 	m_program.addShaderFromSourceFile(QOpenGLShader::Vertex, "://share/shaders/shader.vert");
 	m_program.addShaderFromSourceFile(QOpenGLShader::Fragment, "://share/shaders/shader.frag");
 	m_program.link();

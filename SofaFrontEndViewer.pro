@@ -7,17 +7,21 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
 	core/Document.cpp \
+	core/Graph.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
 	core/Scene.cpp \
+	ui/GraphModel.cpp \
 	ui/OpenGLView.cpp \
 	ui/MainWindow.cpp
 
 HEADERS  += \
 	core/Document.h \
+	core/Graph.h \
 	core/Model.h \
 	core/MouseManipulator.h \
 	core/Scene.h \
+	ui/GraphModel.h \
 	ui/OpenGLView.h \
 	ui/MainWindow.h
 

@@ -4,6 +4,7 @@
 #include <memory>
 
 class OpenGLView;
+class QTreeView;
 class Document;
 
 class MainWindow : public QMainWindow
@@ -36,6 +37,7 @@ private:
 	void updateRecentFileActions();
 
 	OpenGLView* m_view;
+	QTreeView* m_graph;
 	std::shared_ptr<Document> m_document;
 
 	QString strippedName(const QString &fullFileName);
