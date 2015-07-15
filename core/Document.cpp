@@ -20,6 +20,27 @@ protected:
 	QDir prevDir;
 };
 
+/******************************************************************************/
+
+ViewUpdater& ViewUpdater::get()
+{
+	static ViewUpdater instance;
+	return instance;
+}
+
+void ViewUpdater::setSignal(UpdateFunc func)
+{
+	m_func = func;
+}
+
+void ViewUpdater::update()
+{
+	if(m_func)
+		m_func();
+}
+
+/******************************************************************************/
+
 Document::Document()
 	: m_mouseManipulator(m_scene)
 {
@@ -95,13 +116,13 @@ Scene::ModelPtr createSofaModel(sfe::Object& visualModel)
 		model->d_vertices = posData;
 	else
 		model->d_vertices = posData;
-	model->d_normal = visualModel.data("normal");
+	model->d_normals = visualModel.data("normal");
 
-	if (!model->d_vertices || !model->d_normal)
+	if (!model->d_vertices || !model->d_normals)
 		return nullptr;
 
 	model->d_vertices.get(model->m_vertices);
-	model->d_normal.get(model->m_normals);
+	model->d_normals.get(model->m_normals);
 
 	// Get the constant information (topology and color)
 	// Triangles
@@ -155,12 +176,23 @@ void Document::parseScene()
 	}
 }
 
+void Document::updateObjects()
+{
+	for(auto model : m_scene.models())
+	{
+		model->d_vertices.get(model->m_vertices);
+		model->d_normals.get(model->m_normals);
+		model->updatePositions();
+	}
+}
+
 void parseNode(Graph::NodePtr parent, sfe::Node node)
 {
 	for(auto& object : node.objects())
 	{
 		auto n = Graph::Node::create();
 		n->name = object.name();
+		n->type = object.className();
 		n->parent = parent.get();
 		parent->objects.push_back(n);
 	}
@@ -182,4 +214,11 @@ void Document::createGraph()
 	rootNode->name = root.name();
 	parseNode(rootNode, root);
 	m_graph.setRoot(rootNode);
+}
+
+void Document::step()
+{
+	m_simulation.step();
+	updateObjects();
+	ViewUpdater::get().update();
 }

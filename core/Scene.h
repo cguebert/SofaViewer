@@ -16,6 +16,8 @@ public:
 	void resize(int width, int height);
 	void render();
 
+	const std::vector<ModelPtr>& models();
+
 	glm::quat& rotation();
 	glm::quat rotation() const;
 	glm::vec3& translation();
@@ -37,6 +39,9 @@ protected:
 	QOpenGLShaderProgram m_program;
 	GLint m_mvLoc = 0, m_mvpLoc = 0, m_colLoc = 0, m_texLoc = 0;
 };
+
+inline const std::vector<Scene::ModelPtr>& Scene::models()
+{ return m_models; }
 
 inline glm::quat& Scene::rotation()
 { return m_rotation; }

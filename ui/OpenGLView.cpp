@@ -12,6 +12,8 @@ OpenGLView::OpenGLView(QWidget *parent)
 	format.setVersion(3, 3);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	setFormat(format);
+
+	ViewUpdater::get().setSignal([this](){ update(); });
 }
 
 void OpenGLView::setDocument(Document* doc)

@@ -13,7 +13,7 @@ public:
 
 	struct Node
 	{
-		std::string name;
+		std::string name, type;
 		std::vector<NodePtr> children, objects;
 		Node* parent = nullptr; // Only null for the root
 

@@ -10,8 +10,23 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	m_document = std::make_shared<Document>();
 
+	// Buttons
+	auto buttonsDock = new QDockWidget(tr("Buttons"));
+	auto buttonsWidget = new QWidget(this);
+	auto buttonsLayout = new QHBoxLayout;
+	auto stepButton = new QPushButton(tr("Step"));
+	connect(stepButton, SIGNAL(clicked(bool)), this, SLOT(step()));
+	buttonsLayout->addWidget(stepButton);
+	buttonsWidget->setLayout(buttonsLayout);
+	buttonsDock->setObjectName("ButtonsDock");
+	buttonsDock->setWidget(buttonsWidget);
+	buttonsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
+	addDockWidget(Qt::LeftDockWidgetArea, buttonsDock);
+
+	// Graph tree
 	m_graph = new QTreeView(this);
 	m_graph->setUniformRowHeights(true);
+//	m_graph->setRootIsDecorated(true);
 	m_graph->header()->hide();
 	auto graphDock = new QDockWidget(tr("Graph"), this);
 	graphDock->setObjectName("GraphDock");
@@ -283,4 +298,10 @@ void MainWindow::about()
 			tr("<h2>Sofa Front End Viewer</h2>"
 			   "<p>Copyright &copy; 2015 Christophe Guébert"
 			   "<p>Using Sofa and Sofa Front End"));
+}
+
+void MainWindow::step()
+{
+	if(m_document)
+		m_document->step();
 }

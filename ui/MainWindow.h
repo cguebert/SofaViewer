@@ -21,6 +21,7 @@ private slots:
 	void about();
 	void openRecentFile();
 	void showStatusBarMessage(QString);
+	void step();
 
 private:
 	void createActions();

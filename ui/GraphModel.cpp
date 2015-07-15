@@ -84,6 +84,13 @@ QVariant GraphModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 
 	Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+	if(item->type.empty()) // Node
+	{
+		if(index.column())
+			return QVariant();
+		return QVariant(item->name.c_str());
+	}
 
-	return QVariant(item->name.c_str());
+	QString name = QString(item->type.c_str()) + "  " + item->name.c_str();
+	return QVariant(name);
 }

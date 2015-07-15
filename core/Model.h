@@ -51,7 +51,7 @@ public:
 	glm::vec4 m_color;
 
 	sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
-	sfe::Data d_vertices, d_normal; // Proxies to access the fields we need in the Sofa object
+	sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 
 	Triangles m_mergedTriangles; // With the quads
 	GLuint m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
