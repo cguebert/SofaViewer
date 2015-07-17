@@ -256,6 +256,7 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 		return;
 	Property prop;
 	prop.m_name = data.name();
+	data.get(prop.m_value);
 
 	properties->m_properties.push_back(prop);
 }

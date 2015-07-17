@@ -10,6 +10,7 @@ public:
 	const std::string& group() const;
 
 //protected:
+	std::string m_value;
 	std::string m_name, m_help, m_group;
 };
 
