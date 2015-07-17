@@ -1,6 +1,8 @@
 #include <ui/GraphModel.h>
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
+#include <ui/PropertiesDialog.h>
+
 #include <core/Document.h>
 
 #include <QtWidgets>
@@ -26,13 +28,15 @@ MainWindow::MainWindow(QWidget *parent)
 	// Graph tree
 	m_graph = new QTreeView(this);
 	m_graph->setUniformRowHeights(true);
-//	m_graph->setRootIsDecorated(true);
 	m_graph->header()->hide();
+	m_graph->setExpandsOnDoubleClick(false);
 	auto graphDock = new QDockWidget(tr("Graph"), this);
 	graphDock->setObjectName("GraphDock");
 	graphDock->setWidget(m_graph);
 	graphDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, graphDock);
+
+	connect(m_graph, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(graphItemDoubleClicked(QModelIndex)));
 
 	m_view = new OpenGLView(this);
 	setCentralWidget(m_view);
@@ -226,6 +230,7 @@ QString MainWindow::strippedName(const QString& fullFileName)
 
 bool MainWindow::loadFile(const QString& fileName)
 {
+	m_document = std::make_shared<Document>();
 	if (!m_document->loadFile(fileName))
 	{
 		statusBar()->showMessage(tr("Loading failed"), 2000);
@@ -243,6 +248,7 @@ bool MainWindow::loadFile(const QString& fileName)
 	m_graph->setModel(new GraphModel(this, m_document->graph()));
 	if(oldModel)
 		delete oldModel;
+	m_graph->expandAll();
 
 	setCurrentFile(fileName);
 	statusBar()->showMessage(tr("File loaded"), 2000);
@@ -304,4 +310,21 @@ void MainWindow::step()
 {
 	if(m_document)
 		m_document->step();
+}
+
+void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
+{
+	if(index.isValid())
+	{
+		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		if(item)
+		{
+			auto prop = m_document->objectProperties(item->uniqueId);
+			if(prop)
+			{
+				PropertiesDialog* dlg = new PropertiesDialog(prop, this);
+				dlg->show();
+			}
+		}
+	}
 }

@@ -1,4 +1,5 @@
 #include <core/Document.h>
+#include <core/ObjectProperties.h>
 
 #include <sfe/sofaFrontEndLocal.h>
 
@@ -186,32 +187,58 @@ void Document::updateObjects()
 	}
 }
 
-void parseNode(Graph::NodePtr parent, sfe::Node node)
+void Document::parseNode(Graph::NodePtr parent, sfe::Node node)
 {
 	for(auto& object : node.objects())
 	{
-		auto n = Graph::Node::create();
-		n->name = object.name();
-		n->type = object.className();
-		n->parent = parent.get();
+		auto n = createNode(object, parent);
 		parent->objects.push_back(n);
 	}
 
 	for(auto& child : node.children())
 	{
-		auto n = Graph::Node::create();
-		n->name = child.name();
-		n->parent = parent.get();
+		auto n = createNode(child, parent);
 		parseNode(n, child);
 		parent->children.push_back(n);
 	}
 }
 
+Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
+{
+	auto n = Graph::Node::create();
+	n->name = object.name();
+	n->type = object.className();
+	n->parent = parent.get();
+	n->uniqueId = m_handles.size();
+
+	ObjectHandle handle;
+	handle.isObject = true;
+	handle.object = object;
+	m_handles.push_back(handle);
+
+	return n;
+}
+
+Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
+{
+	auto n = Graph::Node::create();
+	n->name = node.name();
+	n->parent = parent.get();
+	n->uniqueId = m_handles.size();
+
+	ObjectHandle handle;
+	handle.isObject = false;
+	handle.node = node;
+	m_handles.push_back(handle);
+
+	return n;
+}
+
 void Document::createGraph()
 {
+	m_handles.clear();
 	auto root = m_simulation.root();
-	auto rootNode = Graph::Node::create();
-	rootNode->name = root.name();
+	auto rootNode = createNode(root, nullptr);
 	parseNode(rootNode, root);
 	m_graph.setRoot(rootNode);
 }
@@ -221,4 +248,44 @@ void Document::step()
 	m_simulation.step();
 	updateObjects();
 	ViewUpdater::get().update();
+}
+
+void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
+{
+	if(!data)
+		return;
+	Property prop;
+	prop.m_name = data.name();
+
+	properties->m_properties.push_back(prop);
+}
+
+Document::ObjectPropertiesPtr Document::objectProperties(size_t id) const
+{
+	if(id >= m_handles.size())
+		return nullptr;
+
+	auto& handle = m_handles[id];
+	auto prop = std::make_shared<ObjectProperties>();
+
+	if(handle.isObject)
+	{
+		auto& obj = handle.object;
+		prop->m_name = obj.name();
+
+		auto names = obj.listData();
+		for(const auto& name : names)
+			addData(prop, obj.data(name));
+	}
+	else
+	{
+		auto& node = handle.node;
+		prop->m_name = node.name();
+
+		auto names = node.listData();
+		for(const auto& name : names)
+			addData(prop, node.data(name));
+	}
+
+	return prop;
 }

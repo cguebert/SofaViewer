@@ -16,6 +16,7 @@ public:
 		std::string name, type;
 		std::vector<NodePtr> children, objects;
 		Node* parent = nullptr; // Only null for the root
+		size_t uniqueId; // Used to identify the Node when asking its information
 
 		static NodePtr create();
 	};

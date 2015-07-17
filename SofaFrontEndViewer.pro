@@ -10,20 +10,26 @@ SOURCES += main.cpp\
 	core/Graph.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
+	core/ObjectProperties.cpp \
+	core/Property.cpp \
 	core/Scene.cpp \
 	ui/GraphModel.cpp \
+	ui/MainWindow.cpp \
 	ui/OpenGLView.cpp \
-	ui/MainWindow.cpp
+	ui/PropertiesDialog.cpp
 
 HEADERS  += \
 	core/Document.h \
 	core/Graph.h \
 	core/Model.h \
 	core/MouseManipulator.h \
+	core/ObjectProperties.h \
+	core/Property.h \
 	core/Scene.h \
 	ui/GraphModel.h \
+	ui/MainWindow.h \
 	ui/OpenGLView.h \
-	ui/MainWindow.h
+	ui/PropertiesDialog.h
 
 RESOURCES     = SofaFrontEndViewer.qrc
 win32:RC_FILE = SofaFrontEndViewer.rc

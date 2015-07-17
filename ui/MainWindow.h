@@ -22,6 +22,7 @@ private slots:
 	void openRecentFile();
 	void showStatusBarMessage(QString);
 	void step();
+	void graphItemDoubleClicked(const QModelIndex&);
 
 private:
 	void createActions();
