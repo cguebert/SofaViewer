@@ -1,8 +1,21 @@
 #include <ui/PropertiesDialog.h>
+#include <ui/PropertyWidget.h>
 
 #include <core/ObjectProperties.h>
 
+#include <sfe/Data.h>
+
 #include <QtWidgets>
+
+template <class T>
+QWidget* createPropWidget(const Property& prop, QWidget* parent)
+{
+	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop.m_value);
+	if(!propValue)
+		return nullptr;
+	auto propWidget = new PropertyWidget<T>(propValue, parent);
+	return propWidget->createWidgets(prop.readOnly());
+}
 
 PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent)
 	: QDialog(parent)
@@ -32,9 +45,27 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		group->setTitle(prop.name().c_str());
 
 		// create property type specific widget
-		auto edit = new QLineEdit;
-		edit->setText(prop.m_value.c_str());
-		layout->addWidget(edit);
+		using DataType = sfe::Data::DataType;
+		auto type = static_cast<DataType>(prop.m_valueType);
+		QWidget* propWidget = nullptr;
+		switch(type)
+		{
+		case DataType::Int:
+			propWidget = createPropWidget<int>(prop, this);
+			break;
+		}
+
+		if(propWidget)
+		{
+			layout->addWidget(propWidget);
+		}
+		else
+		{
+			auto edit = new QLineEdit;
+			edit->setText(prop.m_stringValue.c_str());
+			layout->addWidget(edit);
+		}
+
 		scrollLayout->addWidget(group);
 	}
 

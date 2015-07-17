@@ -250,13 +250,36 @@ void Document::step()
 	ViewUpdater::get().update();
 }
 
+template <class T>
+void setValue(Property& prop, sfe::Data data)
+{
+	T val;
+	data.get(val);
+	data.get(prop.m_stringValue);
+	prop.m_value = std::make_shared<PropertyValue<T>>(std::move(val));
+}
+
 void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 {
 	if(!data)
 		return;
 	Property prop;
 	prop.m_name = data.name();
-	data.get(prop.m_value);
+
+	auto type = data.supportedType();
+	prop.m_valueType = static_cast<int>(type);
+
+	switch(type)
+	{
+	case sfe::Data::DataType::Int:		setValue<int32_t>(prop, data);		break;
+	case sfe::Data::DataType::Float:	setValue<float>(prop, data);		break;
+	case sfe::Data::DataType::Double:	setValue<double>(prop, data);		break;
+	case sfe::Data::DataType::String:	setValue<std::string>(prop, data);	break;
+	case sfe::Data::DataType::Vector_Int:		setValue<std::vector<int32_t>>(prop, data);		break;
+	case sfe::Data::DataType::Vector_Float:		setValue<std::vector<float>>(prop, data);		break;
+	case sfe::Data::DataType::Vector_Double:	setValue<std::vector<double>>(prop, data);		break;
+	case sfe::Data::DataType::Vector_String:	setValue<std::vector<std::string>>(prop, data); break;
+	}
 
 	properties->m_properties.push_back(prop);
 }
