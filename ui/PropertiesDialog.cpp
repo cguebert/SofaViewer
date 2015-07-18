@@ -53,6 +53,15 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		case DataType::Int:
 			propWidget = createPropWidget<int>(prop, this);
 			break;
+		case DataType::Vector_Int:
+			propWidget = createPropWidget<std::vector<int>>(prop, this);
+			break;
+		case DataType::Vector_Float:
+			propWidget = createPropWidget<std::vector<float>>(prop, this);
+			break;
+		case DataType::Vector_Double:
+			propWidget = createPropWidget<std::vector<double>>(prop, this);
+			break;
 		}
 
 		if(propWidget)

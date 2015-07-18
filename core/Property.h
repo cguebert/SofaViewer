@@ -42,6 +42,7 @@ public:
 	void* ptr() override { return &m_value; }
 
 	const T& value() const { return m_value; }
+	T& value() { return m_value; }
 	void setValue(const T& value) { m_value = value; }
 	void setValue(T&& value) { m_value = std::move(value); }
 
