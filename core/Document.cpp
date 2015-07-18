@@ -205,38 +205,29 @@ void Document::parseNode(Graph::NodePtr parent, sfe::Node node)
 
 Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 {
-	auto n = Graph::Node::create();
+	auto n = SofaNode::create();
 	n->name = object.name();
 	n->type = object.className();
 	n->parent = parent.get();
-	n->uniqueId = m_handles.size();
-
-	ObjectHandle handle;
-	handle.isObject = true;
-	handle.object = object;
-	m_handles.push_back(handle);
+	n->isObject = true;
+	n->object = object;
 
 	return n;
 }
 
 Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
 {
-	auto n = Graph::Node::create();
+	auto n = SofaNode::create();
 	n->name = node.name();
 	n->parent = parent.get();
-	n->uniqueId = m_handles.size();
-
-	ObjectHandle handle;
-	handle.isObject = false;
-	handle.node = node;
-	m_handles.push_back(handle);
+	n->isObject = false;
+	n->node = node;
 
 	return n;
 }
 
 void Document::createGraph()
 {
-	m_handles.clear();
 	auto root = m_simulation.root();
 	auto rootNode = createNode(root, nullptr);
 	parseNode(rootNode, root);
@@ -261,10 +252,13 @@ void setValue(Property& prop, sfe::Data data)
 
 void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 {
-	if(!data)
+	if(!data || !data.displayed())
 		return;
+
 	Property prop;
 	prop.m_name = data.name();
+	prop.m_help = data.help();
+	prop.m_group = data.group();
 
 	auto type = data.supportedType();
 	prop.m_valueType = static_cast<int>(type);
@@ -284,17 +278,17 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 	properties->m_properties.push_back(prop);
 }
 
-Document::ObjectPropertiesPtr Document::objectProperties(size_t id) const
+Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) const
 {
-	if(id >= m_handles.size())
+	auto item = dynamic_cast<SofaNode*>(baseItem);
+	if(!item)
 		return nullptr;
 
-	auto& handle = m_handles[id];
 	auto prop = std::make_shared<ObjectProperties>();
 
-	if(handle.isObject)
+	if(item->isObject)
 	{
-		auto& obj = handle.object;
+		auto& obj = item->object;
 		prop->m_name = obj.name();
 
 		auto names = obj.listData();
@@ -303,7 +297,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(size_t id) const
 	}
 	else
 	{
-		auto& node = handle.node;
+		auto& node = item->node;
 		prop->m_name = node.name();
 
 		auto names = node.listData();

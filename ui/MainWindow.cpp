@@ -319,7 +319,7 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
 		if(item)
 		{
-			auto prop = m_document->objectProperties(item->uniqueId);
+			auto prop = m_document->objectProperties(item);
 			if(prop)
 			{
 				PropertiesDialog* dlg = new PropertiesDialog(prop, this);

@@ -37,7 +37,7 @@ public:
 	MouseManipulator& mouseManipulator();
 
 	using ObjectPropertiesPtr = std::shared_ptr<ObjectProperties>;
-	ObjectPropertiesPtr objectProperties(size_t id) const;
+	ObjectPropertiesPtr objectProperties(Graph::Node* item) const;
 
 protected:
 	void parseScene();
@@ -52,16 +52,17 @@ protected:
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 	sfe::Simulation m_simulation;
+};
 
-	struct ObjectHandle
-	{
-		bool isObject; // if false -> Node
-		sfe::Object object; // Cannot put them in an union
-		sfe::Node node;		//  as they have a copy constructor
-	};
+class SofaNode : public Graph::Node
+{
+public:
+	using SofaNodePtr = std::shared_ptr<SofaNode>;
+	static SofaNodePtr create() { return std::make_shared<SofaNode>(); }
 
-	using ObjectHandles = std::vector<ObjectHandle>;
-	ObjectHandles m_handles;
+	bool isObject; // if false -> Node
+	sfe::Object object; // Cannot put them in an union
+	sfe::Node node;		//  as they have a copy constructor
 };
 
 inline Scene& Document::scene()

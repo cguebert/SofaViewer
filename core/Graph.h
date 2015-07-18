@@ -8,17 +8,18 @@ class Graph
 {
 public:
 
-	struct Node;
+	class Node;
 	using NodePtr = std::shared_ptr<Node>;
 
-	struct Node
+	class Node
 	{
+	public:
+		virtual ~Node() {}
 		std::string name, type;
 		std::vector<NodePtr> children, objects;
 		Node* parent = nullptr; // Only null for the root
-		size_t uniqueId; // Used to identify the Node when asking its information
 
-		static NodePtr create();
+		static NodePtr create() { return std::make_shared<Graph::Node>(); }
 	};
 
 	const Node* root() const;
@@ -32,5 +33,3 @@ protected:
 inline const Graph::Node* Graph::root() const
 { return m_root.get(); }
 
-inline Graph::NodePtr Graph::Node::create()
-{ return std::make_shared<Graph::Node>(); }
