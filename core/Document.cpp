@@ -247,7 +247,7 @@ void setValue(Property& prop, sfe::Data data)
 	T val;
 	data.get(val);
 	data.get(prop.m_stringValue);
-	prop.m_value = std::make_shared<PropertyValue<T>>(std::move(val));
+	prop.setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
 }
 
 void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
@@ -255,15 +255,21 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 	if(!data || !data.displayed())
 		return;
 
-	Property prop;
-	prop.m_name = data.name();
-	prop.m_help = data.help();
-	prop.m_group = data.group();
+	auto storageType = static_cast<Property::Type>(data.supportedType());
 
-	auto type = data.supportedType();
-	prop.m_valueType = static_cast<int>(type);
+	auto typeTrait = data.typeInfo();
+	std::string valueType;
+	int columnCount = 1;
+	if(typeTrait && typeTrait->ValidInfo())
+	{
+		valueType = typeTrait->ValueType()->name();
+		columnCount = typeTrait->size();
+	}
 
-	switch(type)
+	Property prop(data.name(), data.help(), data.group(), data.readOnly(), storageType, valueType);
+	prop.setColumnCount(columnCount);
+
+	switch(storageType)
 	{
 	case sfe::Data::DataType::Int:		setValue<int32_t>(prop, data);		break;
 	case sfe::Data::DataType::Float:	setValue<float>(prop, data);		break;

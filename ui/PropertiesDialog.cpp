@@ -3,17 +3,15 @@
 
 #include <core/ObjectProperties.h>
 
-#include <sfe/Data.h>
-
 #include <QtWidgets>
 
 template <class T>
 QWidget* createPropWidget(const Property& prop, QWidget* parent)
 {
-	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop.m_value);
+	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop.value());
 	if(!propValue)
 		return nullptr;
-	auto propWidget = new PropertyWidget<T>(propValue, parent);
+	auto propWidget = new PropertyWidget<T>(prop, propValue, parent);
 	return propWidget->createWidgets(prop.readOnly());
 }
 
@@ -45,21 +43,19 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		group->setTitle(prop.name().c_str());
 
 		// create property type specific widget
-		using DataType = sfe::Data::DataType;
-		auto type = static_cast<DataType>(prop.m_valueType);
 		QWidget* propWidget = nullptr;
-		switch(type)
+		switch(prop.storageType())
 		{
-		case DataType::Int:
+		case Property::Type::Int:
 			propWidget = createPropWidget<int>(prop, this);
 			break;
-		case DataType::Vector_Int:
+		case Property::Type::Vector_Int:
 			propWidget = createPropWidget<std::vector<int>>(prop, this);
 			break;
-		case DataType::Vector_Float:
+		case Property::Type::Vector_Float:
 			propWidget = createPropWidget<std::vector<float>>(prop, this);
 			break;
-		case DataType::Vector_Double:
+		case Property::Type::Vector_Double:
 			propWidget = createPropWidget<std::vector<double>>(prop, this);
 			break;
 		}

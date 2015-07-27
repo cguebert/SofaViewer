@@ -5,7 +5,7 @@
 
 #include <memory>
 
-class BasePropertyValue;
+class Property;
 template <class T> class PropertyValue;
 
 // One of this will be created for each Data.
@@ -15,12 +15,12 @@ class BasePropertyWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	BasePropertyWidget(std::shared_ptr<BasePropertyValue> property, QWidget *parent = nullptr);
+	BasePropertyWidget(const Property& property, QWidget *parent = nullptr);
 
 	virtual QWidget* createWidgets(bool readOnly = true) = 0;
 
 protected:
-	std::shared_ptr<BasePropertyValue> m_baseProperty;
+	const Property& m_property;
 };
 
 // Specializations for supported types
@@ -28,15 +28,17 @@ template <class T>
 class PropertyWidget : public BasePropertyWidget
 {
 public:
-	PropertyWidget(std::shared_ptr<PropertyValue<T>> property, QWidget *parent = nullptr)
+	PropertyWidget(const Property& property,
+				   std::shared_ptr<PropertyValue<T>> propertyValue,
+				   QWidget *parent = nullptr)
 		: BasePropertyWidget(property, parent)
-		, m_property(property)
+		, m_propertyValue(propertyValue)
 	{ }
 
 	QWidget* createWidgets(bool readOnly) override;
 
 protected:
-	std::shared_ptr<PropertyValue<T>> m_property;
+	std::shared_ptr<PropertyValue<T>> m_propertyValue;
 };
 
 // This is how the table model will access the values, without knowing their type

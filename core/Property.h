@@ -9,18 +9,48 @@ class BasePropertyValue;
 class Property
 {
 public:
+	enum class Type : int32_t // Copy of sfe::Data::DataType
+	{
+		NotSet = 0,
+		Int = 1,
+		Float = 2,
+		Double = 3,
+		String = 4,
+		Vector_Int = 17,
+		Vector_Float = 18,
+		Vector_Double = 19,
+		Vector_String = 20
+	};
+
+	Property() {}
+	Property(const std::string& name,
+			 const std::string& help,
+			 const std::string& group,
+			 bool readOnly,
+			 Type storageType,
+			 const std::string& valueType);
+
 	const std::string& name() const;
 	const std::string& help() const;
 	const std::string& group() const;
 	bool readOnly() const;
-	int type() const;
-	std::shared_ptr<BasePropertyValue> value() const;
+	Type storageType() const;
+	const std::string& valueType() const; // Used to choose the widget (for example, storage is int but type was originally bool)
 
-//protected:
-	bool m_readOnly = false;
+	void setColumnCount(int count);
+	int columnCount() const;
+
+	using ValuePtr = std::shared_ptr<BasePropertyValue>;
+	void setValue(ValuePtr value);
+	ValuePtr value() const;
+
 	std::string m_stringValue; // TEMP
-	std::string m_name, m_help, m_group;
-	int m_valueType = 0;
+
+protected:
+	std::string m_name, m_help, m_group, m_valueType;
+	bool m_readOnly = false;
+	Type m_storageType = Type::NotSet;
+	int m_columnCount = 1;
 	std::shared_ptr<BasePropertyValue> m_value;
 };
 
@@ -62,7 +92,16 @@ inline const std::string& Property::group() const
 inline bool Property::readOnly() const
 { return m_readOnly; }
 
-inline int Property::type() const
+inline Property::Type Property::storageType() const
+{ return m_storageType; }
+
+inline void Property::setColumnCount(int count)
+{ m_columnCount = count; }
+
+inline int Property::columnCount() const
+{ return m_columnCount; }
+
+inline const std::string& Property::valueType() const
 { return m_valueType; }
 
 inline std::shared_ptr<BasePropertyValue> Property::value() const
