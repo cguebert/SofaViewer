@@ -44,8 +44,6 @@ public:
 	void setValue(ValuePtr value);
 	ValuePtr value() const;
 
-	std::string m_stringValue; // TEMP
-
 protected:
 	std::string m_name, m_help, m_group, m_valueType;
 	bool m_readOnly = false;

@@ -47,6 +47,15 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		case Property::Type::Int:
 			propWidget = createPropWidget<int>(prop, this);
 			break;
+		case Property::Type::Float:
+			propWidget = createPropWidget<float>(prop, this);
+			break;
+		case Property::Type::Double:
+			propWidget = createPropWidget<double>(prop, this);
+			break;
+		case Property::Type::String:
+			propWidget = createPropWidget<std::string>(prop, this);
+			break;
 		case Property::Type::Vector_Int:
 			propWidget = createPropWidget<std::vector<int>>(prop, this);
 			break;
@@ -56,15 +65,9 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		case Property::Type::Vector_Double:
 			propWidget = createPropWidget<std::vector<double>>(prop, this);
 			break;
-		}
-
-		if(!propWidget)
-		{
-			auto lineEdit = new QLineEdit;
-			lineEdit->setText(prop->m_stringValue.c_str());
-			lineEdit->setEnabled(prop->readOnly());
-
-			propWidget = lineEdit;
+		case Property::Type::Vector_String:
+			propWidget = createPropWidget<std::vector<std::string>>(prop, this);
+			break;
 		}
 
 		PropertyPair propPair = std::make_pair(prop, propWidget);
@@ -79,28 +82,52 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		if(name.isEmpty())
 			name = "Property";
 
-		auto scrollArea = new QScrollArea;
-		scrollArea->setFrameStyle(QFrame::NoFrame);
-		auto scrollWidget = new QWidget;
-		auto scrollLayout = new QVBoxLayout;
-		scrollWidget->setLayout(scrollLayout);
-		scrollLayout->setContentsMargins(0, 0, 0, 0);
-		scrollArea->setWidget(scrollWidget);
-		scrollArea->setWidgetResizable(true);
-
-		for(const auto& propPair : group.second)
+		const int maxPerTab = 10; // TODO: use combined default height of widgets instead
+		const auto& properties = group.second;
+		const int nb = properties.size();
+		if(nb > maxPerTab)
 		{
-			auto groupBox = new QGroupBox;
-			auto layout = new QVBoxLayout;
-			layout->setContentsMargins(5, 5, 5, 5);
-			groupBox->setLayout(layout);
-			groupBox->setTitle(propPair.first->name().c_str());
-			layout->addWidget(propPair.second);
-			scrollLayout->addWidget(groupBox);
+			int nbTabs = (properties.size() + maxPerTab - 1) / maxPerTab;
+			auto beginIt = properties.begin();
+			for(int i = 0; i < nbTabs; ++i)
+			{
+				QString tabName = name + " " + QString::number(i+1) + "/" + QString::number(nbTabs);
+				auto startDist = i * maxPerTab;
+				auto endDist = std::min(nb, startDist + maxPerTab);
+				addTab(tabWidget, tabName, beginIt + startDist, beginIt + endDist);
+			}
 		}
-
-		tabWidget->addTab(scrollArea, name);
+		else
+			addTab(tabWidget, name, properties.begin(), properties.end());
 	}
 
 	setLayout(mainLayout);
+}
+
+void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end)
+{
+	auto scrollArea = new QScrollArea;
+	scrollArea->setFrameStyle(QFrame::NoFrame);
+	auto scrollWidget = new QWidget;
+	auto scrollLayout = new QVBoxLayout;
+	scrollWidget->setLayout(scrollLayout);
+	scrollLayout->setContentsMargins(0, 0, 0, 0);
+	scrollArea->setWidget(scrollWidget);
+	scrollArea->setWidgetResizable(true);
+
+	for(auto it = begin; it != end; ++it)
+	{
+		const auto& propPair = *it;
+		auto groupBox = new QGroupBox;
+		auto layout = new QVBoxLayout;
+		layout->setContentsMargins(5, 5, 5, 5);
+		groupBox->setLayout(layout);
+		groupBox->setTitle(propPair.first->name().c_str());
+		layout->addWidget(propPair.second);
+		scrollLayout->addWidget(groupBox);
+	}
+
+	scrollLayout->addStretch();
+
+	tabWidget->addTab(scrollArea, name);
 }

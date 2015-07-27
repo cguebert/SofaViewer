@@ -19,8 +19,36 @@ QWidget* PropertyWidget<int>::createWidgets(bool readOnly)
 	spinBox->setMaximum(INT_MAX);
 	spinBox->setSingleStep(1);
 	spinBox->setEnabled(!readOnly);
+	spinBox->setValue(m_propertyValue->value());
 
 	return spinBox;
+}
+
+QWidget* PropertyWidget<float>::createWidgets(bool readOnly)
+{
+	auto lineEdit = new QLineEdit(parentWidget());
+	lineEdit->setText(QString::number(m_propertyValue->value()));
+	lineEdit->setEnabled(!readOnly);
+
+	return lineEdit;
+}
+
+QWidget* PropertyWidget<double>::createWidgets(bool readOnly)
+{
+	auto lineEdit = new QLineEdit(parentWidget());
+	lineEdit->setText(QString::number(m_propertyValue->value()));
+	lineEdit->setEnabled(!readOnly);
+
+	return lineEdit;
+}
+
+QWidget* PropertyWidget<std::string>::createWidgets(bool readOnly)
+{
+	auto lineEdit = new QLineEdit(parentWidget());
+	lineEdit->setText(m_propertyValue->value().c_str());
+	lineEdit->setEnabled(!readOnly);
+
+	return lineEdit;
 }
 
 QWidget* PropertyWidget<std::vector<int>>::createWidgets(bool readOnly)
@@ -53,6 +81,24 @@ QWidget* PropertyWidget<std::vector<double>>::createWidgets(bool readOnly)
 	table->setEnabled(!readOnly);
 	auto& value = m_propertyValue->value();
 	auto accessor = std::make_shared<TableValueAccessor<double>>(value, m_property->columnCount());
+	auto model = new TablePropertyModel(table, accessor);
+	table->setModel(model);
+
+	return table;
+}
+
+template <>
+QVariant TableValueAccessor<std::string>::data(int row, int column)
+{
+	return QVariant(m_data[row * m_columnCount + column].c_str());
+}
+
+QWidget* PropertyWidget<std::vector<std::string>>::createWidgets(bool readOnly)
+{
+	auto table = new QTableView(parentWidget());
+	table->setEnabled(!readOnly);
+	auto& value = m_propertyValue->value();
+	auto accessor = std::make_shared<TableValueAccessor<std::string>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
 	table->setModel(model);
 

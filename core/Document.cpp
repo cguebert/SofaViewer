@@ -246,7 +246,6 @@ void setValue(ObjectProperties::PropertyPtr& prop, sfe::Data data)
 {
 	T val;
 	data.get(val);
-	data.get(prop->m_stringValue);
 	prop->setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
 }
 

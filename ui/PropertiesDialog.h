@@ -7,6 +7,7 @@
 class Document;
 class ObjectProperties;
 class Property;
+class QTabWidget;
 
 class PropertiesDialog : public QDialog
 {
@@ -16,7 +17,12 @@ public:
 	PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent = nullptr);
 
 protected:
-	std::shared_ptr<ObjectProperties> m_properties;
 	using PropertyPair = std::pair<std::shared_ptr<Property>, QWidget*>;
-	std::vector<PropertyPair> m_propertyWidgets;
+	using PropertyPairList = std::vector<PropertyPair>;
+	using PropertyPairListIter = PropertyPairList::const_iterator;
+
+	void addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end);
+
+	std::shared_ptr<ObjectProperties> m_properties;
+	PropertyPairList m_propertyWidgets;
 };
