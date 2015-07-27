@@ -17,5 +17,6 @@ public:
 
 protected:
 	std::shared_ptr<ObjectProperties> m_properties;
-	std::vector<std::pair<Property&, QWidget*>> m_propertyWidgets;
+	using PropertyPair = std::pair<std::shared_ptr<Property>, QWidget*>;
+	std::vector<PropertyPair> m_propertyWidgets;
 };

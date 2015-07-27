@@ -20,28 +20,26 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	, m_properties(properties)
 {
 	setMinimumSize(300, 200);
+	resize(500, 600);
 	setWindowTitle(properties->objectName().c_str());
 
-	auto layout = new QVBoxLayout;
-	layout->setMargin(0);
-	auto scroll = new QScrollArea;
-	scroll->setFrameStyle(0);
-	layout->addWidget(scroll);
-	auto scrollWidget = new QWidget;
-	auto scrollLayout = new QVBoxLayout;
-	scrollWidget->setLayout(scrollLayout);
-	scrollLayout->setMargin(0);
-	scroll->setWidget(scrollWidget);
-	scroll->setWidgetResizable(true);
+	auto tabWidget = new QTabWidget;
+	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Apply |
+										  QDialogButtonBox::Reset |
+										  QDialogButtonBox::Ignore);
 
+	connect(buttonBox, SIGNAL(accepted()), this, SLOT(reject()));
+
+	auto mainLayout = new QVBoxLayout;
+	mainLayout->addWidget(tabWidget);
+	mainLayout->addWidget(buttonBox);
+	mainLayout->setContentsMargins(5, 5, 5, 5);
+
+	std::map<std::string, std::vector<PropertyPair>> propertyGroups;
+
+	// Create the property widgets
 	for(const auto& prop : properties->properties())
 	{
-		auto group = new QGroupBox;
-		auto layout = new QVBoxLayout;
-		layout->setMargin(5);
-		group->setLayout(layout);
-		group->setTitle(prop->name().c_str());
-
 		// create property type specific widget
 		QWidget* propWidget = nullptr;
 		switch(prop->storageType())
@@ -60,19 +58,49 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 			break;
 		}
 
-		if(propWidget)
+		if(!propWidget)
 		{
-			layout->addWidget(propWidget);
-		}
-		else
-		{
-			auto edit = new QLineEdit;
-			edit->setText(prop->m_stringValue.c_str());
-			layout->addWidget(edit);
+			auto lineEdit = new QLineEdit;
+			lineEdit->setText(prop->m_stringValue.c_str());
+			lineEdit->setEnabled(prop->readOnly());
+
+			propWidget = lineEdit;
 		}
 
-		scrollLayout->addWidget(group);
+		PropertyPair propPair = std::make_pair(prop, propWidget);
+		m_propertyWidgets.push_back(propPair);
+		propertyGroups[prop->group()].push_back(propPair);
 	}
 
-	setLayout(layout);
+	// Group the widgets and add them to the dialog
+	for(const auto& group : propertyGroups)
+	{
+		QString name = group.first.c_str();
+		if(name.isEmpty())
+			name = "Property";
+
+		auto scrollArea = new QScrollArea;
+		scrollArea->setFrameStyle(QFrame::NoFrame);
+		auto scrollWidget = new QWidget;
+		auto scrollLayout = new QVBoxLayout;
+		scrollWidget->setLayout(scrollLayout);
+		scrollLayout->setContentsMargins(0, 0, 0, 0);
+		scrollArea->setWidget(scrollWidget);
+		scrollArea->setWidgetResizable(true);
+
+		for(const auto& propPair : group.second)
+		{
+			auto groupBox = new QGroupBox;
+			auto layout = new QVBoxLayout;
+			layout->setContentsMargins(5, 5, 5, 5);
+			groupBox->setLayout(layout);
+			groupBox->setTitle(propPair.first->name().c_str());
+			layout->addWidget(propPair.second);
+			scrollLayout->addWidget(groupBox);
+		}
+
+		tabWidget->addTab(scrollArea, name);
+	}
+
+	setLayout(mainLayout);
 }
