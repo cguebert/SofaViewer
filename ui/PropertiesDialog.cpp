@@ -6,13 +6,13 @@
 #include <QtWidgets>
 
 template <class T>
-QWidget* createPropWidget(const Property& prop, QWidget* parent)
+QWidget* createPropWidget(const ObjectProperties::PropertyPtr& prop, QWidget* parent)
 {
-	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop.value());
+	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop->value());
 	if(!propValue)
 		return nullptr;
 	auto propWidget = new PropertyWidget<T>(prop, propValue, parent);
-	return propWidget->createWidgets(prop.readOnly());
+	return propWidget->createWidgets(prop->readOnly());
 }
 
 PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent)
@@ -20,7 +20,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	, m_properties(properties)
 {
 	setMinimumSize(300, 200);
-	setWindowTitle(properties->m_name.c_str());
+	setWindowTitle(properties->objectName().c_str());
 
 	auto layout = new QVBoxLayout;
 	layout->setMargin(0);
@@ -34,17 +34,17 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	scroll->setWidget(scrollWidget);
 	scroll->setWidgetResizable(true);
 
-	for(const auto& prop : properties->m_properties)
+	for(const auto& prop : properties->properties())
 	{
 		auto group = new QGroupBox;
 		auto layout = new QVBoxLayout;
 		layout->setMargin(5);
 		group->setLayout(layout);
-		group->setTitle(prop.name().c_str());
+		group->setTitle(prop->name().c_str());
 
 		// create property type specific widget
 		QWidget* propWidget = nullptr;
-		switch(prop.storageType())
+		switch(prop->storageType())
 		{
 		case Property::Type::Int:
 			propWidget = createPropWidget<int>(prop, this);
@@ -67,7 +67,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 		else
 		{
 			auto edit = new QLineEdit;
-			edit->setText(prop.m_stringValue.c_str());
+			edit->setText(prop->m_stringValue.c_str());
 			layout->addWidget(edit);
 		}
 

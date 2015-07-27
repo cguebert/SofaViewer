@@ -242,12 +242,12 @@ void Document::step()
 }
 
 template <class T>
-void setValue(Property& prop, sfe::Data data)
+void setValue(ObjectProperties::PropertyPtr& prop, sfe::Data data)
 {
 	T val;
 	data.get(val);
-	data.get(prop.m_stringValue);
-	prop.setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
+	data.get(prop->m_stringValue);
+	prop->setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
 }
 
 void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
@@ -266,8 +266,8 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 		columnCount = typeTrait->size();
 	}
 
-	Property prop(data.name(), data.help(), data.group(), data.readOnly(), storageType, valueType);
-	prop.setColumnCount(columnCount);
+	auto prop = std::make_shared<Property>(data.name(), data.help(), data.group(), data.readOnly(), storageType, valueType);
+	prop->setColumnCount(columnCount);
 
 	switch(storageType)
 	{
@@ -281,7 +281,7 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 	case sfe::Data::DataType::Vector_String:	setValue<std::vector<std::string>>(prop, data); break;
 	}
 
-	properties->m_properties.push_back(prop);
+	properties->addProperty(prop);
 }
 
 Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) const
@@ -290,26 +290,26 @@ Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) 
 	if(!item)
 		return nullptr;
 
-	auto prop = std::make_shared<ObjectProperties>();
-
 	if(item->isObject)
 	{
-		auto& obj = item->object;
-		prop->m_name = obj.name();
+		const auto& object = item->object;
+		auto prop = std::make_shared<ObjectProperties>(object.name(), object.className(), object.templateName());
 
-		auto names = obj.listData();
+		auto names = object.listData();
 		for(const auto& name : names)
-			addData(prop, obj.data(name));
+			addData(prop, object.data(name));
+
+		return prop;
 	}
 	else
 	{
-		auto& node = item->node;
-		prop->m_name = node.name();
+		const auto& node = item->object;
+		auto prop = std::make_shared<ObjectProperties>(node.name());
 
 		auto names = node.listData();
 		for(const auto& name : names)
 			addData(prop, node.data(name));
-	}
 
-	return prop;
+		return prop;
+	}
 }

@@ -4,7 +4,7 @@
 
 #include <QtWidgets>
 
-BasePropertyWidget::BasePropertyWidget(const Property& property, QWidget* parent)
+BasePropertyWidget::BasePropertyWidget(std::shared_ptr<Property> property, QWidget* parent)
 	: QWidget(parent)
 	, m_property(property)
 {
@@ -28,7 +28,7 @@ QWidget* PropertyWidget<std::vector<int>>::createWidgets(bool readOnly)
 	auto table = new QTableView(parentWidget());
 	table->setEnabled(!readOnly);
 	auto& value = m_propertyValue->value();
-	auto accessor = std::make_shared<TableValueAccessor<int>>(value, m_property.columnCount());
+	auto accessor = std::make_shared<TableValueAccessor<int>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
 	table->setModel(model);
 
@@ -40,7 +40,7 @@ QWidget* PropertyWidget<std::vector<float>>::createWidgets(bool readOnly)
 	auto table = new QTableView(parentWidget());
 	table->setEnabled(!readOnly);
 	auto& value = m_propertyValue->value();
-	auto accessor = std::make_shared<TableValueAccessor<float>>(value, m_property.columnCount());
+	auto accessor = std::make_shared<TableValueAccessor<float>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
 	table->setModel(model);
 
@@ -52,7 +52,7 @@ QWidget* PropertyWidget<std::vector<double>>::createWidgets(bool readOnly)
 	auto table = new QTableView(parentWidget());
 	table->setEnabled(!readOnly);
 	auto& value = m_propertyValue->value();
-	auto accessor = std::make_shared<TableValueAccessor<double>>(value, m_property.columnCount());
+	auto accessor = std::make_shared<TableValueAccessor<double>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
 	table->setModel(model);
 

@@ -15,12 +15,12 @@ class BasePropertyWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	BasePropertyWidget(const Property& property, QWidget *parent = nullptr);
+	BasePropertyWidget(std::shared_ptr<Property> property, QWidget *parent = nullptr);
 
 	virtual QWidget* createWidgets(bool readOnly = true) = 0;
 
 protected:
-	const Property& m_property;
+	std::shared_ptr<Property> m_property;
 };
 
 // Specializations for supported types
@@ -28,7 +28,7 @@ template <class T>
 class PropertyWidget : public BasePropertyWidget
 {
 public:
-	PropertyWidget(const Property& property,
+	PropertyWidget(std::shared_ptr<Property> property,
 				   std::shared_ptr<PropertyValue<T>> propertyValue,
 				   QWidget *parent = nullptr)
 		: BasePropertyWidget(property, parent)
