@@ -3,16 +3,17 @@
 
 #include <sfe/sofaFrontEndLocal.h>
 
-#include <QFileInfo>
 #include <QDir>
+#include <QFileInfo>
 
 class ChangeDir
 {
 public:
-	ChangeDir(const QString& path)
+	ChangeDir(const std::string& path)
 	{
 		prevDir = QDir::current();
-		QDir::setCurrent(QFileInfo(path).absolutePath());
+		QString qtPath = path.c_str();
+		QDir::setCurrent(QFileInfo(qtPath).absolutePath());
 	}
 
 	~ChangeDir() { QDir::setCurrent(prevDir.absolutePath()); }
@@ -48,11 +49,10 @@ Document::Document()
 	m_simulation = sfe::getLocalSimulation();
 }
 
-bool Document::loadFile(const QString& path)
+bool Document::loadFile(const std::string& path)
 {
 	ChangeDir cd(path);
-	std::string cpath = path.toLocal8Bit().constData();
-	if (!m_simulation.loadFile(cpath))
+	if (!m_simulation.loadFile(path))
 		return false;
 	else
 	{
@@ -211,6 +211,7 @@ Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 	n->parent = parent.get();
 	n->isObject = true;
 	n->object = object;
+	m_graphImages.setImage(*n.get());
 
 	// Parse slaves
 	for(auto& slave : object.slaves())
@@ -229,16 +230,18 @@ Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
 	n->parent = parent.get();
 	n->isObject = false;
 	n->node = node;
+	m_graphImages.setImage(*n.get());
 
 	return n;
 }
 
 void Document::createGraph()
-{
+{	
 	auto root = m_simulation.root();
 	auto rootNode = createNode(root, nullptr);
 	parseNode(rootNode, root);
 	m_graph.setRoot(rootNode);
+	m_graph.setImages(m_graphImages.images());
 }
 
 void Document::step()

@@ -8,6 +8,7 @@ TEMPLATE = app
 SOURCES += main.cpp\
 	core/Document.cpp \
 	core/Graph.cpp \
+	core/GraphImages.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
 	core/ObjectProperties.cpp \
@@ -22,6 +23,7 @@ SOURCES += main.cpp\
 HEADERS  += \
 	core/Document.h \
 	core/Graph.h \
+	core/GraphImages.h \
 	core/Model.h \
 	core/MouseManipulator.h \
 	core/ObjectProperties.h \

@@ -231,7 +231,8 @@ QString MainWindow::strippedName(const QString& fullFileName)
 bool MainWindow::loadFile(const QString& fileName)
 {
 	m_document = std::make_shared<Document>();
-	if (!m_document->loadFile(fileName))
+	std::string cpath = fileName.toLocal8Bit().constData();
+	if (!m_document->loadFile(cpath))
 	{
 		statusBar()->showMessage(tr("Loading failed"), 2000);
 

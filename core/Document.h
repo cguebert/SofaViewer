@@ -3,6 +3,7 @@
 #include <core/Graph.h>
 #include <core/Scene.h>
 #include <core/MouseManipulator.h>
+#include <core/GraphImages.h>
 #include <sfe/Simulation.h>
 
 #include <QString>
@@ -28,7 +29,7 @@ class Document
 {
 public:
 	Document();
-	bool loadFile(const QString& path);
+	bool loadFile(const std::string& path);
 	void initOpenGL();
 	void step();
 
@@ -52,6 +53,7 @@ protected:
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 	sfe::Simulation m_simulation;
+	GraphImages m_graphImages;
 };
 
 class SofaNode : public Graph::Node

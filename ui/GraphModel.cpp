@@ -1,12 +1,14 @@
 #include "GraphModel.h"
 
-
 #include <core/Graph.h>
+
+#include <QPixmap>
 
 GraphModel::GraphModel(QObject* parent, Graph& graph)
 	: QAbstractItemModel(parent)
 	, m_graph(graph)
 {
+	initPixmaps();
 }
 
 QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) const
@@ -76,17 +78,38 @@ int GraphModel::columnCount(const QModelIndex& /*index*/) const
 
 QVariant GraphModel::data(const QModelIndex& index, int role) const
 {
-	if (!index.isValid() || role != Qt::DisplayRole)
+	if (!index.isValid())
 		return QVariant();
 
-	Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
-	if(item->type.empty()) // Node
+	if(role == Qt::DisplayRole)
 	{
-		if(index.column())
-			return QVariant();
-		return QVariant(item->name.c_str());
+		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		if(item->type.empty()) // Node
+		{
+			if(index.column())
+				return QVariant();
+			return QVariant(item->name.c_str());
+		}
+
+		QString name = QString(item->type.c_str()) + "  " + item->name.c_str();
+		return QVariant(name);
+	}
+	else if(role == Qt::DecorationRole)
+	{
+		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		if(item->imageId != -1)
+			return QVariant(m_pixmaps[item->imageId]);
 	}
 
-	QString name = QString(item->type.c_str()) + "  " + item->name.c_str();
-	return QVariant(name);
+	return QVariant();
+}
+
+void GraphModel::initPixmaps()
+{
+	m_pixmaps.clear();
+	for(const auto& graphImg : m_graph.images())
+	{
+		QImage img(&graphImg.data[0], graphImg.width, graphImg.height, QImage::Format_ARGB32);
+		m_pixmaps.push_back(QPixmap::fromImage(std::move(img)));
+	}
 }
