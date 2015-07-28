@@ -9,16 +9,16 @@ GraphModel::GraphModel(QObject* parent, Graph& graph)
 {
 }
 
-QModelIndex GraphModel::index(int row, int column, const QModelIndex& index) const
+QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) const
 {
-	if (!hasIndex(row, column, index))
+	if (!hasIndex(row, column, parent))
 		return QModelIndex();
 
 	const Graph::Node* item;
-	if (!index.isValid())
-		item = m_graph.root();
+	if (!parent.isValid())
+		return createIndex(0, 0, m_graph.root());
 	else
-		item = static_cast<Graph::Node*>(index.internalPointer());
+		item = static_cast<Graph::Node*>(parent.internalPointer());
 
 	int nbObjects = item->objects.size(), nbChildren = item->children.size();
 	if(row < nbObjects)
@@ -47,27 +47,26 @@ QModelIndex GraphModel::parent(const QModelIndex& index) const
 	Graph::Node* childItem = static_cast<Graph::Node*>(index.internalPointer());
 	Graph::Node* parentItem = childItem->parent;
 
-	if (parentItem == m_graph.root())
+	if (childItem == m_graph.root())
 		return QModelIndex();
+	else if (parentItem == m_graph.root())
+		return createIndex(0, 0, parentItem);
 
 	return createIndex(indexOfChild(parentItem), 0, parentItem);
 }
 
-int GraphModel::rowCount(const QModelIndex& index) const
+int GraphModel::rowCount(const QModelIndex& parent) const
 {
-	if (index.column() > 0)
+	if (parent.column() > 0)
 		return 0;
 
-	const Graph::Node* item;
-	if (!index.isValid())
-		item = m_graph.root();
+	if (!parent.isValid())
+		return 1;
 	else
-		item = static_cast<Graph::Node*>(index.internalPointer());
-
-	if(item)
+	{
+		auto item = static_cast<Graph::Node*>(parent.internalPointer());
 		return item->objects.size() + item->children.size();
-	else
-		return 0;
+	}
 }
 
 int GraphModel::columnCount(const QModelIndex& /*index*/) const
@@ -77,10 +76,7 @@ int GraphModel::columnCount(const QModelIndex& /*index*/) const
 
 QVariant GraphModel::data(const QModelIndex& index, int role) const
 {
-	if (!index.isValid())
-		return QVariant();
-
-	if (role != Qt::DisplayRole)
+	if (!index.isValid() || role != Qt::DisplayRole)
 		return QVariant();
 
 	Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());

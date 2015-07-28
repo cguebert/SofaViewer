@@ -212,6 +212,13 @@ Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 	n->isObject = true;
 	n->object = object;
 
+	// Parse slaves
+	for(auto& slave : object.slaves())
+	{
+		auto s = createNode(slave, n);
+		n->objects.push_back(s);
+	}
+
 	return n;
 }
 
@@ -302,7 +309,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) 
 	}
 	else
 	{
-		const auto& node = item->object;
+		const auto& node = item->node;
 		auto prop = std::make_shared<ObjectProperties>(node.name());
 
 		auto names = node.listData();

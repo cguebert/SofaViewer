@@ -22,7 +22,7 @@ public:
 		static NodePtr create() { return std::make_shared<Graph::Node>(); }
 	};
 
-	const Node* root() const;
+	Node* root() const;
 	void setRoot(NodePtr root);
 
 protected:
@@ -30,6 +30,6 @@ protected:
 	NodePtr m_root;
 };
 
-inline const Graph::Node* Graph::root() const
+inline Graph::Node* Graph::root() const
 { return m_root.get(); }
 
