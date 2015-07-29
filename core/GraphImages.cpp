@@ -165,37 +165,38 @@ void squares(Graph::Image& image, const ColorList& colors)
 		fill(image, 1 + i * squareSize, (i+1) * squareSize, 1, h - 2, colors[i]);
 }
 
-inline void addFlag(unsigned int& flags, const sfe::Object& object, const std::string& name, int flag)
+inline void addFlag(unsigned int& flags, const std::vector<std::string>& hierarchy, const std::string& type, int flag)
 {
-	if(object.isInstanceOf(name))
+	if(hierarchy.end() != std::find(hierarchy.begin(), hierarchy.end(), type))
 		flags |= 1 << flag;
 }
 
 unsigned int getFlags(const sfe::Object& object)
 {
+	auto hierarchy = object.hierarchy();
 	unsigned int flags = 0;
-	addFlag(flags, object, "ContextObject", Colors::CONTEXT);
-	addFlag(flags, object, "BehaviorModel", Colors::BMODEL);
-	addFlag(flags, object, "CollisionModel", Colors::CMODEL);
-	addFlag(flags, object, "BaseMechanicalState", Colors::MMODEL);
-	addFlag(flags, object, "BaseProjectiveConstraintSet", Colors::PROJECTIVECONSTRAINTSET);
-	addFlag(flags, object, "BaseConstraintSet", Colors::CONSTRAINTSET);
-	addFlag(flags, object, "BaseInteractionForceField", Colors::IFFIELD);
-	addFlag(flags, object, "BaseForceField", Colors::FFIELD);
-	addFlag(flags, object, "BaseAnimationLoop", Colors::SOLVER);
-	addFlag(flags, object, "OdeSolver", Colors::SOLVER);
-	addFlag(flags, object, "Pipeline", Colors::COLLISION);
-	addFlag(flags, object, "Intersection", Colors::COLLISION);
-	addFlag(flags, object, "Detection", Colors::COLLISION);
-	addFlag(flags, object, "ContactManager", Colors::COLLISION);
-	addFlag(flags, object, "CollisionGroupManager", Colors::COLLISION);
-	addFlag(flags, object, "BaseMapping", Colors::MAPPING); // TODO: isMechanical -> MMAPPING
-	addFlag(flags, object, "BaseMass", Colors::MASS);
-	addFlag(flags, object, "Topology", Colors::TOPOLOGY);
-	addFlag(flags, object, "BaseTopologyObject", Colors::TOPOLOGY);
-	addFlag(flags, object, "BaseLoader", Colors::LOADER);
-	addFlag(flags, object, "ConfigurationSetting", Colors::CONFIGURATIONSETTING);
-	addFlag(flags, object, "VisualModel", Colors::VMODEL);
+	addFlag(flags, hierarchy, "ContextObject", Colors::CONTEXT);
+	addFlag(flags, hierarchy, "BehaviorModel", Colors::BMODEL);
+	addFlag(flags, hierarchy, "CollisionModel", Colors::CMODEL);
+	addFlag(flags, hierarchy, "BaseMechanicalState", Colors::MMODEL);
+	addFlag(flags, hierarchy, "BaseProjectiveConstraintSet", Colors::PROJECTIVECONSTRAINTSET);
+	addFlag(flags, hierarchy, "BaseConstraintSet", Colors::CONSTRAINTSET);
+	addFlag(flags, hierarchy, "BaseInteractionForceField", Colors::IFFIELD);
+	addFlag(flags, hierarchy, "BaseForceField", Colors::FFIELD);
+	addFlag(flags, hierarchy, "BaseAnimationLoop", Colors::SOLVER);
+	addFlag(flags, hierarchy, "OdeSolver", Colors::SOLVER);
+	addFlag(flags, hierarchy, "Pipeline", Colors::COLLISION);
+	addFlag(flags, hierarchy, "Intersection", Colors::COLLISION);
+	addFlag(flags, hierarchy, "Detection", Colors::COLLISION);
+	addFlag(flags, hierarchy, "ContactManager", Colors::COLLISION);
+	addFlag(flags, hierarchy, "CollisionGroupManager", Colors::COLLISION);
+	addFlag(flags, hierarchy, "BaseMapping", Colors::MAPPING); // TODO: isMechanical -> MMAPPING
+	addFlag(flags, hierarchy, "BaseMass", Colors::MASS);
+	addFlag(flags, hierarchy, "Topology", Colors::TOPOLOGY);
+	addFlag(flags, hierarchy, "BaseTopologyObject", Colors::TOPOLOGY);
+	addFlag(flags, hierarchy, "BaseLoader", Colors::LOADER);
+	addFlag(flags, hierarchy, "ConfigurationSetting", Colors::CONFIGURATIONSETTING);
+	addFlag(flags, hierarchy, "VisualModel", Colors::VMODEL);
 
 	if(!flags)
 		flags |= 1 << Colors::OBJECT;
