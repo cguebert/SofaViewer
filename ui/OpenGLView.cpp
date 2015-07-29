@@ -25,7 +25,7 @@ void OpenGLView::setDocument(Document* doc)
 		makeCurrent();
 		m_document->initOpenGL();
 		if(m_width && m_height)
-			m_document->scene().resize(m_width, m_height);
+			m_document->resize(m_width, m_height);
 		m_documentInitialized = true;
 		update();
 	}
@@ -44,7 +44,7 @@ void OpenGLView::resizeGL(int w, int h)
 {
 	m_width = w; m_height = h;
 	if(m_document)
-		m_document->scene().resize(w, h);
+		m_document->resize(w, h);
 }
 
 void OpenGLView::paintGL()
@@ -56,7 +56,7 @@ void OpenGLView::paintGL()
 	}
 
 	if(m_document)
-		m_document->scene().render();
+		m_document->render();
 	else
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }

@@ -30,8 +30,13 @@ class Document
 public:
 	Document();
 	bool loadFile(const std::string& path);
+
 	void initOpenGL();
+	void resize(int width, int height);
+	void render();
+
 	void step();
+	void animate();
 
 	Scene& scene();
 	Graph& graph();
@@ -42,6 +47,7 @@ public:
 
 protected:
 	void parseScene();
+	void postStep();
 	void updateObjects();
 	void createGraph();
 
@@ -54,6 +60,7 @@ protected:
 	SofaMouseManipulator m_mouseManipulator;
 	sfe::Simulation m_simulation;
 	GraphImages m_graphImages;
+	bool m_updateObjects = false;
 };
 
 class SofaNode : public Graph::Node

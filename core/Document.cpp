@@ -47,6 +47,8 @@ Document::Document()
 	: m_mouseManipulator(m_scene)
 {
 	m_simulation = sfe::getLocalSimulation();
+
+	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
 }
 
 bool Document::loadFile(const std::string& path)
@@ -75,6 +77,22 @@ bool Document::loadFile(const std::string& path)
 void Document::initOpenGL()
 {
 	m_scene.initOpenGL();
+}
+
+void Document::resize(int width, int height)
+{
+	m_scene.resize(width, height);
+}
+
+void Document::render()
+{
+	if(m_updateObjects)
+	{
+		for(auto model : m_scene.models())
+			model->updatePositions();
+	}
+
+	m_scene.render();
 }
 
 // Helper function to parse the material (a string) and extract the diffuse color
@@ -183,7 +201,6 @@ void Document::updateObjects()
 	{
 		model->d_vertices.get(model->m_vertices);
 		model->d_normals.get(model->m_normals);
-		model->updatePositions();
 	}
 }
 
@@ -247,7 +264,18 @@ void Document::createGraph()
 void Document::step()
 {
 	m_simulation.step();
+}
+
+void Document::animate()
+{
+	bool animating = m_simulation.isAnimating();
+	m_simulation.setAnimate(!animating);
+}
+
+void Document::postStep()
+{
 	updateObjects();
+	m_updateObjects = true; // We have to modify the buffers in the correct thread
 	ViewUpdater::get().update();
 }
 

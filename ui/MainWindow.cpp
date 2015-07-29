@@ -17,8 +17,11 @@ MainWindow::MainWindow(QWidget *parent)
 	auto buttonsWidget = new QWidget(this);
 	auto buttonsLayout = new QHBoxLayout;
 	auto stepButton = new QPushButton(tr("Step"));
+	auto animateButton = new QPushButton(tr("Animate"));
 	connect(stepButton, SIGNAL(clicked(bool)), this, SLOT(step()));
+	connect(animateButton, SIGNAL(clicked(bool)), this, SLOT(animate()));
 	buttonsLayout->addWidget(stepButton);
+	buttonsLayout->addWidget(animateButton);
 	buttonsWidget->setLayout(buttonsLayout);
 	buttonsDock->setObjectName("ButtonsDock");
 	buttonsDock->setWidget(buttonsWidget);
@@ -311,6 +314,12 @@ void MainWindow::step()
 {
 	if(m_document)
 		m_document->step();
+}
+
+void MainWindow::animate()
+{
+	if(m_document)
+		m_document->animate();
 }
 
 void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
