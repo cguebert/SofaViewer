@@ -1,11 +1,15 @@
 #pragma once
 
 #include <QMainWindow>
+
+#include <functional>
 #include <memory>
+#include <vector>
 
 class OpenGLView;
 class QTreeView;
 class BaseDocument;
+class SimpleGUIImpl;
 
 class MainWindow : public QMainWindow
 {
@@ -13,6 +17,11 @@ class MainWindow : public QMainWindow
 
 public:
 	MainWindow(QWidget *parent = nullptr);
+
+	using CallbackFunc = std::function<void()>;
+	int addCallback(CallbackFunc func);
+
+	QMenu* menu(unsigned char menuId);
 
 private slots:
 	void open();
@@ -22,6 +31,7 @@ private slots:
 	void openRecentFile();
 	void showStatusBarMessage(QString);
 	void graphItemDoubleClicked(const QModelIndex&);
+	void executeCallback();
 
 private:
 	void createActions();
@@ -40,6 +50,9 @@ private:
 	OpenGLView* m_view;
 	QTreeView* m_graph;
 	std::shared_ptr<BaseDocument> m_document;
+	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
+
+	std::vector<CallbackFunc> m_callbacks;
 
 	QString strippedName(const QString &fullFileName);
 

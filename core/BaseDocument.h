@@ -19,13 +19,17 @@ protected:
 	UpdateFunc m_func;
 };
 
+/******************************************************************************/
+
 class ObjectProperties;
+
+namespace ui { class SimpleGUI; }
 
 class BaseDocument
 {
 public:
-	BaseDocument() {}
-	~BaseDocument() {}
+	BaseDocument(ui::SimpleGUI& /*gui*/) {}
+	virtual ~BaseDocument() {}
 
 	virtual bool loadFile(const std::string& /*path*/) { return false; }
 

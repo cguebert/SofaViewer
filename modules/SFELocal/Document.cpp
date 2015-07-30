@@ -1,14 +1,34 @@
 #include "Document.h"
+
 #include <core/ObjectProperties.h>
+#include <core/SimpleGUI.h>
 
 #include <sfe/sofaFrontEndLocal.h>
 
-Document::Document()
-	: m_mouseManipulator(m_scene)
+Document::Document(ui::SimpleGUI& gui)
+	: BaseDocument(gui)
+	, m_gui(gui)
+	, m_mouseManipulator(m_scene)
 {
 	m_simulation = sfe::getLocalSimulation();
 
 	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
+	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
+
+	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ m_simulation.step(); });
+	m_gui.buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
+		bool animating = m_simulation.isAnimating();
+		m_simulation.setAnimate(!animating);
+	}, 0, 1);
+
+	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){
+		bool animating = m_simulation.isAnimating();
+		if(animating)
+			m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
+		m_simulation.reset();
+		if(animating)
+			m_simulation.setAnimate(true);
+	});
 }
 
 bool Document::loadFile(const std::string& path)
@@ -223,17 +243,6 @@ void Document::createGraph()
 	parseNode(rootNode, root);
 	m_graph.setRoot(rootNode);
 	m_graph.setImages(m_graphImages.images());
-}
-
-void Document::step()
-{
-	m_simulation.step();
-}
-
-void Document::animate()
-{
-	bool animating = m_simulation.isAnimating();
-	m_simulation.setAnimate(!animating);
 }
 
 void Document::postStep()

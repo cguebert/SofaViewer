@@ -19,7 +19,8 @@ SOURCES += main.cpp\
 	ui/MainWindow.cpp \
 	ui/OpenGLView.cpp \
 	ui/PropertiesDialog.cpp \
-	ui/PropertyWidget.cpp
+	ui/PropertyWidget.cpp \
+	ui/SimpleGUIImpl.cpp
 
 HEADERS  += \
 	core/BaseDocument.h \
@@ -29,13 +30,15 @@ HEADERS  += \
 	core/ObjectProperties.h \
 	core/Property.h \
 	core/Scene.h \
+	core/SimpleGUI.h \
 	modules/SFELocal/Document.h \
 	modules/SFELocal/GraphImages.h \
 	ui/GraphModel.h \
 	ui/MainWindow.h \
 	ui/OpenGLView.h \
 	ui/PropertiesDialog.h \
-	ui/PropertyWidget.h
+	ui/PropertyWidget.h \
+	ui/SimpleGUIImpl.h
 
 RESOURCES     = SofaFrontEndViewer.qrc
 win32:RC_FILE = SofaFrontEndViewer.rc

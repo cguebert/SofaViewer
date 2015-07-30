@@ -2,6 +2,7 @@
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
 #include <ui/PropertiesDialog.h>
+#include <ui/SimpleGUIImpl.h>
 
 #include <modules/SFELocal/Document.h>
 
@@ -28,12 +29,10 @@ protected:
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
 {
-	m_document = std::make_shared<Document>();
-
 	// Buttons
 	auto buttonsDock = new QDockWidget(tr("Buttons"));
 	auto buttonsWidget = new QWidget(this);
-	auto buttonsLayout = new QHBoxLayout;
+	auto buttonsLayout = new QGridLayout;
 	buttonsWidget->setLayout(buttonsLayout);
 	buttonsDock->setObjectName("ButtonsDock");
 	buttonsDock->setWidget(buttonsWidget);
@@ -52,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent)
 	addDockWidget(Qt::LeftDockWidgetArea, graphDock);
 
 	connect(m_graph, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(graphItemDoubleClicked(QModelIndex)));
+
+	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this, buttonsLayout);
 
 	m_view = new OpenGLView(this);
 	setCentralWidget(m_view);
@@ -245,7 +246,7 @@ QString MainWindow::strippedName(const QString& fullFileName)
 
 bool MainWindow::loadFile(const QString& fileName)
 {
-	m_document = std::make_shared<Document>();
+	m_document = std::make_shared<Document>(*m_simpleGUI.get());
 	std::string cpath = fileName.toLocal8Bit().constData();
 	ChangeDir cd(cpath);
 	if (!m_document->loadFile(cpath))
@@ -337,5 +338,43 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 				dlg->show();
 			}
 		}
+	}
+}
+
+int MainWindow::addCallback(CallbackFunc func)
+{
+	auto id = m_callbacks.size();
+	m_callbacks.push_back(func);
+	return id;
+}
+
+void MainWindow::executeCallback()
+{
+	QAction* action = qobject_cast<QAction*>(sender());
+	if(action)
+	{
+		bool ok = false;
+		int id = action->data().toInt(&ok);
+		if(ok)
+			m_callbacks[id]();
+	}
+}
+
+QMenu* MainWindow::menu(unsigned char idVal)
+{
+	using Type = ui::SimpleGUI::Menu;
+	auto menuId = static_cast<Type>(idVal);
+	switch(menuId)
+	{
+	case Type::File:
+		return m_fileMenu;
+	case Type::Tools:
+		return m_toolsMenu;
+	case Type::View:
+		return m_viewMenu;
+	case Type::Help:
+		return m_helpMenu;
+	default:
+		return nullptr;
 	}
 }

@@ -13,7 +13,7 @@ class ObjectProperties;
 class Document : public BaseDocument
 {
 public:
-	Document();
+	Document(ui::SimpleGUI& gui);
 	bool loadFile(const std::string& path) override;
 
 	void initOpenGL() override;
@@ -26,9 +26,6 @@ public:
 
 	ObjectPropertiesPtr objectProperties(Graph::Node* item) const override;
 
-	void step();
-	void animate();
-
 protected:
 	void parseScene();
 	void postStep();
@@ -39,6 +36,7 @@ protected:
 	Graph::NodePtr createNode(sfe::Object object, Graph::NodePtr parent);
 	Graph::NodePtr createNode(sfe::Node node, Graph::NodePtr parent);
 
+	ui::SimpleGUI& m_gui;
 	Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
