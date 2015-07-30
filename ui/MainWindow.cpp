@@ -3,9 +3,27 @@
 #include <ui/OpenGLView.h>
 #include <ui/PropertiesDialog.h>
 
-#include <core/Document.h>
+#include <modules/SFELocal/Document.h>
 
 #include <QtWidgets>
+
+class ChangeDir
+{
+public:
+	ChangeDir(const std::string& path)
+	{
+		prevDir = QDir::current();
+		QString qtPath = path.c_str();
+		QDir::setCurrent(QFileInfo(qtPath).absolutePath());
+	}
+
+	~ChangeDir() { QDir::setCurrent(prevDir.absolutePath()); }
+
+protected:
+	QDir prevDir;
+};
+
+/******************************************************************************/
 
 MainWindow::MainWindow(QWidget *parent)
 	: QMainWindow(parent)
@@ -16,12 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
 	auto buttonsDock = new QDockWidget(tr("Buttons"));
 	auto buttonsWidget = new QWidget(this);
 	auto buttonsLayout = new QHBoxLayout;
-	auto stepButton = new QPushButton(tr("Step"));
-	auto animateButton = new QPushButton(tr("Animate"));
-	connect(stepButton, SIGNAL(clicked(bool)), this, SLOT(step()));
-	connect(animateButton, SIGNAL(clicked(bool)), this, SLOT(animate()));
-	buttonsLayout->addWidget(stepButton);
-	buttonsLayout->addWidget(animateButton);
 	buttonsWidget->setLayout(buttonsLayout);
 	buttonsDock->setObjectName("ButtonsDock");
 	buttonsDock->setWidget(buttonsWidget);
@@ -235,6 +247,7 @@ bool MainWindow::loadFile(const QString& fileName)
 {
 	m_document = std::make_shared<Document>();
 	std::string cpath = fileName.toLocal8Bit().constData();
+	ChangeDir cd(cpath);
 	if (!m_document->loadFile(cpath))
 	{
 		statusBar()->showMessage(tr("Loading failed"), 2000);
@@ -308,18 +321,6 @@ void MainWindow::about()
 			tr("<h2>Sofa Front End Viewer</h2>"
 			   "<p>Copyright &copy; 2015 Christophe Guébert"
 			   "<p>Using Sofa and Sofa Front End"));
-}
-
-void MainWindow::step()
-{
-	if(m_document)
-		m_document->step();
-}
-
-void MainWindow::animate()
-{
-	if(m_document)
-		m_document->animate();
 }
 
 void MainWindow::graphItemDoubleClicked(const QModelIndex& index)

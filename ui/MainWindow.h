@@ -5,7 +5,7 @@
 
 class OpenGLView;
 class QTreeView;
-class Document;
+class BaseDocument;
 
 class MainWindow : public QMainWindow
 {
@@ -21,8 +21,6 @@ private slots:
 	void about();
 	void openRecentFile();
 	void showStatusBarMessage(QString);
-	void step();
-	void animate();
 	void graphItemDoubleClicked(const QModelIndex&);
 
 private:
@@ -41,7 +39,7 @@ private:
 
 	OpenGLView* m_view;
 	QTreeView* m_graph;
-	std::shared_ptr<Document> m_document;
+	std::shared_ptr<BaseDocument> m_document;
 
 	QString strippedName(const QString &fullFileName);
 

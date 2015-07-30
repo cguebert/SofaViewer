@@ -1,47 +1,7 @@
-#include <core/Document.h>
+#include "Document.h"
 #include <core/ObjectProperties.h>
 
 #include <sfe/sofaFrontEndLocal.h>
-
-#include <QDir>
-#include <QFileInfo>
-
-class ChangeDir
-{
-public:
-	ChangeDir(const std::string& path)
-	{
-		prevDir = QDir::current();
-		QString qtPath = path.c_str();
-		QDir::setCurrent(QFileInfo(qtPath).absolutePath());
-	}
-
-	~ChangeDir() { QDir::setCurrent(prevDir.absolutePath()); }
-
-protected:
-	QDir prevDir;
-};
-
-/******************************************************************************/
-
-ViewUpdater& ViewUpdater::get()
-{
-	static ViewUpdater instance;
-	return instance;
-}
-
-void ViewUpdater::setSignal(UpdateFunc func)
-{
-	m_func = func;
-}
-
-void ViewUpdater::update()
-{
-	if(m_func)
-		m_func();
-}
-
-/******************************************************************************/
 
 Document::Document()
 	: m_mouseManipulator(m_scene)
@@ -53,7 +13,6 @@ Document::Document()
 
 bool Document::loadFile(const std::string& path)
 {
-	ChangeDir cd(path);
 	if (!m_simulation.loadFile(path))
 		return false;
 	else
@@ -93,6 +52,11 @@ void Document::render()
 	}
 
 	m_scene.render();
+}
+
+bool Document::mouseEvent(const MouseEvent& event)
+{
+	return m_mouseManipulator.mouseEvent(event);
 }
 
 // Helper function to parse the material (a string) and extract the diffuse color

@@ -1,49 +1,33 @@
 #pragma once
 
+#include <core/BaseDocument.h>
 #include <core/Graph.h>
 #include <core/Scene.h>
 #include <core/MouseManipulator.h>
-#include <core/GraphImages.h>
 #include <sfe/Simulation.h>
 
-#include <QString>
-#include <functional>
-
-class ViewUpdater
-{
-public:
-	static ViewUpdater& get();
-
-	using UpdateFunc = std::function<void ()>;
-
-	void setSignal(UpdateFunc func);
-	void update();
-
-protected:
-	UpdateFunc m_func;
-};
+#include "GraphImages.h"
 
 class ObjectProperties;
 
-class Document
+class Document : public BaseDocument
 {
 public:
 	Document();
-	bool loadFile(const std::string& path);
+	bool loadFile(const std::string& path) override;
 
-	void initOpenGL();
-	void resize(int width, int height);
-	void render();
+	void initOpenGL() override;
+	void resize(int width, int height) override;
+	void render() override;
+
+	bool mouseEvent(const MouseEvent& event) override;
+
+	Graph& graph() override;
+
+	ObjectPropertiesPtr objectProperties(Graph::Node* item) const override;
 
 	void step();
 	void animate();
-
-	Scene& scene();
-	Graph& graph();
-	MouseManipulator& mouseManipulator();
-
-	using ObjectPropertiesPtr = std::shared_ptr<ObjectProperties>;
-	ObjectPropertiesPtr objectProperties(Graph::Node* item) const;
 
 protected:
 	void parseScene();
@@ -74,12 +58,6 @@ public:
 	sfe::Node node;		//  as they have a copy constructor
 };
 
-inline Scene& Document::scene()
-{ return m_scene; }
-
 inline Graph& Document::graph()
 { return m_graph; }
-
-inline MouseManipulator& Document::mouseManipulator()
-{ return m_mouseManipulator; }
 

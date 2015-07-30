@@ -3,7 +3,7 @@
 #include <QOpenGLWidget>
 #include <QOpenGLFunctions_3_3_Core>
 
-class Document;
+class BaseDocument;
 
 class OpenGLView : public QOpenGLWidget, public QOpenGLFunctions_3_3_Core
 {
@@ -11,7 +11,7 @@ class OpenGLView : public QOpenGLWidget, public QOpenGLFunctions_3_3_Core
 
 public:
 	OpenGLView(QWidget *parent = nullptr);
-	void setDocument(Document* doc);
+	void setDocument(BaseDocument* doc);
 
 protected:
 	void initializeGL() override;
@@ -24,6 +24,6 @@ protected:
 	void mouseMoveEvent(QMouseEvent* event) override;
 
 	int m_width = 0, m_height = 0;
-	Document* m_document = nullptr;
+	BaseDocument* m_document = nullptr;
 	bool m_OpenGLInitialized = false, m_documentInitialized = false;
 };

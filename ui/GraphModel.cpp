@@ -63,7 +63,7 @@ int GraphModel::rowCount(const QModelIndex& parent) const
 		return 0;
 
 	if (!parent.isValid())
-		return 1;
+		return m_graph.root() ? 1 : 0;
 	else
 	{
 		auto item = static_cast<Graph::Node*>(parent.internalPointer());

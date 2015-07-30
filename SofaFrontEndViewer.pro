@@ -6,14 +6,15 @@ Debug:TARGET = SofaFrontEndViewer_d
 TEMPLATE = app
 
 SOURCES += main.cpp\
-	core/Document.cpp \
+	core/BaseDocument.cpp \
 	core/Graph.cpp \
-	core/GraphImages.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
 	core/ObjectProperties.cpp \
 	core/Property.cpp \
 	core/Scene.cpp \
+	modules/SFELocal/Document.cpp \
+	modules/SFELocal/GraphImages.cpp \
 	ui/GraphModel.cpp \
 	ui/MainWindow.cpp \
 	ui/OpenGLView.cpp \
@@ -21,14 +22,15 @@ SOURCES += main.cpp\
 	ui/PropertyWidget.cpp
 
 HEADERS  += \
-	core/Document.h \
+	core/BaseDocument.h \
 	core/Graph.h \
-	core/GraphImages.h \
 	core/Model.h \
 	core/MouseManipulator.h \
 	core/ObjectProperties.h \
 	core/Property.h \
 	core/Scene.h \
+	modules/SFELocal/Document.h \
+	modules/SFELocal/GraphImages.h \
 	ui/GraphModel.h \
 	ui/MainWindow.h \
 	ui/OpenGLView.h \

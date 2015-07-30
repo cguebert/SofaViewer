@@ -1,5 +1,5 @@
 #include <ui/OpenGLView.h>
-#include <core/Document.h>
+#include <core/BaseDocument.h>
 
 #include <QMouseEvent>
 
@@ -16,7 +16,7 @@ OpenGLView::OpenGLView(QWidget *parent)
 	ViewUpdater::get().setSignal([this](){ update(); });
 }
 
-void OpenGLView::setDocument(Document* doc)
+void OpenGLView::setDocument(BaseDocument* doc)
 {
 	m_document = doc;
 
@@ -87,28 +87,28 @@ MouseEvent convert(QMouseEvent* event, MouseEvent::EventType type, int w, int h)
 
 void OpenGLView::mousePressEvent(QMouseEvent* event)
 {
-	if(m_document && m_document->mouseManipulator().mouseEvent(
+	if(m_document && m_document->mouseEvent(
 		convert(event, MouseEvent::EventType::MousePress, m_width, m_height)))
 			update();
 }
 
 void OpenGLView::mouseDoubleClickEvent(QMouseEvent* event)
 {
-	if(m_document && m_document->mouseManipulator().mouseEvent(
+	if(m_document && m_document->mouseEvent(
 		convert(event, MouseEvent::EventType::MouseDoubleClick, m_width, m_height)))
 			update();
 }
 
 void OpenGLView::mouseReleaseEvent(QMouseEvent* event)
 {
-	if(m_document && m_document->mouseManipulator().mouseEvent(
+	if(m_document && m_document->mouseEvent(
 		convert(event, MouseEvent::EventType::MouseRelease, m_width, m_height)))
 			update();
 }
 
 void OpenGLView::mouseMoveEvent(QMouseEvent* event)
 {
-	if(m_document && m_document->mouseManipulator().mouseEvent(
+	if(m_document && m_document->mouseEvent(
 		convert(event, MouseEvent::EventType::MouseMove, m_width, m_height)))
 			update();
 }

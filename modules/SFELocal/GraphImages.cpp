@@ -1,5 +1,5 @@
-#include <core/GraphImages.h>
-#include <core/Document.h>
+#include "GraphImages.h"
+#include "Document.h"
 
 #include <iostream>
 
