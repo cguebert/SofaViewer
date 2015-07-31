@@ -4,7 +4,6 @@
 
 #include <functional>
 #include <string>
-#include <vector>
 
 namespace ui
 {
@@ -34,6 +33,9 @@ public:
 
 	virtual void addMenuItem(Menu menu, const std::string& name, const std::string& help, CallbackFunc callback) = 0;
 	virtual Panel& buttonsPanel() = 0;
+	virtual int addStatusBarZone(const std::string& text) = 0; // Use the text parameter to set the minimum size of the zone
+	virtual void setStatusBarText(int id, const std::string& text) = 0;
+
 };
 
 } // namespace ui

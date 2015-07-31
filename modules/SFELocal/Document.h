@@ -8,6 +8,8 @@
 
 #include "GraphImages.h"
 
+#include <chrono>
+
 class ObjectProperties;
 
 class Document : public BaseDocument
@@ -32,6 +34,8 @@ protected:
 	void updateObjects();
 	void createGraph();
 
+	void singleStep();
+
 	void parseNode(Graph::NodePtr parent, sfe::Node node);
 	Graph::NodePtr createNode(sfe::Object object, Graph::NodePtr parent);
 	Graph::NodePtr createNode(sfe::Node node, Graph::NodePtr parent);
@@ -43,6 +47,10 @@ protected:
 	sfe::Simulation m_simulation;
 	GraphImages m_graphImages;
 	bool m_updateObjects = false;
+
+	bool m_singleStep = false;
+	int m_statusFPS = -1, m_fpsCount = 0;
+	std::chrono::high_resolution_clock::time_point m_fpsStart;
 };
 
 class SofaNode : public Graph::Node

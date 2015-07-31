@@ -10,6 +10,7 @@ class OpenGLView;
 class QTreeView;
 class BaseDocument;
 class SimpleGUIImpl;
+class QGridLayout;
 
 class MainWindow : public QMainWindow
 {
@@ -22,6 +23,7 @@ public:
 	int addCallback(CallbackFunc func);
 
 	QMenu* menu(unsigned char menuId);
+	QGridLayout* buttonsLayout();
 
 private slots:
 	void open();
@@ -75,5 +77,7 @@ private:
 
 	QAction* m_aboutAction;
 	QAction* m_aboutQtAction;
+
+	QWidget* m_buttonsDockWidget;
 };
 

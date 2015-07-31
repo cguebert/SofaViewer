@@ -31,11 +31,11 @@ MainWindow::MainWindow(QWidget *parent)
 {
 	// Buttons
 	auto buttonsDock = new QDockWidget(tr("Buttons"));
-	auto buttonsWidget = new QWidget(this);
+	m_buttonsDockWidget = new QWidget(this);
 	auto buttonsLayout = new QGridLayout;
-	buttonsWidget->setLayout(buttonsLayout);
+	m_buttonsDockWidget->setLayout(buttonsLayout);
 	buttonsDock->setObjectName("ButtonsDock");
-	buttonsDock->setWidget(buttonsWidget);
+	buttonsDock->setWidget(m_buttonsDockWidget);
 	buttonsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, buttonsDock);
 
@@ -52,7 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	connect(m_graph, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(graphItemDoubleClicked(QModelIndex)));
 
-	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this, buttonsLayout);
+	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this);
 
 	m_view = new OpenGLView(this);
 	setCentralWidget(m_view);
@@ -246,6 +246,7 @@ QString MainWindow::strippedName(const QString& fullFileName)
 
 bool MainWindow::loadFile(const QString& fileName)
 {
+	m_simpleGUI->clear();
 	m_document = std::make_shared<Document>(*m_simpleGUI.get());
 	std::string cpath = fileName.toLocal8Bit().constData();
 	ChangeDir cd(cpath);
@@ -377,4 +378,12 @@ QMenu* MainWindow::menu(unsigned char idVal)
 	default:
 		return nullptr;
 	}
+}
+
+QGridLayout* MainWindow::buttonsLayout()
+{
+	QGridLayout* layout = dynamic_cast<QGridLayout*>(m_buttonsDockWidget->layout());
+	if(!layout)
+		return new QGridLayout(m_buttonsDockWidget);
+	return layout;
 }

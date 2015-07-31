@@ -15,20 +15,25 @@ Document::Document(ui::SimpleGUI& gui)
 	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
 	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
 
-	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ m_simulation.step(); });
 	m_gui.buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
 		m_simulation.setAnimate(!animating);
-	}, 0, 1);
+	});
+	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 1, 1);
 
 	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
 		if(animating)
 			m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
 		m_simulation.reset();
+		m_fpsCount = 1;
+		m_fpsStart = std::chrono::high_resolution_clock::now();
 		if(animating)
 			m_simulation.setAnimate(true);
 	});
+
+	m_statusFPS = m_gui.addStatusBarZone("FPS: 999.9");
+	m_gui.setStatusBarText(m_statusFPS, "");
 }
 
 bool Document::loadFile(const std::string& path)
@@ -247,6 +252,30 @@ void Document::createGraph()
 
 void Document::postStep()
 {
+	if(!m_singleStep)
+	{
+		const double fpsDuration = 0.5;
+		auto now = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double> dur = now - m_fpsStart;
+		double currentDuration = dur.count();
+		if(currentDuration > fpsDuration)
+		{
+			double nbFPS = 0;
+			if(m_fpsCount)
+				nbFPS = m_fpsCount / currentDuration;
+
+			m_fpsCount = 0;
+			m_fpsStart = now;
+
+			std::stringstream ss;
+			ss << "FPS: ";
+			ss.precision(1);
+			ss << std::fixed << nbFPS;
+			m_gui.setStatusBarText(m_statusFPS, ss.str());
+		}
+		++m_fpsCount;
+	}
+
 	updateObjects();
 	m_updateObjects = true; // We have to modify the buffers in the correct thread
 	ViewUpdater::get().update();
@@ -322,4 +351,20 @@ Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) 
 
 		return prop;
 	}
+}
+
+void Document::singleStep()
+{
+	auto start = std::chrono::high_resolution_clock::now();
+	m_singleStep = true;
+	m_simulation.step();
+	m_singleStep = false;
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> dur = end - start;
+	auto fps = 1.0 / dur.count();
+	std::stringstream ss;
+	ss << "FPS: ";
+	ss.precision(1);
+	ss << std::fixed << fps;
+	m_gui.setStatusBarText(m_statusFPS, ss.str());
 }
