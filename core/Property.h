@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <typeindex>
 #include <vector>
 
 class BasePropertyValue;
@@ -9,32 +10,19 @@ class BasePropertyValue;
 class Property
 {
 public:
-	enum class Type : int32_t // Copy of sfe::Data::DataType
-	{
-		NotSet = 0,
-		Int = 1,
-		Float = 2,
-		Double = 3,
-		String = 4,
-		Vector_Int = 17,
-		Vector_Float = 18,
-		Vector_Double = 19,
-		Vector_String = 20
-	};
-
-	Property() {}
+	Property();
 	Property(const std::string& name,
 			 const std::string& help,
 			 const std::string& group,
 			 bool readOnly,
-			 Type storageType,
+			 std::type_index type,
 			 const std::string& valueType);
 
 	const std::string& name() const;
 	const std::string& help() const;
 	const std::string& group() const;
 	bool readOnly() const;
-	Type storageType() const;
+	std::type_index type() const;
 	const std::string& valueType() const; // Used to choose the widget (for example, storage is int but type was originally bool)
 
 	void setColumnCount(int count);
@@ -47,7 +35,7 @@ public:
 protected:
 	std::string m_name, m_help, m_group, m_valueType;
 	bool m_readOnly = false;
-	Type m_storageType = Type::NotSet;
+	std::type_index m_type;
 	int m_columnCount = 1;
 	std::shared_ptr<BasePropertyValue> m_value;
 };
@@ -90,8 +78,8 @@ inline const std::string& Property::group() const
 inline bool Property::readOnly() const
 { return m_readOnly; }
 
-inline Property::Type Property::storageType() const
-{ return m_storageType; }
+inline std::type_index Property::type() const
+{ return m_type; }
 
 inline void Property::setColumnCount(int count)
 { m_columnCount = count; }

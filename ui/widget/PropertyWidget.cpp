@@ -1,4 +1,5 @@
-#include <ui/PropertyWidget.h>
+#include <ui/widget/PropertyWidget.h>
+#include <ui/widget/PropertyWidgetFactory.h>
 
 #include <core/Property.h>
 
@@ -104,6 +105,15 @@ QWidget* PropertyWidget<std::vector<std::string>>::createWidgets(bool readOnly)
 
 	return table;
 }
+
+RegisterWidget<PropertyWidget<int>> PW_int("default");
+RegisterWidget<PropertyWidget<float>> PW_float("default");
+RegisterWidget<PropertyWidget<double>> PW_double("default");
+RegisterWidget<PropertyWidget<std::string>> PW_string("default");
+RegisterWidget<PropertyWidget<std::vector<int>>> PW_vector_int("default");
+RegisterWidget<PropertyWidget<std::vector<float>>> PW_vector_float("default");
+RegisterWidget<PropertyWidget<std::vector<double>>> PW_vector_double("default");
+RegisterWidget<PropertyWidget<std::vector<std::string>>> PW_vector_string("default");
 
 /*****************************************************************************/
 

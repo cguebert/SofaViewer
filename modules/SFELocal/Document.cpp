@@ -282,11 +282,13 @@ void Document::postStep()
 }
 
 template <class T>
-void setValue(ObjectProperties::PropertyPtr& prop, sfe::Data data)
+ObjectProperties::PropertyPtr createProp(sfe::Data data, const std::string& valueType)
 {
 	T val;
 	data.get(val);
+	auto prop = std::make_shared<Property>(data.name(), data.help(), data.group(), data.readOnly(), std::type_index(typeid(T)), valueType);
 	prop->setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
+	return prop;
 }
 
 void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
@@ -294,7 +296,7 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 	if(!data || !data.displayed())
 		return;
 
-	auto storageType = static_cast<Property::Type>(data.supportedType());
+	auto storageType = data.supportedType();
 
 	auto typeTrait = data.typeInfo();
 	std::string valueType;
@@ -305,21 +307,20 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 		columnCount = typeTrait->size();
 	}
 
-	auto prop = std::make_shared<Property>(data.name(), data.help(), data.group(), data.readOnly(), storageType, valueType);
-	prop->setColumnCount(columnCount);
-
+	ObjectProperties::PropertyPtr prop;
 	switch(storageType)
 	{
-	case sfe::Data::DataType::Int:		setValue<int32_t>(prop, data);		break;
-	case sfe::Data::DataType::Float:	setValue<float>(prop, data);		break;
-	case sfe::Data::DataType::Double:	setValue<double>(prop, data);		break;
-	case sfe::Data::DataType::String:	setValue<std::string>(prop, data);	break;
-	case sfe::Data::DataType::Vector_Int:		setValue<std::vector<int32_t>>(prop, data);		break;
-	case sfe::Data::DataType::Vector_Float:		setValue<std::vector<float>>(prop, data);		break;
-	case sfe::Data::DataType::Vector_Double:	setValue<std::vector<double>>(prop, data);		break;
-	case sfe::Data::DataType::Vector_String:	setValue<std::vector<std::string>>(prop, data); break;
+	case sfe::Data::DataType::Int:		prop = createProp<int>(data, valueType);			break;
+	case sfe::Data::DataType::Float:	prop = createProp<float>(data, valueType);			break;
+	case sfe::Data::DataType::Double:	prop = createProp<double>(data, valueType);			break;
+	case sfe::Data::DataType::String:	prop = createProp<std::string>(data, valueType);	break;
+	case sfe::Data::DataType::Vector_Int:		prop = createProp<std::vector<int>>(data, valueType);			break;
+	case sfe::Data::DataType::Vector_Float:		prop = createProp<std::vector<float>>(data, valueType);			break;
+	case sfe::Data::DataType::Vector_Double:	prop = createProp<std::vector<double>>(data, valueType);		break;
+	case sfe::Data::DataType::Vector_String:	prop = createProp<std::vector<std::string>>(data, valueType);	break;
 	}
 
+	prop->setColumnCount(columnCount);
 	properties->addProperty(prop);
 }
 

@@ -1,22 +1,23 @@
 #pragma once
 
+#include <core/Property.h>
+
 #include <QWidget>
 #include <QAbstractTableModel>
 
 #include <memory>
 
-class Property;
-template <class T> class PropertyValue;
-
-// One of this will be created for each Data.
-// It is an intermediary between the dialog and the widgets used to show and edit the Data
+// One of this will be created for each Property.
+// It is an intermediary between the dialog and the widgets used to show and edit the Property
 // This class is a QObject so that we can use signals and slots
 class BasePropertyWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	BasePropertyWidget(std::shared_ptr<Property> property, QWidget *parent = nullptr);
+	BasePropertyWidget(std::shared_ptr<Property> property, QWidget* parent = nullptr);
+	virtual ~BasePropertyWidget() {}
 
+	// The implementation of this method holds the widget creation and the signal / slot connections.
 	virtual QWidget* createWidgets(bool readOnly = true) = 0;
 
 protected:
@@ -28,11 +29,11 @@ template <class T>
 class PropertyWidget : public BasePropertyWidget
 {
 public:
-	PropertyWidget(std::shared_ptr<Property> property,
-				   std::shared_ptr<PropertyValue<T>> propertyValue,
-				   QWidget *parent = nullptr)
+	typedef T value_type;
+
+	PropertyWidget(std::shared_ptr<Property> property, QWidget* parent = nullptr)
 		: BasePropertyWidget(property, parent)
-		, m_propertyValue(propertyValue)
+		, m_propertyValue(std::dynamic_pointer_cast<PropertyValue<T>>(property->value()))
 	{ }
 
 	QWidget* createWidgets(bool readOnly) override;

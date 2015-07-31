@@ -1,5 +1,6 @@
 #include <ui/PropertiesDialog.h>
-#include <ui/PropertyWidget.h>
+#include <ui/widget/PropertyWidget.h>
+#include <ui/widget/PropertyWidgetFactory.h>
 
 #include <core/ObjectProperties.h>
 
@@ -41,35 +42,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	for(const auto& prop : properties->properties())
 	{
 		// create property type specific widget
-		QWidget* propWidget = nullptr;
-		switch(prop->storageType())
-		{
-		case Property::Type::Int:
-			propWidget = createPropWidget<int>(prop, this);
-			break;
-		case Property::Type::Float:
-			propWidget = createPropWidget<float>(prop, this);
-			break;
-		case Property::Type::Double:
-			propWidget = createPropWidget<double>(prop, this);
-			break;
-		case Property::Type::String:
-			propWidget = createPropWidget<std::string>(prop, this);
-			break;
-		case Property::Type::Vector_Int:
-			propWidget = createPropWidget<std::vector<int>>(prop, this);
-			break;
-		case Property::Type::Vector_Float:
-			propWidget = createPropWidget<std::vector<float>>(prop, this);
-			break;
-		case Property::Type::Vector_Double:
-			propWidget = createPropWidget<std::vector<double>>(prop, this);
-			break;
-		case Property::Type::Vector_String:
-			propWidget = createPropWidget<std::vector<std::string>>(prop, this);
-			break;
-		}
-
+		auto* propWidget = PropertyWidgetFactory::instance().create(prop, this);
 		PropertyPair propPair = std::make_pair(prop, propWidget);
 		m_propertyWidgets.push_back(propPair);
 		propertyGroups[prop->group()].push_back(propPair);
@@ -123,7 +96,7 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 		layout->setContentsMargins(5, 5, 5, 5);
 		groupBox->setLayout(layout);
 		groupBox->setTitle(propPair.first->name().c_str());
-		layout->addWidget(propPair.second);
+		layout->addWidget(propPair.second->createWidgets(propPair.first->readOnly()));
 		scrollLayout->addWidget(groupBox);
 	}
 
