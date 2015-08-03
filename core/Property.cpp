@@ -5,22 +5,30 @@ Property::Property()
 {
 }
 
+Property::Property(const std::string& name, ValuePtr value)
+	: m_name(name)
+	, m_value(value)
+	, m_type(value->type())
+{
+}
+
 Property::Property(const std::string& name,
-				   const std::string& help,
-				   const std::string& group,
+				   const std::string& widget,
 				   bool readOnly,
-				   std::type_index type,
-				   const std::string& valueType)
+				   const std::string& help,
+				   const std::string& group)
 	: m_name(name)
 	, m_help(help)
 	, m_group(group)
+	, m_widget(widget)
 	, m_readOnly(readOnly)
-	, m_type(type)
-	, m_valueType(valueType)
+	, m_type(std::type_index(typeid(std::string)))
 {
 }
 
 void Property::setValue(ValuePtr value)
 {
 	m_value = value;
+	if(value)
+		m_type = value->type();
 }

@@ -282,12 +282,12 @@ void Document::postStep()
 }
 
 template <class T>
-ObjectProperties::PropertyPtr createProp(sfe::Data data, const std::string& valueType)
+ObjectProperties::PropertyPtr createProp(sfe::Data data, const std::string& widget)
 {
 	T val;
 	data.get(val);
-	auto prop = std::make_shared<Property>(data.name(), data.help(), data.group(), data.readOnly(), std::type_index(typeid(T)), valueType);
-	prop->setValue(std::make_shared<PropertyValue<T>>(std::move(val)));
+	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
+	prop->setValue(std::make_shared<PropertyValueCopy<T>>(std::move(val)));
 	return prop;
 }
 
@@ -307,17 +307,21 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 		columnCount = typeTrait->size();
 	}
 
+	std::string widget;
+	if(valueType == "bool")
+		widget = "checkbox";
+
 	ObjectProperties::PropertyPtr prop;
 	switch(storageType)
 	{
-	case sfe::Data::DataType::Int:		prop = createProp<int>(data, valueType);			break;
-	case sfe::Data::DataType::Float:	prop = createProp<float>(data, valueType);			break;
-	case sfe::Data::DataType::Double:	prop = createProp<double>(data, valueType);			break;
-	case sfe::Data::DataType::String:	prop = createProp<std::string>(data, valueType);	break;
-	case sfe::Data::DataType::Vector_Int:		prop = createProp<std::vector<int>>(data, valueType);			break;
-	case sfe::Data::DataType::Vector_Float:		prop = createProp<std::vector<float>>(data, valueType);			break;
-	case sfe::Data::DataType::Vector_Double:	prop = createProp<std::vector<double>>(data, valueType);		break;
-	case sfe::Data::DataType::Vector_String:	prop = createProp<std::vector<std::string>>(data, valueType);	break;
+	case sfe::Data::DataType::Int:		prop = createProp<int>(data, widget);			break;
+	case sfe::Data::DataType::Float:	prop = createProp<float>(data, widget);			break;
+	case sfe::Data::DataType::Double:	prop = createProp<double>(data, widget);		break;
+	case sfe::Data::DataType::String:	prop = createProp<std::string>(data, widget);	break;
+	case sfe::Data::DataType::Vector_Int:		prop = createProp<std::vector<int>>(data, widget);			break;
+	case sfe::Data::DataType::Vector_Float:		prop = createProp<std::vector<float>>(data, widget);		break;
+	case sfe::Data::DataType::Vector_Double:	prop = createProp<std::vector<double>>(data, widget);		break;
+	case sfe::Data::DataType::Vector_String:	prop = createProp<std::vector<std::string>>(data, widget);	break;
 	}
 
 	prop->setColumnCount(columnCount);
