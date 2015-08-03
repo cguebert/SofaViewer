@@ -13,7 +13,7 @@ class BasePropertyWidgetCreator
 {
 public:
 	virtual ~BasePropertyWidgetCreator() {}
-	virtual BasePropertyWidget* create(std::shared_ptr<Property> property, QWidget* parent) const = 0;
+	virtual std::unique_ptr<BasePropertyWidget> create(std::shared_ptr<Property> property, QWidget* parent) const = 0;
 };
 
 class PropertyWidgetFactory
@@ -40,7 +40,7 @@ public:
 	const BasePropertyWidgetCreator* creator(std::type_index type, const std::string& widgetName) const;
 	std::vector<std::string> widgetNames(std::type_index type) const;
 
-	BasePropertyWidget* create(std::shared_ptr<Property> property, QWidget* parent) const;
+	std::unique_ptr<BasePropertyWidget> create(std::shared_ptr<Property> property, QWidget* parent) const;
 
 protected:
 	typedef std::shared_ptr<PropertyWidgetEntry> PropertyWidgetEntryPtr;
@@ -55,9 +55,9 @@ template<class T>
 class PropertyWidgetCreator : public BasePropertyWidgetCreator
 {
 public:
-	virtual BasePropertyWidget* create(std::shared_ptr<Property> property, QWidget* parent) const
+	virtual std::unique_ptr<BasePropertyWidget> create(std::shared_ptr<Property> property, QWidget* parent) const
 	{
-		return new T(property, parent);
+		return std::make_unique<T>(property, parent);
 	}
 };
 

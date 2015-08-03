@@ -1,6 +1,5 @@
 #include <ui/widget/PropertyWidgetFactory.h>
-
-#include <core/Property.h>
+#include <ui/widget/PropertyWidget.h>
 
 PropertyWidgetFactory& PropertyWidgetFactory::instance()
 {
@@ -8,7 +7,7 @@ PropertyWidgetFactory& PropertyWidgetFactory::instance()
 	return instance;
 }
 
-BasePropertyWidget* PropertyWidgetFactory::create(std::shared_ptr<Property> property, QWidget* parent) const
+std::unique_ptr<BasePropertyWidget> PropertyWidgetFactory::create(std::shared_ptr<Property> property, QWidget* parent) const
 {
 	if(!property)
 		return nullptr;

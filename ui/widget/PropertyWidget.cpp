@@ -13,49 +13,49 @@ BasePropertyWidget::BasePropertyWidget(std::shared_ptr<Property> property, QWidg
 
 /*****************************************************************************/
 
-QWidget* PropertyWidget<int>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<int>::createWidgets()
 {
 	auto spinBox = new QSpinBox(parentWidget());
 	spinBox->setMinimum(INT_MIN);
 	spinBox->setMaximum(INT_MAX);
 	spinBox->setSingleStep(1);
-	spinBox->setEnabled(!readOnly);
+	spinBox->setEnabled(!m_property->readOnly());
 	spinBox->setValue(m_propertyValue->value());
 
 	return spinBox;
 }
 
-QWidget* PropertyWidget<float>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<float>::createWidgets()
 {
 	auto lineEdit = new QLineEdit(parentWidget());
 	lineEdit->setText(QString::number(m_propertyValue->value()));
-	lineEdit->setEnabled(!readOnly);
+	lineEdit->setEnabled(!m_property->readOnly());
 
 	return lineEdit;
 }
 
-QWidget* PropertyWidget<double>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<double>::createWidgets()
 {
 	auto lineEdit = new QLineEdit(parentWidget());
 	lineEdit->setText(QString::number(m_propertyValue->value()));
-	lineEdit->setEnabled(!readOnly);
+	lineEdit->setEnabled(!m_property->readOnly());
 
 	return lineEdit;
 }
 
-QWidget* PropertyWidget<std::string>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<std::string>::createWidgets()
 {
 	auto lineEdit = new QLineEdit(parentWidget());
 	lineEdit->setText(m_propertyValue->value().c_str());
-	lineEdit->setEnabled(!readOnly);
+	lineEdit->setEnabled(!m_property->readOnly());
 
 	return lineEdit;
 }
 
-QWidget* PropertyWidget<std::vector<int>>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<std::vector<int>>::createWidgets()
 {
 	auto table = new QTableView(parentWidget());
-	table->setEnabled(!readOnly);
+	table->setEnabled(!m_property->readOnly());
 	auto& value = m_propertyValue->value();
 	auto accessor = std::make_shared<TableValueAccessor<int>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
@@ -64,10 +64,10 @@ QWidget* PropertyWidget<std::vector<int>>::createWidgets(bool readOnly)
 	return table;
 }
 
-QWidget* PropertyWidget<std::vector<float>>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<std::vector<float>>::createWidgets()
 {
 	auto table = new QTableView(parentWidget());
-	table->setEnabled(!readOnly);
+	table->setEnabled(!m_property->readOnly());
 	auto& value = m_propertyValue->value();
 	auto accessor = std::make_shared<TableValueAccessor<float>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
@@ -76,10 +76,10 @@ QWidget* PropertyWidget<std::vector<float>>::createWidgets(bool readOnly)
 	return table;
 }
 
-QWidget* PropertyWidget<std::vector<double>>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<std::vector<double>>::createWidgets()
 {
 	auto table = new QTableView(parentWidget());
-	table->setEnabled(!readOnly);
+	table->setEnabled(!m_property->readOnly());
 	auto& value = m_propertyValue->value();
 	auto accessor = std::make_shared<TableValueAccessor<double>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);
@@ -94,10 +94,10 @@ QVariant TableValueAccessor<std::string>::data(int row, int column)
 	return QVariant(m_data[row * m_columnCount + column].c_str());
 }
 
-QWidget* PropertyWidget<std::vector<std::string>>::createWidgets(bool readOnly)
+QWidget* PropertyWidget<std::vector<std::string>>::createWidgets()
 {
 	auto table = new QTableView(parentWidget());
-	table->setEnabled(!readOnly);
+	table->setEnabled(!m_property->readOnly());
 	auto& value = m_propertyValue->value();
 	auto accessor = std::make_shared<TableValueAccessor<std::string>>(value, m_property->columnCount());
 	auto model = new TablePropertyModel(table, accessor);

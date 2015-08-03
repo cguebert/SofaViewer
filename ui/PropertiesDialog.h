@@ -17,7 +17,7 @@ public:
 	PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent = nullptr);
 
 protected:
-	using PropertyPair = std::pair<std::shared_ptr<Property>, BasePropertyWidget*>;
+	using PropertyPair = std::pair<std::shared_ptr<Property>, std::shared_ptr<BasePropertyWidget>>;
 	using PropertyPairList = std::vector<PropertyPair>;
 	using PropertyPairListIter = PropertyPairList::const_iterator;
 

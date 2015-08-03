@@ -18,7 +18,7 @@ public:
 	virtual ~BasePropertyWidget() {}
 
 	// The implementation of this method holds the widget creation and the signal / slot connections.
-	virtual QWidget* createWidgets(bool readOnly = true) = 0;
+	virtual QWidget* createWidgets() = 0;
 
 protected:
 	std::shared_ptr<Property> m_property;
@@ -36,7 +36,7 @@ public:
 		, m_propertyValue(std::dynamic_pointer_cast<PropertyValue<T>>(property->value()))
 	{ }
 
-	QWidget* createWidgets(bool readOnly) override;
+	QWidget* createWidgets() override;
 
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;

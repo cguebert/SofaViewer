@@ -42,7 +42,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	for(const auto& prop : properties->properties())
 	{
 		// create property type specific widget
-		auto* propWidget = PropertyWidgetFactory::instance().create(prop, this);
+		std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(prop, this);
 		PropertyPair propPair = std::make_pair(prop, propWidget);
 		m_propertyWidgets.push_back(propPair);
 		propertyGroups[prop->group()].push_back(propPair);
@@ -96,7 +96,7 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 		layout->setContentsMargins(5, 5, 5, 5);
 		groupBox->setLayout(layout);
 		groupBox->setTitle(propPair.first->name().c_str());
-		layout->addWidget(propPair.second->createWidgets(propPair.first->readOnly()));
+		layout->addWidget(propPair.second->createWidgets());
 		scrollLayout->addWidget(groupBox);
 	}
 
