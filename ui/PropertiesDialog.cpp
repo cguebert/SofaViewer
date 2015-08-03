@@ -23,6 +23,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	setMinimumSize(300, 200);
 	resize(500, 600);
 	setWindowTitle(properties->objectName().c_str());
+	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 	auto tabWidget = new QTabWidget;
 	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Apply |

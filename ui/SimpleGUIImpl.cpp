@@ -1,5 +1,7 @@
 #include <ui/MainWindow.h>
 #include <ui/SimpleGUIImpl.h>
+#include <ui/widget/PropertyWidget.h>
+#include <ui/widget/PropertyWidgetFactory.h>
 
 #include <QtWidgets>
 
@@ -35,7 +37,24 @@ void PanelImpl::addProperty(Property::PropertyPtr property,
 							int row, int column,
 							int rowSpan, int columnSpan)
 {
+	std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(property, m_mainWindow);
+	m_propertyWidgets.push_back(propWidget);
 
+	auto widget = propWidget->createWidgets();
+
+	if(row < 0)
+		row = m_layout->count() ? m_layout->rowCount() : 0;
+
+	if(!property->name().empty())
+	{
+		auto containerLayout = new QHBoxLayout;
+		auto label = new QLabel(property->name().c_str());
+		containerLayout->addWidget(label);
+		containerLayout->addWidget(widget);
+		m_layout->addLayout(containerLayout, row, column, rowSpan, columnSpan);
+	}
+	else
+		m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
 }
 
 /******************************************************************************/
@@ -43,6 +62,7 @@ void PanelImpl::addProperty(Property::PropertyPtr property,
 DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
 {
 	m_dialog = new QDialog(mainWindow);
+	m_dialog->setWindowFlags(m_dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	m_dialog->setWindowTitle(title.c_str());
 
 	m_panelLayout = new QGridLayout;

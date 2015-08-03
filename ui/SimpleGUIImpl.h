@@ -2,11 +2,12 @@
 
 #include <core/SimpleGUI.h>
 
+class BasePropertyWidget;
+class MainWindow;
 class QDialog;
 class QGridLayout;
 class QLabel;
 class QLayout;
-class MainWindow;
 
 class PanelImpl : public ui::Panel
 {
@@ -25,6 +26,7 @@ public:
 protected:
 	MainWindow* m_mainWindow;
 	QGridLayout* m_layout;
+	std::vector<std::shared_ptr<BasePropertyWidget>> m_propertyWidgets;
 };
 
 /******************************************************************************/
