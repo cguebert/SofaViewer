@@ -19,7 +19,7 @@ Document::Document(ui::SimpleGUI& gui)
 		bool animating = m_simulation.isAnimating();
 		m_simulation.setAnimate(!animating);
 	});
-	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 1, 1);
+	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
 
 	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){
 		bool animating = m_simulation.isAnimating();

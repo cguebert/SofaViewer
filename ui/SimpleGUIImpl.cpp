@@ -3,13 +3,14 @@
 
 #include <QtWidgets>
 
-ButtonsPanel::ButtonsPanel(MainWindow* mainWindow)
+PanelImpl::PanelImpl(MainWindow* mainWindow, QGridLayout* layout)
 	: m_mainWindow(mainWindow)
+	, m_layout(layout)
 {
 
 }
 
-void ButtonsPanel::addButton(const std::string& name, const std::string& help,
+void PanelImpl::addButton(const std::string& name, const std::string& help,
 							 ui::CallbackFunc callback,
 							 int row, int column,
 							 int rowSpan, int columnSpan)
@@ -24,18 +25,78 @@ void ButtonsPanel::addButton(const std::string& name, const std::string& help,
 	QObject::connect(button, SIGNAL(clicked(bool)), action, SLOT(trigger()));
 	m_mainWindow->connect(action, SIGNAL(triggered(bool)), m_mainWindow, SLOT(executeCallback()));
 
-	auto layout = m_mainWindow->buttonsLayout();
 	if(row < 0)
-		row = layout ? layout->rowCount() : 0;
+		row = m_layout->count() ? m_layout->rowCount() : 0;
 
-	layout->addWidget(button, row, column, rowSpan, columnSpan);
+	m_layout->addWidget(button, row, column, rowSpan, columnSpan);
+}
+
+void PanelImpl::addProperty(Property::PropertyPtr property,
+							int row, int column,
+							int rowSpan, int columnSpan)
+{
+
+}
+
+/******************************************************************************/
+
+DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
+{
+	m_dialog = new QDialog(mainWindow);
+	m_dialog->setWindowTitle(title.c_str());
+
+	m_panelLayout = new QGridLayout;
+	m_dialogPanel = std::make_shared<PanelImpl>(mainWindow, m_panelLayout);
+}
+
+ui::Panel& DialogImpl::content()
+{
+	return *m_dialogPanel.get();
+}
+
+bool DialogImpl::exec()
+{
+	completeLayout();
+	auto result = m_dialog->exec();
+	return result != 0;
+}
+
+void DialogImpl::show()
+{
+	completeLayout();
+	m_dialog->show();
+}
+
+void DialogImpl::close()
+{
+	m_dialog->reject();
+}
+
+void DialogImpl::completeLayout()
+{
+	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
+										  QDialogButtonBox::Cancel);
+
+	QObject::connect(buttonBox, SIGNAL(accepted()), m_dialog, SLOT(accept()));
+	QObject::connect(buttonBox, SIGNAL(rejected()), m_dialog, SLOT(reject()));
+
+	auto mainLayout = new QVBoxLayout;
+	mainLayout->addLayout(m_panelLayout);
+	mainLayout->addWidget(buttonBox);
+	mainLayout->setContentsMargins(5, 5, 5, 5);
+
+	auto layout = m_dialog->layout();
+	if(layout)
+		delete layout;
+
+	m_dialog->setLayout(mainLayout);
 }
 
 /******************************************************************************/
 
 SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
 	: m_mainWindow(mainWindow)
-	, m_buttonsPanel(mainWindow)
+	, m_buttonsPanel(mainWindow, mainWindow->buttonsLayout())
 { }
 
 void SimpleGUIImpl::addMenuItem(Menu menuId, const std::string& name, const std::string& help, ui::CallbackFunc callback)
@@ -90,5 +151,18 @@ void SimpleGUIImpl::clear()
 	auto buttonsWidget = layout->parentWidget();
 	if(layout)
 		delete layout;
-	new QGridLayout(buttonsWidget);
+	layout = new QGridLayout(buttonsWidget);
+	m_buttonsPanel = PanelImpl(m_mainWindow, layout);
+
+	// Dialogs
+	for(auto dialog : m_dialogs)
+		dialog->close();
+	m_dialogs.clear();
+}
+
+ui::SimpleGUI::DialogPtr SimpleGUIImpl::createDialog(const std::string& title)
+{
+	auto dialog = std::make_shared<DialogImpl>(m_mainWindow, title);
+	m_dialogs.push_back(dialog);
+	return dialog;
 }
