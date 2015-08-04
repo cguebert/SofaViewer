@@ -14,10 +14,9 @@ public:
 	const std::string& className() const;
 	const std::string& templateName() const;
 
-	using PropertyPtr = std::shared_ptr<Property>;
-	using PropertyList = std::vector<PropertyPtr>;
+	using PropertyList = std::vector<Property::PropertyPtr>;
 
-	void addProperty(PropertyPtr prop);
+	void addProperty(Property::PropertyPtr prop);
 	const PropertyList& properties();
 
 protected:
@@ -34,7 +33,7 @@ inline const std::string& ObjectProperties::className() const
 inline const std::string& ObjectProperties::templateName() const
 { return m_template; }
 
-inline void ObjectProperties::addProperty(PropertyPtr prop)
+inline void ObjectProperties::addProperty(Property::PropertyPtr prop)
 { m_properties.push_back(prop); }
 
 inline const ObjectProperties::PropertyList& ObjectProperties::properties()

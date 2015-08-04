@@ -7,7 +7,7 @@
 #include <QtWidgets>
 
 template <class T>
-QWidget* createPropWidget(const ObjectProperties::PropertyPtr& prop, QWidget* parent)
+QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
 {
 	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop->value());
 	if(!propValue)

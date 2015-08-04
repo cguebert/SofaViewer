@@ -12,9 +12,8 @@ std::unique_ptr<BasePropertyWidget> PropertyWidgetFactory::create(std::shared_pt
 	if(!property)
 		return nullptr;
 	const std::type_index type = property->type();
-	const std::string widgetName = ""; //property->widget();
 
-	const auto* ctr = creator(type, widgetName);
+	const auto* ctr = creator(type, property->widget());
 	if(ctr)
 		return ctr->create(property, parent);
 	return nullptr;

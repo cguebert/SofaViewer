@@ -5,6 +5,8 @@
 
 #include <sfe/sofaFrontEndLocal.h>
 
+#include <iostream>
+
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
 	, m_gui(gui)
@@ -32,8 +34,32 @@ Document::Document(ui::SimpleGUI& gui)
 			m_simulation.setAnimate(true);
 	});
 
+	auto prop = Property::createCopyProperty("Dt", 0.02f);
+	m_gui.buttonsPanel().addProperty(prop);
+
 	m_statusFPS = m_gui.addStatusBarZone("FPS: 999.9");
 	m_gui.setStatusBarText(m_statusFPS, "");
+
+	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Open Dialog", "", [this](){
+		auto dialog = m_gui.createDialog("Test dialog");
+		auto& panel = dialog->content();
+		panel.addButton("Toto", "", [](){
+			std::cout << "Toto" << std::endl;
+		});
+		panel.addButton("Titi", "", [](){
+			std::cout << "Titi" << std::endl;
+		}, 0, 1);
+
+		int intVal = 42;
+		auto prop1 = Property::createRefProperty("int", intVal);
+		auto prop2 = Property::createCopyProperty("floatCopy", 123);
+
+		panel.addProperty(prop1);
+		panel.addProperty(prop2);
+
+		std::cout << dialog->exec() << std::endl;
+		std::cout << intVal << std::endl;
+	});
 }
 
 bool Document::loadFile(const std::string& path)
@@ -242,7 +268,7 @@ Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
 }
 
 void Document::createGraph()
-{	
+{
 	auto root = m_simulation.root();
 	auto rootNode = createNode(root, nullptr);
 	parseNode(rootNode, root);
@@ -282,7 +308,7 @@ void Document::postStep()
 }
 
 template <class T>
-ObjectProperties::PropertyPtr createProp(sfe::Data data, const std::string& widget)
+Property::PropertyPtr createProp(sfe::Data data, const std::string& widget)
 {
 	T val;
 	data.get(val);
@@ -311,7 +337,7 @@ void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
 	if(valueType == "bool")
 		widget = "checkbox";
 
-	ObjectProperties::PropertyPtr prop;
+	Property::PropertyPtr prop;
 	switch(storageType)
 	{
 	case sfe::Data::DataType::Int:		prop = createProp<int>(data, widget);			break;

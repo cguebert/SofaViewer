@@ -14,15 +14,57 @@ class BasePropertyWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	BasePropertyWidget(std::shared_ptr<Property> property, QWidget* parent = nullptr);
+	BasePropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
+		: QWidget(parent), m_property(property) {}
 	virtual ~BasePropertyWidget() {}
+
+	std::string displayName() { return m_property->name(); }
+	bool readOnly() { return m_property->readOnly(); }
+	Property::PropertyPtr property() { return m_property; }
 
 	// The implementation of this method holds the widget creation and the signal / slot connections.
 	virtual QWidget* createWidgets() = 0;
 
+public slots:
+	/// Checks that widget has been edited
+	void updatePropertyValue()
+	{
+		if(m_dirty)
+			writeToProperty();
+		m_dirty = false;
+	}
+
+	/// First checks that the widget is not currently being edited
+	/// checks that the data has changed since the last time the widget
+	/// has read the data value.
+	/// ultimately read the data value.
+	void updateWidgetValue()
+	{
+		if(!m_dirty)
+		{
+			readFromProperty();
+			update();
+		}
+	}
+	/// You call this slot anytime you want to specify that the widget
+	/// value is out of sync with the underlying data value.
+	void setWidgetDirty(bool b = true)
+	{
+		m_dirty = b;
+		updatePropertyValue();
+	}
+
 protected:
-	std::shared_ptr<Property> m_property;
+	/// The implementation of this method tells how the widget reads the value of the property.
+	virtual void readFromProperty() = 0;
+	/// The implementation of this methods needs to tell how the widget can write its value in the property.
+	virtual void writeToProperty() = 0;
+
+	bool m_dirty = false;
+	Property::PropertyPtr m_property;
 };
+
+/*****************************************************************************/
 
 // Specializations for supported types
 template <class T>
@@ -30,58 +72,24 @@ class PropertyWidget : public BasePropertyWidget
 {
 public:
 	typedef T value_type;
+	typedef const T& const_reference;
 
-	PropertyWidget(std::shared_ptr<Property> property, QWidget* parent = nullptr)
+	PropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
 		: BasePropertyWidget(property, parent)
 		, m_propertyValue(std::dynamic_pointer_cast<PropertyValue<T>>(property->value()))
 	{ }
 
-	QWidget* createWidgets() override;
-
-protected:
-	std::shared_ptr<PropertyValue<T>> m_propertyValue;
-};
-
-// This is how the table model will access the values, without knowing their type
-class BaseTableValueAccessor
-{
-public:
-	virtual int rowCount() = 0;
-	virtual int columnCount() = 0;
-	virtual QVariant data(int row, int column) = 0;
-};
-
-// Specialization for each supported types
-template <class T>
-class TableValueAccessor : public BaseTableValueAccessor
-{
-public:
-	TableValueAccessor(std::vector<T>& data, int columnCount)
-		: m_data(data), m_columnCount(columnCount)
-	{ }
-
-	int rowCount() override 	{ return m_data.size() / m_columnCount; }
-	int columnCount() override	{ return m_columnCount; }
-	QVariant data(int row, int column) override
+	const_reference getValue() const
 	{
-		return QVariant(m_data[row * m_columnCount + column]);
+		return m_propertyValue->value();
+	}
+
+	template <class U>
+	void setValue(U&& value)
+	{
+		m_propertyValue->setValue(std::forward<U>(value));
 	}
 
 protected:
-	std::vector<T>& m_data;
-	int m_columnCount;
-};
-
-// Table model for property widgets for lists of values
-class TablePropertyModel : public QAbstractTableModel
-{
-public:
-	TablePropertyModel(QObject* parent, std::shared_ptr<BaseTableValueAccessor> accessor);
-
-	int rowCount(const QModelIndex& parent) const override;
-	int columnCount(const QModelIndex& parent) const override;
-	QVariant data(const QModelIndex& parent, int role) const override;
-
-protected:
-	std::shared_ptr<BaseTableValueAccessor> m_accessor;
+	std::shared_ptr<PropertyValue<T>> m_propertyValue;
 };
