@@ -32,7 +32,7 @@ public:
 	template <class T>
 	static PropertyPtr createRefProperty(const std::string& name, T& val)
 	{
-		auto value = std::make_shared<PropertyValueCopy<T>>(val);
+		auto value = std::make_shared<PropertyValueRef<T>>(val);
 		return std::make_shared<Property>(name, value);
 	}
 

@@ -15,54 +15,105 @@ class BasePropertyWidget : public QWidget
 	Q_OBJECT
 public:
 	BasePropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
-		: QWidget(parent), m_property(property) {}
+		: QWidget(parent)
+		, m_property(property)
+		, m_state(State::unchanged)
+		, m_saveTrigger(SaveTrigger::action)
+	{}
 	virtual ~BasePropertyWidget() {}
 
-	std::string displayName() { return m_property->name(); }
-	bool readOnly() { return m_property->readOnly(); }
+	std::string displayName() const { return m_property->name(); }
+	bool readOnly() const { return m_property->readOnly(); }
 	Property::PropertyPtr property() { return m_property; }
 
-	// The implementation of this method holds the widget creation and the signal / slot connections.
+	enum class State { unchanged, modified, conflict };
+	State state() const { return m_state; }
+
+	enum class Source { property, widget };
+	void resolveConflict(Source source);
+
+	enum class SaveTrigger { action, asap }; // action = when updatePropertyValue is called, asap = when the widget is modified
+	void setSaveTrigger(SaveTrigger trigger);
+
+	/// The implementation of this method holds the widget creation and the signal / slot connections.
 	virtual QWidget* createWidgets() = 0;
+
+	/// Reset the value of the widget to the one in the property.
+	virtual void resetWidget() = 0;
 
 public slots:
 	/// Checks that widget has been edited
-	void updatePropertyValue()
-	{
-		if(m_dirty)
-			writeToProperty();
-		m_dirty = false;
-	}
+	void updatePropertyValue();
 
 	/// First checks that the widget is not currently being edited
-	/// checks that the data has changed since the last time the widget
-	/// has read the data value.
-	/// ultimately read the data value.
-	void updateWidgetValue()
-	{
-		if(!m_dirty)
-		{
-			readFromProperty();
-			update();
-		}
-	}
+	/// checks that the property has changed since the last time the widget
+	/// has read the property value. Ultimately read the property value.
+	void updateWidgetValue();
+
 	/// You call this slot anytime you want to specify that the widget
-	/// value is out of sync with the underlying data value.
-	void setWidgetDirty(bool b = true)
-	{
-		m_dirty = b;
-		updatePropertyValue();
-	}
+	/// value is out of sync with the underlying property value.
+	void setWidgetDirty();
 
 protected:
-	/// The implementation of this method tells how the widget reads the value of the property.
+	/// The widget must read the value of the property.
 	virtual void readFromProperty() = 0;
-	/// The implementation of this methods needs to tell how the widget can write its value in the property.
+	/// The widget must write its value in the property.
 	virtual void writeToProperty() = 0;
+	/// Test if the value of the widget is different than the one in the property.
+	virtual bool isModified() = 0;
 
-	bool m_dirty = false;
 	Property::PropertyPtr m_property;
+	State m_state;
+	SaveTrigger m_saveTrigger;
 };
+
+inline void BasePropertyWidget::resolveConflict(Source source)
+{
+	if(source == Source::property)
+	{
+		readFromProperty();
+		update();
+	}
+	else if(source == Source::widget)
+		writeToProperty();
+
+	m_state = State::unchanged;
+}
+
+inline void BasePropertyWidget::setSaveTrigger(SaveTrigger trigger)
+{
+	if(trigger == SaveTrigger::asap && m_state == State::modified)
+		writeToProperty();
+
+	m_saveTrigger = trigger;
+}
+
+inline void BasePropertyWidget::updatePropertyValue()
+{
+	if(m_state == State::modified)
+	{
+		writeToProperty();
+		m_state = State::unchanged;
+	}
+}
+
+inline void BasePropertyWidget::updateWidgetValue()
+{
+	if(m_state == State::unchanged)
+	{
+		readFromProperty();
+		update();
+	}
+	else if(m_state == State::modified)
+		m_state = State::conflict;
+}
+
+inline void BasePropertyWidget::setWidgetDirty()
+{
+	m_state = State::modified;
+	if(m_saveTrigger == SaveTrigger::asap)
+		updatePropertyValue();
+}
 
 /*****************************************************************************/
 
@@ -77,19 +128,20 @@ public:
 	PropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
 		: BasePropertyWidget(property, parent)
 		, m_propertyValue(std::dynamic_pointer_cast<PropertyValue<T>>(property->value()))
+		, m_resetValue(m_propertyValue->value())
 	{ }
 
 	const_reference getValue() const
-	{
-		return m_propertyValue->value();
-	}
+	{ return m_propertyValue->value(); }
 
 	template <class U>
 	void setValue(U&& value)
-	{
-		m_propertyValue->setValue(std::forward<U>(value));
-	}
+	{ m_propertyValue->setValue(std::forward<U>(value)); }
+
+	const_reference resetValue() const
+	{ return m_resetValue; }
 
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;
+	value_type m_resetValue; // A copy of the value, to test for modifications
 };

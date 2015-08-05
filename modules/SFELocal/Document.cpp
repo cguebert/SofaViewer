@@ -52,7 +52,7 @@ Document::Document(ui::SimpleGUI& gui)
 
 		int intVal = 42;
 		auto prop1 = Property::createRefProperty("int", intVal);
-		auto prop2 = Property::createCopyProperty("floatCopy", 123);
+		auto prop2 = Property::createCopyProperty("floatCopy", 123.0f);
 
 		panel.addProperty(prop1);
 		panel.addProperty(prop2);

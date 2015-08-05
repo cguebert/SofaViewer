@@ -4,6 +4,8 @@
 
 #include <QtWidgets>
 
+#include <iostream>
+
 template<>
 class PropretyWidgetContainer<int>
 {

@@ -33,7 +33,7 @@ public:
 		: PropertyWidget<T>(prop, parent)
 	{}
 
-	virtual QWidget* createWidgets()
+	QWidget* createWidgets() override
 	{
 		QWidget* w = container.createWidgets(this);
 		if(!w)
@@ -43,15 +43,27 @@ public:
 		return w;
 	}
 
-	virtual void readFromProperty()
+	void readFromProperty() override
 	{
 		container.readFromProperty(getValue());
 	}
 
-	virtual void writeToProperty()
+	void writeToProperty() override
 	{
-		value_type value = getValue();
-		container.writeToProperty(value);
-		setValue(value);
+		m_resetValue = getValue();
+		container.writeToProperty(m_resetValue);
+		setValue(m_resetValue);
+	}
+
+	bool isModified() override
+	{
+		value_type tempValue = m_resetValue;
+		container.writeToProperty(tempValue);
+		return (tempValue != m_resetValue);
+	}
+
+	void resetWidget() override
+	{
+		container.readFromProperty(m_resetValue);
 	}
 };

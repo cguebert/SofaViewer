@@ -23,10 +23,13 @@ public:
 								 int row, int column,
 								 int rowSpan, int columnSpan) override;
 
+	using PropertyWidgets = std::vector<std::shared_ptr<BasePropertyWidget>>;
+	const PropertyWidgets& propertyWidgets() { return m_propertyWidgets; }
+
 protected:
 	MainWindow* m_mainWindow;
 	QGridLayout* m_layout;
-	std::vector<std::shared_ptr<BasePropertyWidget>> m_propertyWidgets;
+	PropertyWidgets m_propertyWidgets;
 };
 
 /******************************************************************************/

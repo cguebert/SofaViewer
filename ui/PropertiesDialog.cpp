@@ -16,20 +16,22 @@ QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
 	return propWidget->createWidgets(prop->readOnly());
 }
 
-PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent)
+PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent)
 	: QDialog(parent)
-	, m_properties(properties)
+	, m_objectProperties(objectProperties)
 {
 	setMinimumSize(300, 200);
 	resize(500, 600);
-	setWindowTitle(properties->objectName().c_str());
+	setWindowTitle(m_objectProperties->objectName().c_str());
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 	auto tabWidget = new QTabWidget;
 	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Apply |
 										  QDialogButtonBox::Reset |
-										  QDialogButtonBox::Ignore);
+										  QDialogButtonBox::Ok);
 
+	auto resetButton = buttonBox->button(QDialogButtonBox::Reset);
+	connect(resetButton, SIGNAL(clicked(bool)), this, SLOT(resetWidgets()));
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(reject()));
 
 	auto mainLayout = new QVBoxLayout;
@@ -40,7 +42,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> properties,
 	std::map<std::string, std::vector<PropertyPair>> propertyGroups;
 
 	// Create the property widgets
-	for(const auto& prop : properties->properties())
+	for(const auto& prop : m_objectProperties->properties())
 	{
 		// create property type specific widget
 		std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(prop, this);
@@ -104,4 +106,10 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 	scrollLayout->addStretch();
 
 	tabWidget->addTab(scrollArea, name);
+}
+
+void PropertiesDialog::resetWidgets()
+{
+	for(auto& widgetPair : m_propertyWidgets)
+		widgetPair.second->resetWidget();
 }

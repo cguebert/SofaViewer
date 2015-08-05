@@ -14,7 +14,10 @@ class PropertiesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	PropertiesDialog(std::shared_ptr<ObjectProperties> properties, QWidget* parent = nullptr);
+	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent = nullptr);
+
+public slots:
+	void resetWidgets();
 
 protected:
 	using PropertyPair = std::pair<std::shared_ptr<Property>, std::shared_ptr<BasePropertyWidget>>;
@@ -23,6 +26,6 @@ protected:
 
 	void addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end);
 
-	std::shared_ptr<ObjectProperties> m_properties;
+	std::shared_ptr<ObjectProperties> m_objectProperties;
 	PropertyPairList m_propertyWidgets;
 };

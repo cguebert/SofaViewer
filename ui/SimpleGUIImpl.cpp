@@ -78,6 +78,11 @@ bool DialogImpl::exec()
 {
 	completeLayout();
 	auto result = m_dialog->exec();
+	if(result)
+	{
+		for(const auto& widget : m_dialogPanel->propertyWidgets())
+			widget->updatePropertyValue();
+	}
 	return result != 0;
 }
 

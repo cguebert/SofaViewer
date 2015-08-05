@@ -25,10 +25,10 @@ public:
 		m_view->setModel(m_model);
 		return m_view;
 	}
-	void readFromProperty(const value_type& v)
+	void readFromProperty(const value_type& /*v*/)
 	{
 	}
-	void writeToProperty(value_type& v)
+	void writeToProperty(value_type& /*v*/)
 	{
 	}
 };
