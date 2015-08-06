@@ -36,7 +36,7 @@ void OpenGLView::setDocument(BaseDocument* doc)
 void OpenGLView::initializeGL()
 {
 	initializeOpenGLFunctions();
-	glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+	glClearColor(0.f, 0.f, 0.f, 1.0f);
 	m_OpenGLInitialized = true;
 }
 

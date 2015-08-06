@@ -4,9 +4,11 @@
 
 #include <memory>
 
+class BasePropertyWidget;
+class MainWindow;
 class ObjectProperties;
 class Property;
-class BasePropertyWidget;
+
 class QTabWidget;
 
 class PropertiesDialog : public QDialog
@@ -14,10 +16,11 @@ class PropertiesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent = nullptr);
+	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow);
 
 public slots:
 	void resetWidgets();
+	void removeSelf();
 
 protected:
 	using PropertyPair = std::pair<std::shared_ptr<Property>, std::shared_ptr<BasePropertyWidget>>;
@@ -26,6 +29,7 @@ protected:
 
 	void addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end);
 
+	MainWindow* m_mainWindow;
 	std::shared_ptr<ObjectProperties> m_objectProperties;
 	PropertyPairList m_propertyWidgets;
 };

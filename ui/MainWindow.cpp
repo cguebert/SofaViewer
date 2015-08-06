@@ -332,10 +332,22 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
 		if(item)
 		{
+			size_t uniqueId = item->uniqueId;
+			auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialogPair& p){
+				return p.first == uniqueId;
+			});
+			if(it != m_propertiesDialogs.end())
+			{
+				it->second->activateWindow();
+				it->second->raise();
+				return;
+			}
+
 			auto prop = m_document->objectProperties(item);
 			if(prop)
 			{
 				PropertiesDialog* dlg = new PropertiesDialog(prop, this);
+				m_propertiesDialogs.emplace_back(uniqueId, dlg);
 				dlg->show();
 			}
 		}
@@ -386,4 +398,14 @@ QGridLayout* MainWindow::buttonsLayout()
 	if(!layout)
 		return new QGridLayout(m_buttonsDockWidget);
 	return layout;
+}
+
+void MainWindow::removeDialog(PropertiesDialog* dlg)
+{
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dlg](const PropertiesDialogPair& p){
+		return p.second == dlg;
+	});
+	if(it != m_propertiesDialogs.end())
+		m_propertiesDialogs.erase(it);
+	dlg->deleteLater();
 }

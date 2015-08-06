@@ -27,6 +27,7 @@ public:
 		std::vector<NodePtr> children, objects;
 		Node* parent = nullptr; // Only null for the root
 		int imageId = -1;
+		size_t uniqueId = 0; // Used to recognize nodes when the graph is reconstructed
 
 		static NodePtr create() { return std::make_shared<Graph::Node>(); }
 	};

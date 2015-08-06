@@ -6,11 +6,13 @@
 #include <memory>
 #include <vector>
 
-class OpenGLView;
-class QTreeView;
-class BaseDocument;
-class SimpleGUIImpl;
 class QGridLayout;
+class QTreeView;
+
+class BaseDocument;
+class OpenGLView;
+class PropertiesDialog;
+class SimpleGUIImpl;
 
 class MainWindow : public QMainWindow
 {
@@ -24,6 +26,8 @@ public:
 
 	QMenu* menu(unsigned char menuId);
 	QGridLayout* buttonsLayout();
+
+	void removeDialog(PropertiesDialog* dialog);
 
 private slots:
 	void open();
@@ -55,6 +59,9 @@ private:
 	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
 
 	std::vector<CallbackFunc> m_callbacks;
+
+	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
+	std::vector<PropertiesDialogPair> m_propertiesDialogs;
 
 	QString strippedName(const QString &fullFileName);
 

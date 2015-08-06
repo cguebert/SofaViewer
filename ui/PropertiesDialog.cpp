@@ -1,4 +1,5 @@
 #include <ui/PropertiesDialog.h>
+#include <ui/MainWindow.h>
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
 
@@ -16,8 +17,9 @@ QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
 	return propWidget->createWidgets(prop->readOnly());
 }
 
-PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent)
-	: QDialog(parent)
+PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow)
+	: QDialog(mainWindow)
+	, m_mainWindow(mainWindow)
 	, m_objectProperties(objectProperties)
 {
 	setMinimumSize(300, 200);
@@ -33,6 +35,8 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	auto resetButton = buttonBox->button(QDialogButtonBox::Reset);
 	connect(resetButton, SIGNAL(clicked(bool)), this, SLOT(resetWidgets()));
 	connect(buttonBox, SIGNAL(accepted()), this, SLOT(reject()));
+
+	connect(this, SIGNAL(finished(int)), this, SLOT(removeSelf()));
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabWidget);
@@ -112,4 +116,9 @@ void PropertiesDialog::resetWidgets()
 {
 	for(auto& widgetPair : m_propertyWidgets)
 		widgetPair.second->resetWidget();
+}
+
+void PropertiesDialog::removeSelf()
+{
+	m_mainWindow->removeDialog(this);
 }

@@ -32,10 +32,10 @@ Document::Document(ui::SimpleGUI& gui)
 		m_fpsStart = std::chrono::high_resolution_clock::now();
 		if(animating)
 			m_simulation.setAnimate(true);
-	});
+	}, 1, 0);
 
 	auto prop = Property::createCopyProperty("Dt", 0.02f);
-	m_gui.buttonsPanel().addProperty(prop);
+	m_gui.buttonsPanel().addProperty(prop, 1, 1);
 
 	m_statusFPS = m_gui.addStatusBarZone("FPS: 999.9");
 	m_gui.setStatusBarText(m_statusFPS, "");
@@ -240,6 +240,7 @@ Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 	auto n = SofaNode::create();
 	n->name = object.name();
 	n->type = object.className();
+	n->uniqueId = object.uniqueId();
 	n->parent = parent.get();
 	n->isObject = true;
 	n->object = object;
@@ -259,6 +260,7 @@ Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
 {
 	auto n = SofaNode::create();
 	n->name = node.name();
+	n->uniqueId = node.uniqueId();
 	n->parent = parent.get();
 	n->isObject = false;
 	n->node = node;
