@@ -32,6 +32,7 @@ public:
 	virtual ~BaseDocument() {}
 
 	virtual bool loadFile(const std::string& /*path*/) { return false; }
+	virtual void initUI() = 0; // The document is now tied to the GUI, the implemenation can create the graph and the menus
 
 	virtual void initOpenGL() {}
 	virtual void resize(int /*width*/, int /*height*/) {}

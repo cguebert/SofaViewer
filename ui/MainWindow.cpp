@@ -51,6 +51,8 @@ MainWindow::MainWindow(QWidget *parent)
 	addDockWidget(Qt::LeftDockWidgetArea, graphDock);
 
 	connect(m_graph, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(graphItemDoubleClicked(QModelIndex)));
+	connect(m_graph, SIGNAL(expanded(QModelIndex)), this, SLOT(graphItemExpanded(QModelIndex)));
+	connect(m_graph, SIGNAL(collapsed(QModelIndex)), this, SLOT(graphItemCollapsed(QModelIndex)));
 
 	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this);
 
@@ -246,28 +248,17 @@ QString MainWindow::strippedName(const QString& fullFileName)
 
 bool MainWindow::loadFile(const QString& fileName)
 {
-	m_simpleGUI->clear();
-	m_document = std::make_shared<Document>(*m_simpleGUI.get());
+	auto document = std::make_shared<Document>(*m_simpleGUI.get());
 	std::string cpath = fileName.toLocal8Bit().constData();
 	ChangeDir cd(cpath);
-	if (!m_document->loadFile(cpath))
+
+	if (!document->loadFile(cpath))
 	{
 		statusBar()->showMessage(tr("Loading failed"), 2000);
-
-		auto oldModel = m_graph->model();
-		m_graph->setModel(nullptr);
-		if(oldModel)
-			delete oldModel;
 		return false;
 	}
 
-	m_view->setDocument(m_document.get());
-
-	auto oldModel = m_graph->model();
-	m_graph->setModel(new GraphModel(this, m_document->graph()));
-	if(oldModel)
-		delete oldModel;
-	m_graph->expandAll();
+	setDocument(document);
 
 	setCurrentFile(fileName);
 	statusBar()->showMessage(tr("File loaded"), 2000);
@@ -336,13 +327,14 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 			auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialogPair& p){
 				return p.first == uniqueId;
 			});
-			if(it != m_propertiesDialogs.end())
+			if(it != m_propertiesDialogs.end()) // Show existing dialog
 			{
 				it->second->activateWindow();
 				it->second->raise();
 				return;
 			}
 
+			// Else create a new one
 			auto prop = m_document->objectProperties(item);
 			if(prop)
 			{
@@ -352,6 +344,37 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 			}
 		}
 	}
+}
+
+void MainWindow::graphItemExpanded(const QModelIndex& index)
+{
+	if(!m_updatingGraph && index.isValid())
+	{
+		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		if(item)
+			setGraphItemExpandedState(item->uniqueId, true);
+	}
+}
+
+void MainWindow::graphItemCollapsed(const QModelIndex& index)
+{
+	if(!m_updatingGraph && index.isValid())
+	{
+		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		if(item)
+			setGraphItemExpandedState(item->uniqueId, false);
+	}
+}
+
+void MainWindow::setGraphItemExpandedState(size_t id, bool expanded)
+{
+	auto it = std::find_if(m_graphItemsExpandedState.begin(), m_graphItemsExpandedState.end(), [id](const std::pair<size_t, bool>& p)
+	{ return p.first == id; });
+
+	if(it != m_graphItemsExpandedState.end())
+		it->second = expanded;
+	else
+		m_graphItemsExpandedState.emplace_back(id, expanded);
 }
 
 int MainWindow::addCallback(CallbackFunc func)
@@ -408,4 +431,83 @@ void MainWindow::removeDialog(PropertiesDialog* dlg)
 	if(it != m_propertiesDialogs.end())
 		m_propertiesDialogs.erase(it);
 	dlg->deleteLater();
+}
+
+void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
+{
+	m_simpleGUI->clear();
+
+	// Cleanly remove the previous model of the graph view
+	auto oldModel = m_graph->model();
+	m_graph->setModel(nullptr);
+	if(oldModel)
+		delete oldModel;
+
+	m_document = document;
+
+	auto& graph = m_document->graph();
+	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });
+
+	m_view->setDocument(m_document.get());
+	m_document->initUI();
+}
+
+void MainWindow::graphCallback(uint16_t reasonVal)
+{
+	auto reason = static_cast<Graph::CallbackReason>(reasonVal);
+	auto model = dynamic_cast<GraphModel*>(m_graph->model());
+
+	switch(reason)
+	{
+		case Graph::CallbackReason::BeginSetNode:
+		{
+			if(model)
+			{
+				model->beginReset();
+			}
+			break;
+		}
+
+		case Graph::CallbackReason::EndSetNode:
+		{
+			if(!model)
+			{
+				model = new GraphModel(this, m_document->graph());
+				m_graph->setModel(model);
+			}
+			else
+				model->updatePixmaps();
+			model->endReset();
+
+			m_updatingGraph = true;
+			m_graph->expandAll();
+
+			// Restore the expanded state
+			auto itemsState = m_graphItemsExpandedState;
+			m_graphItemsExpandedState.clear();
+			auto indices = model->getPersistentIndexList();
+			for(auto index : indices)
+			{
+				Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+				if(item)
+				{
+					bool expanded = item->expanded; // First use the value set in the graph
+
+					// Then restore the state if the node existed before the update
+					auto uniqueId = item->uniqueId;
+					auto it = std::find_if(itemsState.begin(), itemsState.end(), [uniqueId](const std::pair<size_t, bool>& p)
+					{ return p.first == uniqueId; });
+
+					if(it != itemsState.end())
+						expanded = it->second;
+
+					m_graphItemsExpandedState.emplace_back(uniqueId, expanded);
+					m_graph->setExpanded(index, expanded);
+				}
+			}
+
+			m_updatingGraph = false;
+			break;
+		}
+	} // switch
 }

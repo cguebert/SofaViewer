@@ -17,6 +17,7 @@ class Document : public BaseDocument
 public:
 	Document(ui::SimpleGUI& gui);
 	bool loadFile(const std::string& path) override;
+	void initUI() override;
 
 	void initOpenGL() override;
 	void resize(int width, int height) override;

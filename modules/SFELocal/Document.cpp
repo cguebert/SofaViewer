@@ -11,12 +11,41 @@ Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
 	, m_gui(gui)
 	, m_mouseManipulator(m_scene)
+	, m_graphImages(m_graph)
 {
 	m_simulation = sfe::getLocalSimulation();
+}
 
-	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
-	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
+bool Document::loadFile(const std::string& path)
+{
+	m_simulation.setAnimate(false, true);
+	if (!m_simulation.loadFile(path))
+		return false;
+	else
+	{
+	//	simulation.root().createObject("RequiredPlugin", { { "pluginName", "DtExtensions" } });
+	//	mouseInteractor = simulation.root().createObject("DtMouseInteractor");
 
+		// Initializes the scene
+		m_simulation.init();
+
+		// Create the models for rendering
+		parseScene();
+
+		// Setup the callbacks
+		m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
+		m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
+
+		return true;
+	}
+}
+
+void Document::initUI()
+{
+	// Update the scene graph
+	createGraph();
+
+	// Buttons box
 	m_gui.buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
 		m_simulation.setAnimate(!animating);
@@ -28,6 +57,7 @@ Document::Document(ui::SimpleGUI& gui)
 		if(animating)
 			m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
 		m_simulation.reset();
+		createGraph();
 		m_fpsCount = 1;
 		m_fpsStart = std::chrono::high_resolution_clock::now();
 		if(animating)
@@ -37,9 +67,13 @@ Document::Document(ui::SimpleGUI& gui)
 	auto prop = Property::createCopyProperty("Dt", 0.02f);
 	m_gui.buttonsPanel().addProperty(prop, 1, 1);
 
-	m_statusFPS = m_gui.addStatusBarZone("FPS: 999.9");
-	m_gui.setStatusBarText(m_statusFPS, "");
+	m_gui.buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
 
+	// Status bar
+	m_statusFPS = m_gui.addStatusBarZone("FPS: 9999.9"); // Reasonable width for the fps counter
+	m_gui.setStatusBarText(m_statusFPS, ""); // Set it to empty because we do not have the fps information yet
+
+	// Menu actions
 	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Open Dialog", "", [this](){
 		auto dialog = m_gui.createDialog("Test dialog");
 		auto& panel = dialog->content();
@@ -60,28 +94,6 @@ Document::Document(ui::SimpleGUI& gui)
 		std::cout << dialog->exec() << std::endl;
 		std::cout << intVal << std::endl;
 	});
-}
-
-bool Document::loadFile(const std::string& path)
-{
-	if (!m_simulation.loadFile(path))
-		return false;
-	else
-	{
-	//	simulation.root().createObject("RequiredPlugin", { { "pluginName", "DtExtensions" } });
-	//	mouseInteractor = simulation.root().createObject("DtMouseInteractor");
-
-		// Initializes the scene
-		m_simulation.init();
-
-		// Create the models for rendering
-		parseScene();
-
-		// Update the scene graph
-		createGraph();
-
-		return true;
-	}
 }
 
 void Document::initOpenGL()
@@ -244,6 +256,7 @@ Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 	n->parent = parent.get();
 	n->isObject = true;
 	n->object = object;
+	n->expanded = false;
 	m_graphImages.setImage(*n.get());
 
 	// Parse slaves
@@ -275,7 +288,6 @@ void Document::createGraph()
 	auto rootNode = createNode(root, nullptr);
 	parseNode(rootNode, root);
 	m_graph.setRoot(rootNode);
-	m_graph.setImages(m_graphImages.images());
 }
 
 void Document::postStep()

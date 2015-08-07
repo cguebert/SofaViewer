@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -26,8 +27,10 @@ public:
 		std::string name, type;
 		std::vector<NodePtr> children, objects;
 		Node* parent = nullptr; // Only null for the root
-		int imageId = -1;
+
+		int imageId = -1; // Id of the image to draw for this node (-1 if no image)
 		size_t uniqueId = 0; // Used to recognize nodes when the graph is reconstructed
+		bool expanded = true; // Only the initial state
 
 		static NodePtr create() { return std::make_shared<Graph::Node>(); }
 	};
@@ -37,21 +40,27 @@ public:
 
 	using ImagesList = std::vector<Image>;
 	const ImagesList& images() const;
-	void setImages(const ImagesList& images);
+	int addImage(const Image& image); // Return the id of this image
+
+	enum class CallbackReason : uint16_t
+	{ BeginSetNode, EndSetNode };
+
+	using CallbackFunc = std::function<void(uint16_t)>;
+	void setUpdateCallback(CallbackFunc func); // For the GUI to respond to modifications in the graph (for now, only when setRoot is called)
 
 protected:
+	void executeCallback(CallbackReason reason);
+
 	NodePtr m_root;
 	ImagesList m_images;
+	CallbackFunc m_updateCallback;
 };
 
 inline Graph::Node* Graph::root() const
 { return m_root.get(); }
 
-inline void Graph::setRoot(NodePtr root)
-{ m_root = root; }
-
 inline const Graph::ImagesList& Graph::images() const
 { return m_images; }
 
-inline void Graph::setImages(const ImagesList& images)
-{ m_images = images; }
+inline void Graph::setUpdateCallback(CallbackFunc func)
+{ m_updateCallback = func; }

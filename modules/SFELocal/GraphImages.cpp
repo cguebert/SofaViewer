@@ -217,6 +217,11 @@ ColorList getColors(unsigned int flags)
 
 } // namespace
 
+GraphImages::GraphImages(Graph& graph)
+	: m_graph(graph)
+{
+}
+
 void GraphImages::setImage(SofaNode& node)
 {
 	if(node.isObject)
@@ -232,15 +237,6 @@ void GraphImages::setImage(SofaNode& node)
 		else
 			node.imageId = getImage(Colors::NODE_SLEEPING);
 	}
-}
-
-Graph::ImagesList GraphImages::images()
-{
-	Graph::ImagesList imgs;
-	for(const auto& img : m_images)
-		imgs.push_back(img.second);
-
-	return imgs;
 }
 
 int GraphImages::getImage(unsigned int flags)
@@ -283,12 +279,12 @@ int GraphImages::imageId(unsigned int flags)
 	if(it == m_images.end())
 		return -1;
 
-	return std::distance(m_images.begin(), it);
+	return it->second;
 }
 
 int GraphImages::addImage(unsigned int flags, const Graph::Image& image)
 {
-	auto id = m_images.size();
-	m_images.emplace_back(flags, image);
+	auto id = m_graph.addImage(image);
+	m_images.emplace_back(flags, id);
 	return id;
 }

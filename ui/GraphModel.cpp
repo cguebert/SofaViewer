@@ -8,7 +8,22 @@ GraphModel::GraphModel(QObject* parent, Graph& graph)
 	: QAbstractItemModel(parent)
 	, m_graph(graph)
 {
-	initPixmaps();
+	updatePixmaps();
+}
+
+QModelIndexList GraphModel::getPersistentIndexList() const
+{
+	return persistentIndexList();
+}
+
+void GraphModel::beginReset()
+{
+	beginResetModel();
+}
+
+void GraphModel::endReset()
+{
+	endResetModel();
 }
 
 QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) const
@@ -104,11 +119,12 @@ QVariant GraphModel::data(const QModelIndex& index, int role) const
 	return QVariant();
 }
 
-void GraphModel::initPixmaps()
+void GraphModel::updatePixmaps()
 {
-	m_pixmaps.clear();
-	for(const auto& graphImg : m_graph.images())
+	const auto& images = m_graph.images();
+	for(int i = m_pixmaps.size(), nb = images.size(); i < nb; ++i)
 	{
+		const auto& graphImg = images[i];
 		QImage img(&graphImg.data[0], graphImg.width, graphImg.height, QImage::Format_ARGB32);
 		m_pixmaps.push_back(QPixmap::fromImage(std::move(img)));
 	}
