@@ -116,7 +116,7 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 		scrollLayout->addWidget(groupBox);
 	}
 
-	scrollLayout->addStretch();
+	scrollLayout->addStretch(1);
 
 	tabWidget->addTab(scrollArea, name);
 }

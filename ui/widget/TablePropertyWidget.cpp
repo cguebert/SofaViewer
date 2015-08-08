@@ -15,6 +15,7 @@ protected:
 	QTableView* m_view = nullptr;
 	TablePropertyModel* m_model = nullptr;
 	std::shared_ptr<BaseTableValueAccessor> m_accessor = nullptr;
+	QSpinBox* m_spinBox = nullptr;
 
 public:
 	QWidget* createWidgets(BasePropertyWidget* parent)
@@ -25,7 +26,39 @@ public:
 		m_accessor = std::make_shared<TableValueAccessor<value_type>>(parent->property());
 		m_model = new TablePropertyModel(m_view, m_accessor);
 		m_view->setModel(m_model);
-		return m_view;
+
+		if(m_accessor->fixed())
+		{
+			// Hide headers
+			m_view->horizontalHeader()->hide();
+			m_view->verticalHeader()->hide();
+			m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+
+			// Set max height
+			auto maxHeight = m_view->rowHeight(0) * m_accessor->rowCount();
+			m_view->setMaximumHeight(maxHeight);
+
+			// Set min width
+			int width = 0;
+			for(int i = 0, nb = m_accessor->columnCount(); i < nb; ++i)
+				width += m_view->columnWidth(i);
+			m_view->setMinimumWidth(width);
+
+			return m_view;
+		}
+		else
+		{
+			// Add a spinbox to be able to resize the value
+			auto container = new QWidget(parent);
+			auto layout = new QVBoxLayout(container);
+			layout->setContentsMargins(0, 0, 0, 0);
+			m_spinBox = new QSpinBox;
+			m_spinBox->setMaximum(INT_MAX);
+			m_spinBox->setValue(m_accessor->rowCount());
+			layout->addWidget(m_spinBox);
+			layout->addWidget(m_view);
+			return container;
+		}
 	}
 	void readFromProperty(const value_type& /*v*/)
 	{
