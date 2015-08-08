@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 #include <typeindex>
-#include <vector>
 
 class BasePropertyValue;
 
@@ -50,9 +49,6 @@ public:
 	const std::string& widget() const; // Used to choose the widget (for example, storage is int but type was originally bool)
 	void setWidget(const std::string& widget);
 
-	int columnCount() const;
-	void setColumnCount(int count);
-
 	ValuePtr value() const;
 	void setValue(ValuePtr value);
 
@@ -63,6 +59,8 @@ protected:
 	int m_columnCount = 1;
 	std::shared_ptr<BasePropertyValue> m_value;
 };
+
+//****************************************************************************//
 
 class BasePropertyValue
 {
@@ -88,6 +86,8 @@ public:
 protected:
 	T m_value;
 };
+
+//****************************************************************************//
 
 template <class T>
 class PropertyValueCopy : public PropertyValue<T>
@@ -120,6 +120,8 @@ protected:
 	T& m_value;
 };
 
+//****************************************************************************//
+
 inline const std::string& Property::name() const
 { return m_name; }
 
@@ -146,12 +148,6 @@ inline void Property::setReadOnly(bool readOnly)
 
 inline std::type_index Property::type() const
 { return m_type; }
-
-inline int Property::columnCount() const
-{ return m_columnCount; }
-
-inline void Property::setColumnCount(int count)
-{ m_columnCount = count; }
 
 inline const std::string& Property::widget() const
 { return m_widget; }

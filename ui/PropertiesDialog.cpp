@@ -7,6 +7,8 @@
 
 #include <QtWidgets>
 
+#include <iostream>
+
 template <class T>
 QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
 {
@@ -50,9 +52,16 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	{
 		// create property type specific widget
 		std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(prop, this);
-		PropertyPair propPair = std::make_pair(prop, propWidget);
-		m_propertyWidgets.push_back(propPair);
-		propertyGroups[prop->group()].push_back(propPair);
+		if(propWidget)
+		{
+			PropertyPair propPair = std::make_pair(prop, propWidget);
+			m_propertyWidgets.push_back(propPair);
+			propertyGroups[prop->group()].push_back(propPair);
+		}
+		else
+		{
+			std::cerr << "Couldn't create a widget for the property " << prop->name() << std::endl;
+		}
 	}
 
 	// Group the widgets and add them to the dialog

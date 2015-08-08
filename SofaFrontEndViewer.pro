@@ -34,6 +34,7 @@ HEADERS  += \
 	core/Property.h \
 	core/Scene.h \
 	core/SimpleGUI.h \
+	core/VectorWrapper.h \
 	modules/SFELocal/Document.h \
 	modules/SFELocal/GraphImages.h \
 	ui/GraphModel.h \

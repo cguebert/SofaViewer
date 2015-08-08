@@ -25,29 +25,7 @@ T fromVariant(const QVariant& data)
 { return data.value<T>(); }
 
 // Specialization for each supported types
-template <class T>
-class TableValueAccessor : public BaseTableValueAccessor
-{
-public:
-	using base_value = typename T::value_type;
-	TableValueAccessor(Property::PropertyPtr property)
-		: m_property(property)
-		, m_columnCount(property->columnCount())
-	{ m_value = std::dynamic_pointer_cast<PropertyValue<T>>(property->value());	}
-
-	int rowCount() override 	{ return m_value->value().size() / m_columnCount; }
-	int columnCount() override	{ return m_columnCount; }
-	bool fixed() override		{ return false; }
-	QVariant data(int row, int column) override
-	{ return toVariant(m_value->value()[row * m_columnCount + column]); }
-	void setData(int row, int column, QVariant value) override
-	{ m_value->value()[row * m_columnCount + column] = fromVariant<base_value>(value); }
-
-protected:
-	Property::PropertyPtr m_property;
-	std::shared_ptr<PropertyValue<T>> m_value;
-	int m_columnCount;
-};
+template <class T> class TableValueAccessor;
 
 // Table model for property widgets for lists of values
 class TablePropertyModel : public QAbstractTableModel
