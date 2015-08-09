@@ -23,6 +23,7 @@ class BaseTableWidgetContainer : public QObject
 	Q_OBJECT
 public slots:
 	virtual void resizeValue(int) {}
+	virtual void toggleView(bool) {}
 };
 
 template <class T>
@@ -45,6 +46,7 @@ public:
 	int rowCount(const QModelIndex& parent) const override;
 	int columnCount(const QModelIndex& parent) const override;
 	QVariant data(const QModelIndex& parent, int role) const override;
+	QVariant headerData(int section, Qt::Orientation orientation, int role) const;
 
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;

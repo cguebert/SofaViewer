@@ -18,6 +18,7 @@ protected:
 	TablePropertyModel* m_model = nullptr;
 	std::shared_ptr<TableValueAccessor<value_type>> m_accessor = nullptr;
 	QSpinBox* m_spinBox = nullptr;
+	QPushButton* m_toggleButton = nullptr;
 
 public:
 	QWidget* createWidgets(BasePropertyWidget* parent)
@@ -52,17 +53,28 @@ public:
 		else
 		{
 			// Add a spinbox to be able to resize the value
+			// and a button to show / hide the table view
 			auto container = new QWidget(parent);
 			auto layout = new QVBoxLayout(container);
 			layout->setContentsMargins(0, 0, 0, 0);
+
+			auto topLayout = new QHBoxLayout;
+			m_toggleButton = new QPushButton(tr("show"));
+			m_toggleButton->setCheckable(true);
+			connect(m_toggleButton, SIGNAL(toggled(bool)), this, SLOT(toggleView(bool)));
+			topLayout->addWidget(m_toggleButton);
 
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
 			connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(resizeValue(int)));
+			topLayout->addWidget(m_spinBox, 1);
 
-			layout->addWidget(m_spinBox);
-			layout->addWidget(m_view);
+			layout->addLayout(topLayout);
+			layout->addWidget(m_view, 1);
+
+			m_view->setMinimumHeight(200);
+			m_view->hide();
 			return container;
 		}
 	}
@@ -83,6 +95,11 @@ public:
 	void resizeValue(int nb) override
 	{
 		m_model->resizeValue(nb);
+	}
+	void toggleView(bool show) override
+	{
+		m_view->setVisible(show);
+		m_toggleButton->setText(show ? tr("hide") : tr("show"));
 	}
 };
 
@@ -121,6 +138,14 @@ QVariant TablePropertyModel::data(const QModelIndex& index, int role) const
 		return QVariant();
 
 	return m_accessor->data(index.row(), index.column());
+}
+
+QVariant TablePropertyModel::headerData(int section, Qt::Orientation /*orientation*/, int role) const
+{
+	if(role != Qt::DisplayRole)
+		return QVariant();
+
+	return QVariant(section);
 }
 
 Qt::ItemFlags TablePropertyModel::flags(const QModelIndex& ) const
