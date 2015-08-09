@@ -6,15 +6,17 @@
 
 #include <QtWidgets>
 
+#include <cassert>
+
 template <class T>
-class TableWidgetContainer
+class TableWidgetContainer : public BaseTableWidgetContainer
 {
 protected:
 	using value_type = T;
 	using base_type = typename T::value_type;
 	QTableView* m_view = nullptr;
 	TablePropertyModel* m_model = nullptr;
-	std::shared_ptr<BaseTableValueAccessor> m_accessor = nullptr;
+	std::shared_ptr<TableValueAccessor<value_type>> m_accessor = nullptr;
 	QSpinBox* m_spinBox = nullptr;
 
 public:
@@ -23,7 +25,8 @@ public:
 		m_view = new QTableView(parent);
 		m_view->setEnabled(!parent->readOnly());
 
-		m_accessor = std::make_shared<TableValueAccessor<value_type>>(parent->property());
+		auto value = std::dynamic_pointer_cast<PropertyValue<value_type>>(parent->property()->value());
+		m_accessor = std::make_shared<TableValueAccessor<value_type>>(value->value());
 		m_model = new TablePropertyModel(m_view, m_accessor);
 		m_view->setModel(m_model);
 
@@ -52,19 +55,34 @@ public:
 			auto container = new QWidget(parent);
 			auto layout = new QVBoxLayout(container);
 			layout->setContentsMargins(0, 0, 0, 0);
+
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
+			connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(resizeValue(int)));
+
 			layout->addWidget(m_spinBox);
 			layout->addWidget(m_view);
 			return container;
 		}
 	}
-	void readFromProperty(const value_type& /*v*/)
+	void readFromProperty(const value_type& v)
 	{
+		m_model->beginReset();
+		m_accessor->setValue(v);
+		m_model->endReset();
+
+		if(m_spinBox)
+			m_spinBox->setValue(m_accessor->rowCount());
+
 	}
-	void writeToProperty(value_type& /*v*/)
+	void writeToProperty(value_type& v)
 	{
+		v = m_accessor->value();
+	}
+	void resizeValue(int nb) override
+	{
+		m_model->resizeValue(nb);
 	}
 };
 
@@ -105,6 +123,50 @@ QVariant TablePropertyModel::data(const QModelIndex& index, int role) const
 	return m_accessor->data(index.row(), index.column());
 }
 
+Qt::ItemFlags TablePropertyModel::flags(const QModelIndex& ) const
+{
+	return Qt::ItemIsEditable | Qt::ItemIsEnabled;
+}
+
+bool TablePropertyModel::setData(const QModelIndex& index, const QVariant& value, int role)
+{
+	if(role != Qt::EditRole)
+		return false;
+
+	m_accessor->setData(index.row(), index.column(), value);
+	return true;
+}
+
+void TablePropertyModel::resizeValue(int nb)
+{
+	int prevNb = m_accessor->rowCount();
+	if(nb == prevNb)
+		return;
+
+	if(nb > prevNb)
+	{
+		beginInsertRows(QModelIndex(), prevNb, nb - 1);
+		m_accessor->resize(nb);
+		endInsertRows();
+	}
+	else
+	{
+		beginRemoveRows(QModelIndex(), nb, prevNb - 1);
+		m_accessor->resize(nb);
+		endRemoveRows();
+	}
+}
+
+void TablePropertyModel::beginReset()
+{
+	beginResetModel();
+}
+
+void TablePropertyModel::endReset()
+{
+	endResetModel();
+}
+
 /*****************************************************************************/
 
 template <class T>
@@ -113,25 +175,33 @@ class TableValueAccessor<VectorWrapper<T>> : public BaseTableValueAccessor
 public:
 	using wrapper_type = VectorWrapper<T>;
 	using base_value = typename T::value_type;
-	TableValueAccessor(Property::PropertyPtr property)
-		: m_property(property)
+	TableValueAccessor(const wrapper_type& value)
+		: m_value(value)
 	{
-		m_value = std::dynamic_pointer_cast<PropertyValue<wrapper_type>>(property->value());
-		m_columnCount = m_value->value().columnCount();
-		m_fixed = m_value->value().fixedSize();
+		m_columnCount = m_value.columnCount();
+		m_fixed = m_value.fixedSize();
 	}
 
-	int rowCount() override 	{ return m_value->value().value().size() / m_columnCount; }
-	int columnCount() override	{ return m_columnCount; }
-	bool fixed() override		{ return m_fixed; }
-	QVariant data(int row, int column) override
-	{ return toVariant(m_value->value().value()[row * m_columnCount + column]); }
+	const wrapper_type& value() const { return m_value; }
+	void setValue(const wrapper_type& value)
+	{
+		assert(m_value.columnCount() == value.columnCount());
+		assert(m_value.fixedSize() == value.fixedSize());
+		m_value = value;
+	}
+
+	int rowCount() const override 	{ return m_value.value().size() / m_columnCount; }
+	int columnCount() const override	{ return m_columnCount; }
+	bool fixed() const override		{ return m_fixed; }
+	QVariant data(int row, int column) const override
+	{ return toVariant(m_value.value()[row * m_columnCount + column]); }
 	void setData(int row, int column, QVariant value) override
-	{ m_value->value().value()[row * m_columnCount + column] = fromVariant<base_value>(value); }
+	{ m_value.value()[row * m_columnCount + column] = fromVariant<base_value>(value); }
+	void resize(int nb) override
+	{ m_value.value().resize(nb * m_columnCount); }
 
 protected:
-	Property::PropertyPtr m_property;
-	std::shared_ptr<PropertyValue<wrapper_type>> m_value;
+	wrapper_type m_value;
 	int m_columnCount;
 	bool m_fixed;
 };
