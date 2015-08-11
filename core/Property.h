@@ -5,11 +5,13 @@
 #include <typeindex>
 
 class BasePropertyValue;
+template <class T> class PropertyValue;
 
 class Property
 {
 public:
 	using ValuePtr = std::shared_ptr<BasePropertyValue>;
+	template <class T> using ValueTPtr = std::shared_ptr<PropertyValue<T>>;
 	using PropertyPtr = std::shared_ptr<Property>;
 
 	Property();
@@ -50,6 +52,8 @@ public:
 	void setWidget(const std::string& widget);
 
 	ValuePtr value() const;
+	template <class T> ValueTPtr<T> value() const
+	{ return std::dynamic_pointer_cast<PropertyValue<T>>(m_value); }
 	void setValue(ValuePtr value);
 
 protected:

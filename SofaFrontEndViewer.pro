@@ -15,6 +15,7 @@ SOURCES += main.cpp\
 	core/Scene.cpp \
 	modules/SFELocal/Document.cpp \
 	modules/SFELocal/GraphImages.cpp \
+	modules/SFELocal/SofaProperties.cpp \
 	ui/GraphModel.cpp \
 	ui/MainWindow.cpp \
 	ui/OpenGLView.cpp \
@@ -37,6 +38,7 @@ HEADERS  += \
 	core/VectorWrapper.h \
 	modules/SFELocal/Document.h \
 	modules/SFELocal/GraphImages.h \
+	modules/SFELocal/SofaProperties.h \
 	ui/GraphModel.h \
 	ui/MainWindow.h \
 	ui/OpenGLView.h \

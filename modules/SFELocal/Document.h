@@ -10,8 +10,6 @@
 
 #include <chrono>
 
-class ObjectProperties;
-
 class Document : public BaseDocument
 {
 public:
@@ -54,6 +52,11 @@ protected:
 	std::chrono::high_resolution_clock::time_point m_fpsStart;
 };
 
+inline Graph& Document::graph()
+{ return m_graph; }
+
+//****************************************************************************//
+
 class SofaNode : public Graph::Node
 {
 public:
@@ -64,7 +67,3 @@ public:
 	sfe::Object object; // Cannot put them in an union
 	sfe::Node node;		//  as they have a copy constructor
 };
-
-inline Graph& Document::graph()
-{ return m_graph; }
-

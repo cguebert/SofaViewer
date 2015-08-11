@@ -19,6 +19,8 @@ public:
 	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow);
 
 public slots:
+	void apply();
+	void applyAndClose();
 	void resetWidgets();
 	void removeSelf();
 
@@ -28,6 +30,8 @@ protected:
 	using PropertyPairListIter = PropertyPairList::const_iterator;
 
 	void addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end);
+	void writeToProperties();
+	void readFromProperties();
 
 	MainWindow* m_mainWindow;
 	std::shared_ptr<ObjectProperties> m_objectProperties;

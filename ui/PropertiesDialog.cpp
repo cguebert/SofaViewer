@@ -12,7 +12,7 @@
 template <class T>
 QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
 {
-	auto propValue = std::dynamic_pointer_cast<PropertyValue<T>>(prop->value());
+	auto propValue = prop->value<T>();
 	if(!propValue)
 		return nullptr;
 	auto propWidget = new PropertyWidget<T>(prop, propValue, parent);
@@ -26,17 +26,22 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 {
 	setMinimumSize(300, 200);
 	resize(500, 600);
-	setWindowTitle(m_objectProperties->objectName().c_str());
+	setWindowTitle(m_objectProperties->name().c_str());
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 	auto tabWidget = new QTabWidget;
-	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Apply |
-										  QDialogButtonBox::Reset |
+	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Apply	|
+										  QDialogButtonBox::Cancel	|
+										  QDialogButtonBox::Reset	|
 										  QDialogButtonBox::Ok);
 
+	auto applyButton = buttonBox->button(QDialogButtonBox::Apply);
 	auto resetButton = buttonBox->button(QDialogButtonBox::Reset);
+	auto OkButton = buttonBox->button(QDialogButtonBox::Ok);
+	connect(applyButton, SIGNAL(clicked(bool)), this, SLOT(apply()));
 	connect(resetButton, SIGNAL(clicked(bool)), this, SLOT(resetWidgets()));
-	connect(buttonBox, SIGNAL(accepted()), this, SLOT(reject()));
+	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(applyAndClose()));
+	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
 	connect(this, SIGNAL(finished(int)), this, SLOT(removeSelf()));
 
@@ -121,6 +126,19 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 	tabWidget->addTab(scrollArea, name);
 }
 
+void PropertiesDialog::apply()
+{
+	writeToProperties();
+	m_objectProperties->apply();
+}
+
+void PropertiesDialog::applyAndClose()
+{
+	writeToProperties();
+	m_objectProperties->apply();
+	accept();
+}
+
 void PropertiesDialog::resetWidgets()
 {
 	for(auto& widgetPair : m_propertyWidgets)
@@ -130,4 +148,16 @@ void PropertiesDialog::resetWidgets()
 void PropertiesDialog::removeSelf()
 {
 	m_mainWindow->removeDialog(this);
+}
+
+void PropertiesDialog::writeToProperties()
+{
+	for(auto widget : m_propertyWidgets)
+		widget.second->updatePropertyValue();
+}
+
+void PropertiesDialog::readFromProperties()
+{
+	for(auto widget : m_propertyWidgets)
+		widget.second->updateWidgetValue();
 }

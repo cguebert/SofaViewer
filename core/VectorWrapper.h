@@ -10,23 +10,23 @@ template <class T>
 class VectorWrapper
 {
 public:
-	using value_type = typename T::value_type;
-	using wrapper_type = VectorWrapper<T>;
+	using value_type = T;
+	using wrapper_type = VectorWrapper<value_type>;
 	VectorWrapper() {}
-	VectorWrapper(const T& value) : m_value(value) {}
-	VectorWrapper(T&& value) : m_value(std::move(value)) {}
+	VectorWrapper(const value_type& value) : m_value(value) {}
+	VectorWrapper(value_type&& value) : m_value(std::move(value)) {}
 
-	operator T() const { return m_value; }
-	void operator=(const T& val) { m_value = val; }
+	operator value_type() const { return m_value; }
+	void operator=(const value_type& val) { m_value = val; }
 
 	bool operator==(const wrapper_type& rhs)
 	{ return m_value == rhs.m_value; }
 	bool operator!=(const wrapper_type& rhs)
 	{ return m_value != rhs.m_value; }
 
-	const T& value() const
+	const value_type& value() const
 	{ return m_value; }
-	T& value()
+	value_type& value()
 	{ return m_value; }
 
 	int columnCount() const // Length of an array

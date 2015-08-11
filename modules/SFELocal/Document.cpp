@@ -1,4 +1,5 @@
 #include "Document.h"
+#include "SofaProperties.h"
 
 #include <core/ObjectProperties.h>
 #include <core/SimpleGUI.h>
@@ -322,70 +323,6 @@ void Document::postStep()
 	ViewUpdater::get().update();
 }
 
-template <class T>
-Property::PropertyPtr createProp(sfe::Data data, const std::string& widget)
-{
-	T val;
-	data.get(val);
-	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
-	prop->setValue(std::make_shared<PropertyValueCopy<T>>(std::move(val)));
-	return prop;
-}
-
-template <class T>
-Property::PropertyPtr createVectorProp(sfe::Data data, const std::string& widget, bool fixedSize, int columnCount)
-{
-	std::vector<T> val;
-	data.get(val);
-	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
-
-	using WrapperType = VectorWrapper<std::vector<T>>;
-	WrapperType wrapper(std::move(val));
-	wrapper.setFixedSize(fixedSize);
-	wrapper.setColumnCount(columnCount);
-	prop->setValue(std::make_shared<PropertyValueCopy<WrapperType>>(std::move(wrapper)));
-
-	return prop;
-}
-
-void addData(Document::ObjectPropertiesPtr properties, sfe::Data data)
-{
-	if(!data || !data.displayed())
-		return;
-
-	auto storageType = data.supportedType();
-
-	auto typeTrait = data.typeInfo();
-	std::string valueType;
-	int columnCount = 1;
-	bool fixedSize = false;
-	if(typeTrait && typeTrait->ValidInfo())
-	{
-		valueType = typeTrait->ValueType()->name();
-		columnCount = typeTrait->size();
-		fixedSize = typeTrait->FixedSize();
-	}
-
-	std::string widget;
-	if(valueType == "bool")
-		widget = "checkbox";
-
-	Property::PropertyPtr prop;
-	switch(storageType)
-	{
-	case sfe::Data::DataType::Int:		prop = createProp<int>(data, widget);			break;
-	case sfe::Data::DataType::Float:	prop = createProp<float>(data, widget);			break;
-	case sfe::Data::DataType::Double:	prop = createProp<double>(data, widget);		break;
-	case sfe::Data::DataType::String:	prop = createProp<std::string>(data, widget);	break;
-	case sfe::Data::DataType::Vector_Int:		prop = createVectorProp<int>(data, widget, fixedSize, columnCount);			break;
-	case sfe::Data::DataType::Vector_Float:		prop = createVectorProp<float>(data, widget, fixedSize, columnCount);		break;
-	case sfe::Data::DataType::Vector_Double:	prop = createVectorProp<double>(data, widget, fixedSize, columnCount);		break;
-	case sfe::Data::DataType::Vector_String:	prop = createVectorProp<std::string>(data, widget, fixedSize, columnCount);	break;
-	}
-
-	properties->addProperty(prop);
-}
-
 Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) const
 {
 	auto item = dynamic_cast<SofaNode*>(baseItem);
@@ -393,27 +330,9 @@ Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) 
 		return nullptr;
 
 	if(item->isObject)
-	{
-		const auto& object = item->object;
-		auto prop = std::make_shared<ObjectProperties>(object.name(), object.className(), object.templateName());
-
-		auto names = object.listData();
-		for(const auto& name : names)
-			addData(prop, object.data(name));
-
-		return prop;
-	}
+		return std::make_shared<SofaObjectProperties>(item->object);
 	else
-	{
-		const auto& node = item->node;
-		auto prop = std::make_shared<ObjectProperties>(node.name());
-
-		auto names = node.listData();
-		for(const auto& name : names)
-			addData(prop, node.data(name));
-
-		return prop;
-	}
+		return std::make_shared<SofaObjectProperties>(item->node);
 }
 
 void Document::singleStep()

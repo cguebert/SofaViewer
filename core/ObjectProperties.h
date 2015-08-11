@@ -7,31 +7,25 @@
 class ObjectProperties
 {
 public:
-	ObjectProperties(const std::string& objectName,
-					 const std::string& className = "",
-					 const std::string& templateName = "");
-	const std::string& objectName() const;
-	const std::string& className() const;
-	const std::string& templateName() const;
+	ObjectProperties(const std::string& name);
+	virtual ~ObjectProperties() {}
+
+	const std::string& name() const;
 
 	using PropertyList = std::vector<Property::PropertyPtr>;
 
 	void addProperty(Property::PropertyPtr prop);
 	const PropertyList& properties();
 
+	virtual void apply() {} /// Implementations can save the properties here
+
 protected:
-	std::string m_name, m_class, m_template;
+	std::string m_name;
 	PropertyList m_properties;
 };
 
-inline const std::string& ObjectProperties::objectName() const
+inline const std::string& ObjectProperties::name() const
 { return m_name; }
-
-inline const std::string& ObjectProperties::className() const
-{ return m_class; }
-
-inline const std::string& ObjectProperties::templateName() const
-{ return m_template; }
 
 inline void ObjectProperties::addProperty(Property::PropertyPtr prop)
 { m_properties.push_back(prop); }

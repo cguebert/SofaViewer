@@ -13,7 +13,6 @@ class TableWidgetContainer : public BaseTableWidgetContainer
 {
 protected:
 	using value_type = T;
-	using base_type = typename T::value_type;
 	QTableView* m_view = nullptr;
 	TablePropertyModel* m_model = nullptr;
 	std::shared_ptr<TableValueAccessor<value_type>> m_accessor = nullptr;
@@ -26,7 +25,7 @@ public:
 		m_view = new QTableView(parent);
 		m_view->setEnabled(!parent->readOnly());
 
-		auto value = std::dynamic_pointer_cast<PropertyValue<value_type>>(parent->property()->value());
+		auto value = parent->property()->value<value_type>();
 		m_accessor = std::make_shared<TableValueAccessor<value_type>>(value->value());
 		m_model = new TablePropertyModel(m_view, m_accessor);
 		m_view->setModel(m_model);
