@@ -113,6 +113,21 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 	{
 		const auto& propPair = *it;
 		auto groupBox = new QGroupBox;
+
+		groupBox->setStyleSheet("QGroupBox::indicator {"
+									"width: 13px;"
+									"height: 13px;"
+								"}"
+
+								"QGroupBox::indicator:unchecked {"
+									"image: url(:/share/icons/warning.png);"
+								"}"
+
+								"QGroupBox::indicator:checked {"
+									"image: url(:/share/icons/error.png);"
+								"}");
+		groupBox->setCheckable(true);
+
 		auto layout = new QVBoxLayout;
 		layout->setContentsMargins(5, 5, 5, 5);
 		groupBox->setLayout(layout);

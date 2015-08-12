@@ -13,5 +13,7 @@
         <file>share/icons/stop.png</file>
         <file>share/shaders/shader.frag</file>
         <file>share/shaders/shader.vert</file>
+        <file>share/icons/error.png</file>
+        <file>share/icons/warning.png</file>
     </qresource>
 </RCC>
