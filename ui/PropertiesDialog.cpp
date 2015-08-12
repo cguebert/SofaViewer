@@ -50,7 +50,8 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	mainLayout->addWidget(buttonBox);
 	mainLayout->setContentsMargins(5, 5, 5, 5);
 
-	std::map<std::string, std::vector<PropertyPair>> propertyGroups;
+	std::map<std::string, std::vector<int>> propertyGroups;
+	m_propertyWidgets.reserve(m_objectProperties->properties().size());
 
 	// Create the property widgets
 	for(const auto& prop : m_objectProperties->properties())
@@ -59,9 +60,14 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 		std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(prop, this);
 		if(propWidget)
 		{
-			PropertyPair propPair = std::make_pair(prop, propWidget);
-			m_propertyWidgets.push_back(propPair);
-			propertyGroups[prop->group()].push_back(propPair);
+			connect(propWidget.get(), SIGNAL(stateChanged(BasePropertyWidget*,int)), this, SLOT(stateChanged(BasePropertyWidget*,int)));
+			int id  = m_propertyWidgets.size();
+			propertyGroups[prop->group()].push_back(id);
+
+			PropertyStruct propStruct;
+			propStruct.property = prop;
+			propStruct.widget = propWidget;
+			m_propertyWidgets.push_back(propStruct);
 		}
 		else
 		{
@@ -98,7 +104,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	setLayout(mainLayout);
 }
 
-void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end)
+void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter begin, IntListIter end)
 {
 	auto scrollArea = new QScrollArea;
 	scrollArea->setFrameStyle(QFrame::NoFrame);
@@ -111,14 +117,18 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, PropertyPairL
 
 	for(auto it = begin; it != end; ++it)
 	{
-		const auto& propPair = *it;
+		auto& prop = m_propertyWidgets[*it];
 		auto groupBox = new QGroupBox;
 		auto layout = new QVBoxLayout;
 		layout->setContentsMargins(5, 5, 5, 5);
 		groupBox->setLayout(layout);
-		groupBox->setTitle(propPair.first->name().c_str());
-		layout->addWidget(propPair.second->createWidgets());
+		QString title = prop.property->name().c_str();
+		groupBox->setTitle(title);
+		layout->addWidget(prop.widget->createWidgets());
 		scrollLayout->addWidget(groupBox);
+
+		prop.groupBox = groupBox;
+		prop.title = title;
 	}
 
 	scrollLayout->addStretch(1);
@@ -141,8 +151,11 @@ void PropertiesDialog::applyAndClose()
 
 void PropertiesDialog::resetWidgets()
 {
-	for(auto& widgetPair : m_propertyWidgets)
-		widgetPair.second->resetWidget();
+	for(auto& widget : m_propertyWidgets)
+	{
+		widget.widget->resetWidget();
+		widget.widget->setWidgetDirty();
+	}
 }
 
 void PropertiesDialog::removeSelf()
@@ -153,11 +166,36 @@ void PropertiesDialog::removeSelf()
 void PropertiesDialog::writeToProperties()
 {
 	for(auto widget : m_propertyWidgets)
-		widget.second->updatePropertyValue();
+		widget.widget->updatePropertyValue();
 }
 
 void PropertiesDialog::readFromProperties()
 {
 	for(auto widget : m_propertyWidgets)
-		widget.second->updateWidgetValue();
+		widget.widget->updateWidgetValue();
+}
+
+void PropertiesDialog::stateChanged(BasePropertyWidget* widget, int stateVal)
+{
+	auto it = std::find_if(m_propertyWidgets.begin(), m_propertyWidgets.end(), [widget](const PropertyStruct& prop) {
+		return prop.widget.get() == widget;
+	});
+	if(it == m_propertyWidgets.end())
+		return;
+
+	auto groupBox = it->groupBox;
+	const auto& title = it->title;
+	auto state = static_cast<BasePropertyWidget::State>(stateVal);
+	switch(state)
+	{
+	case BasePropertyWidget::State::unchanged:
+		groupBox->setTitle(title);
+		break;
+	case BasePropertyWidget::State::modified:
+		groupBox->setTitle("* " + title);
+		break;
+	case BasePropertyWidget::State::conflict:
+		groupBox->setTitle("! " + title);
+		break;
+	}
 }

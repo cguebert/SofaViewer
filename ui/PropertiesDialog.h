@@ -9,6 +9,7 @@ class MainWindow;
 class ObjectProperties;
 class Property;
 
+class QGroupBox;
 class QTabWidget;
 
 class PropertiesDialog : public QDialog
@@ -23,17 +24,25 @@ public slots:
 	void applyAndClose();
 	void resetWidgets();
 	void removeSelf();
+	void stateChanged(BasePropertyWidget*, int);
 
 protected:
-	using PropertyPair = std::pair<std::shared_ptr<Property>, std::shared_ptr<BasePropertyWidget>>;
-	using PropertyPairList = std::vector<PropertyPair>;
-	using PropertyPairListIter = PropertyPairList::const_iterator;
+	struct PropertyStruct
+	{
+		std::shared_ptr<Property> property;
+		std::shared_ptr<BasePropertyWidget> widget;
+		QGroupBox* groupBox = nullptr;
+		QString title;
+	};
 
-	void addTab(QTabWidget* tabWidget, QString name, PropertyPairListIter begin, PropertyPairListIter end);
+	using PropertyList = std::vector<PropertyStruct>;
+	using IntListIter = std::vector<int>::const_iterator;
+
+	void addTab(QTabWidget* tabWidget, QString name, IntListIter begin, IntListIter end);
 	void writeToProperties();
 	void readFromProperties();
 
 	MainWindow* m_mainWindow;
 	std::shared_ptr<ObjectProperties> m_objectProperties;
-	PropertyPairList m_propertyWidgets;
+	PropertyList m_propertyWidgets;
 };

@@ -43,9 +43,14 @@ void BasePropertyWidget::updateWidgetValue()
 
 void BasePropertyWidget::setWidgetDirty()
 {
-	setState(State::modified);
-	if(m_saveTrigger == SaveTrigger::asap)
-		updatePropertyValue();
+	if(isModified())
+	{
+		setState(State::modified);
+		if(m_saveTrigger == SaveTrigger::asap)
+			updatePropertyValue();
+	}
+	else if(m_state == State::modified)
+		setState(State::unchanged);
 }
 
 void BasePropertyWidget::setState(State state)
