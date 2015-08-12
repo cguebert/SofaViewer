@@ -10,6 +10,7 @@ class QGridLayout;
 class QTreeView;
 
 class BaseDocument;
+class ObjectProperties;
 class OpenGLView;
 class PropertiesDialog;
 class SimpleGUIImpl;
@@ -28,6 +29,7 @@ public:
 	QGridLayout* buttonsLayout();
 	OpenGLView* view() const;
 
+	void closeDialog(ObjectProperties* objProp);
 	void removeDialog(PropertiesDialog* dialog);
 
 private slots:

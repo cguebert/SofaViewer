@@ -5,6 +5,8 @@
 #include <functional>
 #include <string>
 
+class ObjectProperties;
+
 namespace ui
 {
 
@@ -58,6 +60,8 @@ public:
 	virtual DialogPtr createDialog(const std::string& title) = 0;
 
 	virtual void updateView() = 0; // Update the OpenGL view
+
+	virtual void closeDialog(ObjectProperties* objProp) = 0;
 };
 
 } // namespace ui

@@ -197,3 +197,8 @@ void SimpleGUIImpl::updateView()
 {
 	m_mainWindow->view()->update();
 }
+
+void SimpleGUIImpl::closeDialog(ObjectProperties* objProp)
+{
+	m_mainWindow->closeDialog(objProp);
+}

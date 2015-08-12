@@ -59,6 +59,9 @@ void Document::initUI()
 		bool animating = m_simulation.isAnimating();
 		if(animating)
 			m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
+		auto objProps = m_openedObjectProperties;
+		for(auto objProp : objProps)
+			m_gui.closeDialog(objProp.get());
 		m_simulation.reset();
 		createGraph();
 		m_fpsCount = 1;
@@ -348,8 +351,11 @@ Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem)
 
 void Document::closeObjectProperties(ObjectPropertiesPtr ptr)
 {
-	std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-	m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), ptr));
+	if(!m_openedObjectProperties.empty())
+	{
+		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
+		m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), ptr));
+	}
 }
 
 void Document::singleStep()

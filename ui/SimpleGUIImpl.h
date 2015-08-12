@@ -66,6 +66,7 @@ public:
 	void setStatusBarText(int id, const std::string& text) override;
 	DialogPtr createDialog(const std::string& title) override;
 	void updateView() override;
+	void closeDialog(ObjectProperties* objProp) override;
 
 	void clear();
 
