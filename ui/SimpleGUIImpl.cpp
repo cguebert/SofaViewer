@@ -1,4 +1,5 @@
 #include <ui/MainWindow.h>
+#include <ui/OpenGLView.h>
 #include <ui/SimpleGUIImpl.h>
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
@@ -190,4 +191,9 @@ ui::SimpleGUI::DialogPtr SimpleGUIImpl::createDialog(const std::string& title)
 	auto dialog = std::make_shared<DialogImpl>(m_mainWindow, title);
 	m_dialogs.push_back(dialog);
 	return dialog;
+}
+
+void SimpleGUIImpl::updateView()
+{
+	m_mainWindow->view()->update();
 }

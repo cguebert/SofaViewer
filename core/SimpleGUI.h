@@ -49,13 +49,15 @@ public:
 
 	virtual void addMenuItem(Menu menu, const std::string& name, const std::string& help, CallbackFunc callback) = 0;
 
-	virtual Panel& buttonsPanel() = 0;
+	virtual Panel& buttonsPanel() = 0; // Access to the buttons dock (on the side of the OpenGL view)
 
 	virtual int addStatusBarZone(const std::string& text) = 0; // Use the text parameter to set the minimum size of the zone
 	virtual void setStatusBarText(int id, const std::string& text) = 0;
 
 	using DialogPtr = std::shared_ptr<Dialog>;
 	virtual DialogPtr createDialog(const std::string& title) = 0;
+
+	virtual void updateView() = 0; // Update the OpenGL view
 };
 
 } // namespace ui

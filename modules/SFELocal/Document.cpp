@@ -324,7 +324,7 @@ void Document::postStep()
 
 	updateObjects();
 	m_updateObjects = true; // We have to modify the buffers in the correct thread
-	ViewUpdater::get().update();
+	m_gui.updateView();
 }
 
 Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem)

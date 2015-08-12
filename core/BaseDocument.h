@@ -5,22 +5,6 @@
 
 #include <functional>
 
-class ViewUpdater
-{
-public:
-	static ViewUpdater& get();
-
-	using UpdateFunc = std::function<void ()>;
-
-	void setSignal(UpdateFunc func);
-	void update();
-
-protected:
-	UpdateFunc m_func;
-};
-
-/******************************************************************************/
-
 class ObjectProperties;
 
 namespace ui { class SimpleGUI; }

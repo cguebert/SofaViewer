@@ -57,7 +57,7 @@ public:
 	void writeToData() override
 	{ value_type val = m_propertyValue->value(); m_data.set(val); }
 	void readFromData() override
-	{ value_type val; if(m_data.get(val)) m_propertyValue->setValue(val); }
+	{ value_type val; if(m_data.get(val)) m_propertyValue->value() = val; }
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;
 };

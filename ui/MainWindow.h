@@ -26,6 +26,7 @@ public:
 
 	QMenu* menu(unsigned char menuId);
 	QGridLayout* buttonsLayout();
+	OpenGLView* view() const;
 
 	void removeDialog(PropertiesDialog* dialog);
 
@@ -97,3 +98,5 @@ private:
 	QWidget* m_buttonsDockWidget;
 };
 
+inline OpenGLView* MainWindow::view() const
+{ return m_view; }

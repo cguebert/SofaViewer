@@ -6,7 +6,6 @@ Debug:TARGET = SofaFrontEndViewer_d
 TEMPLATE = app
 
 SOURCES += main.cpp\
-	core/BaseDocument.cpp \
 	core/Graph.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
