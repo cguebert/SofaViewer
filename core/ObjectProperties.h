@@ -2,6 +2,7 @@
 
 #include "Property.h"
 
+#include <functional>
 #include <vector>
 
 class ObjectProperties
@@ -18,10 +19,15 @@ public:
 	const PropertyList& properties();
 
 	virtual void apply() {} /// Implementations can save the properties here
+	void modified(); /// Signal widgets using these ObjectProperties to update themselves
+
+	using Callback = std::function<void()>;
+	void addModifiedCallback(Callback func);
 
 protected:
 	std::string m_name;
 	PropertyList m_properties;
+	std::vector<Callback> m_modifiedCallbacks;
 };
 
 inline const std::string& ObjectProperties::name() const

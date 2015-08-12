@@ -425,6 +425,7 @@ QGridLayout* MainWindow::buttonsLayout()
 
 void MainWindow::removeDialog(PropertiesDialog* dlg)
 {
+	m_document->closeObjectProperties(dlg->objectProperties());
 	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dlg](const PropertiesDialogPair& p){
 		return p.second == dlg;
 	});

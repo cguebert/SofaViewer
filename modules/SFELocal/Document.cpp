@@ -8,6 +8,7 @@
 #include <sfe/sofaFrontEndLocal.h>
 
 #include <iostream>
+#include <future>
 
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
@@ -318,21 +319,37 @@ void Document::postStep()
 		++m_fpsCount;
 	}
 
+	// Udpate properties in opened dialogs
+	std::async(&Document::updateProperties, this);
+
 	updateObjects();
 	m_updateObjects = true; // We have to modify the buffers in the correct thread
 	ViewUpdater::get().update();
 }
 
-Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem) const
+Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem)
 {
 	auto item = dynamic_cast<SofaNode*>(baseItem);
 	if(!item)
 		return nullptr;
 
+	ObjectPropertiesPtr ptr;
 	if(item->isObject)
-		return std::make_shared<SofaObjectProperties>(item->object);
+		ptr = std::make_shared<SofaObjectProperties>(item->object);
 	else
-		return std::make_shared<SofaObjectProperties>(item->node);
+		ptr = std::make_shared<SofaObjectProperties>(item->node);
+
+	{
+		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
+		m_openedObjectProperties.push_back(ptr);
+	}
+	return ptr;
+}
+
+void Document::closeObjectProperties(ObjectPropertiesPtr ptr)
+{
+	std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
+	m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), ptr));
 }
 
 void Document::singleStep()
@@ -349,4 +366,21 @@ void Document::singleStep()
 	ss.precision(1);
 	ss << std::fixed << fps;
 	m_gui.setStatusBarText(m_statusFPS, ss.str());
+}
+
+void Document::updateProperties()
+{
+	std::vector<ObjectPropertiesPtr> opened;
+	{
+		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
+		opened = m_openedObjectProperties;
+	}
+
+	for(auto& op : opened)
+	{
+		auto sofaOP = std::dynamic_pointer_cast<SofaObjectProperties>(op);
+		if(sofaOP)
+			sofaOP->updateProperties();
+		op->modified();
+	}
 }

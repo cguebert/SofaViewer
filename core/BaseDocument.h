@@ -43,5 +43,6 @@ public:
 	virtual Graph& graph() = 0;
 
 	using ObjectPropertiesPtr = std::shared_ptr<ObjectProperties>;
-	virtual ObjectPropertiesPtr objectProperties(Graph::Node* /*item*/) const { return nullptr; }
+	virtual ObjectPropertiesPtr objectProperties(Graph::Node* /*item*/) { return nullptr; } // Ask the object properties of a graph node
+	virtual void closeObjectProperties(ObjectPropertiesPtr ptr) {} // Signal that these object properties are not used anymore (closed dialog)
 };

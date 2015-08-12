@@ -9,6 +9,7 @@
 #include "GraphImages.h"
 
 #include <chrono>
+#include <mutex>
 
 class Document : public BaseDocument
 {
@@ -25,12 +26,14 @@ public:
 
 	Graph& graph() override;
 
-	ObjectPropertiesPtr objectProperties(Graph::Node* item) const override;
+	ObjectPropertiesPtr objectProperties(Graph::Node* item) override;
+	void closeObjectProperties(ObjectPropertiesPtr ptr) override;
 
 protected:
 	void parseScene();
 	void postStep();
 	void updateObjects();
+	void updateProperties();
 	void createGraph();
 
 	void singleStep();
@@ -46,6 +49,8 @@ protected:
 	sfe::Simulation m_simulation;
 	GraphImages m_graphImages;
 	bool m_updateObjects = false;
+	std::vector<ObjectPropertiesPtr> m_openedObjectProperties;
+	std::mutex m_openedObjectsPropertiesMutex;
 
 	bool m_singleStep = false;
 	int m_statusFPS = -1, m_fpsCount = 0;

@@ -18,6 +18,7 @@ class PropertiesDialog : public QDialog
 
 public:
 	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow);
+	std::shared_ptr<ObjectProperties> objectProperties() const;
 
 public slots:
 	void apply();
@@ -41,6 +42,7 @@ protected:
 	void addTab(QTabWidget* tabWidget, QString name, IntListIter begin, IntListIter end);
 	void writeToProperties();
 	void readFromProperties();
+	bool doApply(); // Returns false if there is a conflict, and the user cancelled
 
 	MainWindow* m_mainWindow;
 	std::shared_ptr<ObjectProperties> m_objectProperties;

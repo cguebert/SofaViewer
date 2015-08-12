@@ -70,7 +70,8 @@ public:
 	SofaObjectProperties(sfe::Node node);
 	SofaObjectProperties(sfe::Object object);
 
-	void apply() override;
+	void apply() override; // Property -> Data
+	void updateProperties(); // Data -> Property
 
 protected:
 	void addData(sfe::Data data);

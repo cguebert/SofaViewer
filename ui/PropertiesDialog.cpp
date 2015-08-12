@@ -102,6 +102,15 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	}
 
 	setLayout(mainLayout);
+
+	m_objectProperties->addModifiedCallback([this](){
+		readFromProperties();
+	});
+}
+
+std::shared_ptr<ObjectProperties> PropertiesDialog::objectProperties() const
+{
+	return m_objectProperties;
 }
 
 void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter begin, IntListIter end)
@@ -138,15 +147,39 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter b
 
 void PropertiesDialog::apply()
 {
-	writeToProperties();
-	m_objectProperties->apply();
+	doApply();
 }
 
 void PropertiesDialog::applyAndClose()
 {
+	if(doApply())
+		accept();
+}
+
+bool PropertiesDialog::doApply()
+{
+	bool conflict = false;
+	for(auto& widget : m_propertyWidgets)
+	{
+		if(widget.widget->state() == BasePropertyWidget::State::conflict)
+		{
+			conflict = true;
+			break;
+		}
+	}
+
+	if(conflict)
+	{
+		auto result = QMessageBox::warning(this, "Resolve conflicts",
+										   "At least one property is in conflict. Resolve using user values ?",
+										   QMessageBox::Yes | QMessageBox::Cancel, QMessageBox::Yes);
+		if(result == QMessageBox::Cancel)
+			return false;
+	}
+
 	writeToProperties();
 	m_objectProperties->apply();
-	accept();
+	return true;
 }
 
 void PropertiesDialog::resetWidgets()

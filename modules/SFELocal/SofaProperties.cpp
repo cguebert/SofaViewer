@@ -92,3 +92,9 @@ void SofaObjectProperties::apply()
 	for(auto wrapper : m_dataWrappers)
 		wrapper->writeToData();
 }
+
+void SofaObjectProperties::updateProperties()
+{
+	for(auto wrapper : m_dataWrappers)
+		wrapper->readFromData();
+}
