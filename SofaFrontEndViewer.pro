@@ -22,6 +22,7 @@ SOURCES += main.cpp\
 	ui/PropertiesDialog.cpp \
 	ui/SimpleGUIImpl.cpp \
 	ui/widget/NumericalPropertyWidget.cpp \
+	ui/widget/PropertyWidget.cpp \
 	ui/widget/PropertyWidgetFactory.cpp \
 	ui/widget/StringPropertyWidget.cpp \
 	ui/widget/TablePropertyWidget.cpp

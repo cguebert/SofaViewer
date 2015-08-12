@@ -108,7 +108,7 @@ QVariant toVariant(const std::string& value)
 
 template <>
 std::string fromVariant(const QVariant& data)
-{ return data.toString().toLocal8Bit().constData(); }
+{ return data.toString().toStdString(); }
 
 /*****************************************************************************/
 

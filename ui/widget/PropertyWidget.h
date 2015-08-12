@@ -54,6 +54,9 @@ public slots:
 	/// value is out of sync with the underlying property value.
 	void setWidgetDirty();
 
+signals:
+	void stateChanged(BasePropertyWidget*, int); /// Sent when the state of the widget has changed (ie. modified)
+
 protected:
 	/// The widget must read the value of the property.
 	virtual void readFromProperty() = 0;
@@ -62,58 +65,12 @@ protected:
 	/// Test if the value of the widget is different than the one in the property.
 	virtual bool isModified() = 0;
 
+	void setState(State state);
+
 	Property::PropertyPtr m_property;
 	State m_state;
 	SaveTrigger m_saveTrigger;
 };
-
-inline void BasePropertyWidget::resolveConflict(Source source)
-{
-	if(source == Source::property)
-	{
-		readFromProperty();
-		update();
-	}
-	else if(source == Source::widget)
-		writeToProperty();
-
-	m_state = State::unchanged;
-}
-
-inline void BasePropertyWidget::setSaveTrigger(SaveTrigger trigger)
-{
-	if(trigger == SaveTrigger::asap && m_state == State::modified)
-		writeToProperty();
-
-	m_saveTrigger = trigger;
-}
-
-inline void BasePropertyWidget::updatePropertyValue()
-{
-	if(m_state == State::modified)
-	{
-		writeToProperty();
-		m_state = State::unchanged;
-	}
-}
-
-inline void BasePropertyWidget::updateWidgetValue()
-{
-	if(m_state == State::unchanged)
-	{
-		readFromProperty();
-		update();
-	}
-	else if(m_state == State::modified)
-		m_state = State::conflict;
-}
-
-inline void BasePropertyWidget::setWidgetDirty()
-{
-	m_state = State::modified;
-	if(m_saveTrigger == SaveTrigger::asap)
-		updatePropertyValue();
-}
 
 /*****************************************************************************/
 

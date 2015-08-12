@@ -27,7 +27,7 @@ public:
 	}
 	void writeToProperty(value_type& v)
 	{
-		v = m_lineEdit->text().toLocal8Bit().constData();
+		v = m_lineEdit->text().toStdString();
 	}
 };
 

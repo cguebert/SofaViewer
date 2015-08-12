@@ -249,7 +249,7 @@ QString MainWindow::strippedName(const QString& fullFileName)
 bool MainWindow::loadFile(const QString& fileName)
 {
 	auto document = std::make_shared<Document>(*m_simpleGUI.get());
-	std::string cpath = fileName.toLocal8Bit().constData();
+	std::string cpath = fileName.toStdString();
 	ChangeDir cd(cpath);
 
 	if (!document->loadFile(cpath))
