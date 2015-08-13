@@ -176,7 +176,7 @@ void SimpleGUIImpl::clear()
 	auto layout = m_mainWindow->buttonsLayout();
 	auto buttonsWidget = layout->parentWidget();
 	if(layout)
-		delete layout;
+		QWidget().setLayout(layout); // delete Layout doesn't remove the widgets
 	layout = new QGridLayout(buttonsWidget);
 	m_buttonsPanel = PanelImpl(m_mainWindow, layout);
 

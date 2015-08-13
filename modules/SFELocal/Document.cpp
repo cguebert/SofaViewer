@@ -50,7 +50,6 @@ bool Document::loadFile(const std::string& path)
 
 void Document::initUI()
 {
-	std::cout << "Document::initUI()" << std::endl;
 	// Update the scene graph
 	createGraph();
 
