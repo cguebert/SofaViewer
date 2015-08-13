@@ -15,8 +15,8 @@ Document::Document(ui::SimpleGUI& gui)
 	, m_gui(gui)
 	, m_mouseManipulator(m_scene)
 	, m_graphImages(m_graph)
+	, m_simulation(sfe::getLocalSimulation())
 {
-	m_simulation = sfe::getLocalSimulation();
 }
 
 bool Document::loadFile(const std::string& path)
@@ -237,7 +237,7 @@ void Document::updateObjects()
 	}
 }
 
-void Document::parseNode(Graph::NodePtr parent, sfe::Node node)
+void Document::parseNode(GraphNode::Ptr parent, sfe::Node node)
 {
 	for(auto& object : node.objects())
 	{
@@ -253,7 +253,7 @@ void Document::parseNode(Graph::NodePtr parent, sfe::Node node)
 	}
 }
 
-Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
+GraphNode::Ptr Document::createNode(sfe::Object object, GraphNode::Ptr parent)
 {
 	auto n = SofaNode::create();
 	n->name = object.name();
@@ -275,7 +275,7 @@ Graph::NodePtr Document::createNode(sfe::Object object, Graph::NodePtr parent)
 	return n;
 }
 
-Graph::NodePtr Document::createNode(sfe::Node node, Graph::NodePtr parent)
+GraphNode::Ptr Document::createNode(sfe::Node node, GraphNode::Ptr parent)
 {
 	auto n = SofaNode::create();
 	n->name = node.name();
@@ -330,7 +330,7 @@ void Document::postStep()
 	m_gui.updateView();
 }
 
-Document::ObjectPropertiesPtr Document::objectProperties(Graph::Node* baseItem)
+Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 {
 	auto item = dynamic_cast<SofaNode*>(baseItem);
 	if(!item)

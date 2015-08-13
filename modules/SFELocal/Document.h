@@ -26,7 +26,7 @@ public:
 
 	Graph& graph() override;
 
-	ObjectPropertiesPtr objectProperties(Graph::Node* item) override;
+	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
 	void closeObjectProperties(ObjectPropertiesPtr ptr) override;
 
 protected:
@@ -38,9 +38,9 @@ protected:
 
 	void singleStep();
 
-	void parseNode(Graph::NodePtr parent, sfe::Node node);
-	Graph::NodePtr createNode(sfe::Object object, Graph::NodePtr parent);
-	Graph::NodePtr createNode(sfe::Node node, Graph::NodePtr parent);
+	void parseNode(GraphNode::Ptr parent, sfe::Node node);
+	GraphNode::Ptr createNode(sfe::Object object, GraphNode::Ptr parent);
+	GraphNode::Ptr createNode(sfe::Node node, GraphNode::Ptr parent);
 
 	ui::SimpleGUI& m_gui;
 	Scene m_scene;
@@ -62,7 +62,7 @@ inline Graph& Document::graph()
 
 //****************************************************************************//
 
-class SofaNode : public Graph::Node
+class SofaNode : public GraphNode
 {
 public:
 	using SofaNodePtr = std::shared_ptr<SofaNode>;

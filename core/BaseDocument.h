@@ -1,11 +1,12 @@
 #pragma once
 
-#include <core/Graph.h>
-#include <core/MouseManipulator.h>
+#include <memory>
+#include <string>
 
-#include <functional>
-
+class Graph;
+class GraphNode;
 class ObjectProperties;
+struct MouseEvent;
 
 namespace ui { class SimpleGUI; }
 
@@ -27,6 +28,6 @@ public:
 	virtual Graph& graph() = 0;
 
 	using ObjectPropertiesPtr = std::shared_ptr<ObjectProperties>;
-	virtual ObjectPropertiesPtr objectProperties(Graph::Node* /*item*/) { return nullptr; } // Ask the object properties of a graph node
+	virtual ObjectPropertiesPtr objectProperties(GraphNode* /*item*/) { return nullptr; } // Ask the object properties of a graph node
 	virtual void closeObjectProperties(ObjectPropertiesPtr ptr) {} // Signal that these object properties are not used anymore (closed dialog)
 };

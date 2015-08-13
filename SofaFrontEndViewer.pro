@@ -30,6 +30,7 @@ HEADERS  += \
 	core/BaseDocument.h \
 	core/Graph.h \
 	core/Model.h \
+	core/MouseEvent.h \
 	core/MouseManipulator.h \
 	core/ObjectProperties.h \
 	core/Property.h \

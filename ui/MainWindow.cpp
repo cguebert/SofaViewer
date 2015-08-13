@@ -320,7 +320,7 @@ void MainWindow::graphItemDoubleClicked(const QModelIndex& index)
 {
 	if(index.isValid())
 	{
-		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if(item)
 		{
 			size_t uniqueId = item->uniqueId;
@@ -350,7 +350,7 @@ void MainWindow::graphItemExpanded(const QModelIndex& index)
 {
 	if(!m_updatingGraph && index.isValid())
 	{
-		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if(item)
 			setGraphItemExpandedState(item->uniqueId, true);
 	}
@@ -360,7 +360,7 @@ void MainWindow::graphItemCollapsed(const QModelIndex& index)
 {
 	if(!m_updatingGraph && index.isValid())
 	{
-		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if(item)
 			setGraphItemExpandedState(item->uniqueId, false);
 	}
@@ -499,7 +499,7 @@ void MainWindow::graphCallback(uint16_t reasonVal)
 			auto indices = model->getPersistentIndexList();
 			for(auto index : indices)
 			{
-				Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+				GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 				if(item)
 				{
 					bool expanded = item->expanded; // First use the value set in the graph

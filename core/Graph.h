@@ -5,13 +5,29 @@
 #include <string>
 #include <vector>
 
+// One node of the graph
+class GraphNode
+{
+public:
+	virtual ~GraphNode() {}
+	std::string name, type;
+
+	using Ptr = std::shared_ptr<GraphNode>;
+	std::vector<Ptr> children, objects;
+	GraphNode* parent = nullptr; // Only null for the root
+
+	int imageId = -1; // Id of the image to draw for this node (-1 if no image)
+	size_t uniqueId = 0; // Used to recognize nodes when the graph is reconstructed
+	bool expanded = true; // Only the initial state
+
+	static Ptr create() { return std::make_shared<GraphNode>(); }
+};
+
+//****************************************************************************//
+
 class Graph
 {
 public:
-
-	class Node;
-	using NodePtr = std::shared_ptr<Node>;
-
 	// Image container for the graph decoration
 	struct Image
 	{
@@ -19,24 +35,8 @@ public:
 		std::vector<unsigned char> data; // ARGB32
 	};
 
-	// One node of the graph
-	class Node
-	{
-	public:
-		virtual ~Node() {}
-		std::string name, type;
-		std::vector<NodePtr> children, objects;
-		Node* parent = nullptr; // Only null for the root
-
-		int imageId = -1; // Id of the image to draw for this node (-1 if no image)
-		size_t uniqueId = 0; // Used to recognize nodes when the graph is reconstructed
-		bool expanded = true; // Only the initial state
-
-		static NodePtr create() { return std::make_shared<Graph::Node>(); }
-	};
-
-	Node* root() const;
-	void setRoot(NodePtr root);
+	GraphNode* root() const;
+	void setRoot(GraphNode::Ptr root);
 
 	using ImagesList = std::vector<Image>;
 	const ImagesList& images() const;
@@ -51,12 +51,12 @@ public:
 protected:
 	void executeCallback(CallbackReason reason);
 
-	NodePtr m_root;
+	GraphNode::Ptr m_root;
 	ImagesList m_images;
 	CallbackFunc m_updateCallback;
 };
 
-inline Graph::Node* Graph::root() const
+inline GraphNode* Graph::root() const
 { return m_root.get(); }
 
 inline const Graph::ImagesList& Graph::images() const

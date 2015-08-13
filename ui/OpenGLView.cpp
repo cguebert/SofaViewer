@@ -1,5 +1,7 @@
 #include <ui/OpenGLView.h>
+
 #include <core/BaseDocument.h>
+#include <core/MouseEvent.h>
 
 #include <QMouseEvent>
 

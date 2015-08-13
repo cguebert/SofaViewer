@@ -31,11 +31,11 @@ QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) co
 	if (!hasIndex(row, column, parent))
 		return QModelIndex();
 
-	const Graph::Node* item;
+	const GraphNode* item;
 	if (!parent.isValid())
 		return createIndex(0, 0, m_graph.root());
 	else
-		item = static_cast<Graph::Node*>(parent.internalPointer());
+		item = static_cast<GraphNode*>(parent.internalPointer());
 
 	int nbObjects = item->objects.size(), nbChildren = item->children.size();
 	if(row < nbObjects)
@@ -46,10 +46,10 @@ QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) co
 		return QModelIndex();
 }
 
-int indexOfChild(Graph::Node* node)
+int indexOfChild(GraphNode* node)
 {
 	auto& children = node->parent->children;
-	auto it = std::find_if(children.begin(), children.end(), [node](const Graph::NodePtr& ptr){
+	auto it = std::find_if(children.begin(), children.end(), [node](const GraphNode::Ptr& ptr){
 		return ptr.get() == node;
 	});
 	auto index = std::distance(children.begin(), it);
@@ -61,8 +61,8 @@ QModelIndex GraphModel::parent(const QModelIndex& index) const
 	if (!index.isValid())
 		return QModelIndex();
 
-	Graph::Node* childItem = static_cast<Graph::Node*>(index.internalPointer());
-	Graph::Node* parentItem = childItem->parent;
+	GraphNode* childItem = static_cast<GraphNode*>(index.internalPointer());
+	GraphNode* parentItem = childItem->parent;
 
 	if (childItem == m_graph.root())
 		return QModelIndex();
@@ -81,7 +81,7 @@ int GraphModel::rowCount(const QModelIndex& parent) const
 		return m_graph.root() ? 1 : 0;
 	else
 	{
-		auto item = static_cast<Graph::Node*>(parent.internalPointer());
+		auto item = static_cast<GraphNode*>(parent.internalPointer());
 		return item->objects.size() + item->children.size();
 	}
 }
@@ -98,7 +98,7 @@ QVariant GraphModel::data(const QModelIndex& index, int role) const
 
 	if(role == Qt::DisplayRole)
 	{
-		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if(item->type.empty()) // Node
 		{
 			if(index.column())
@@ -111,7 +111,7 @@ QVariant GraphModel::data(const QModelIndex& index, int role) const
 	}
 	else if(role == Qt::DecorationRole)
 	{
-		Graph::Node* item = static_cast<Graph::Node*>(index.internalPointer());
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if(item->imageId != -1)
 			return QVariant(m_pixmaps[item->imageId]);
 	}
