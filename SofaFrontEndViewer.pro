@@ -5,7 +5,8 @@ Release:TARGET = SofaFrontEndViewer
 Debug:TARGET = SofaFrontEndViewer_d
 TEMPLATE = app
 
-SOURCES += main.cpp\
+SOURCES += main.cpp \
+	core/DocumentFactory.cpp \
 	core/Graph.cpp \
 	core/Model.cpp \
 	core/MouseManipulator.cpp \
@@ -28,6 +29,7 @@ SOURCES += main.cpp\
 
 HEADERS  += \
 	core/BaseDocument.h \
+	core/DocumentFactory.h \
 	core/Graph.h \
 	core/Model.h \
 	core/MouseEvent.h \

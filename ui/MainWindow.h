@@ -78,6 +78,7 @@ private:
 	QString strippedName(const QString &fullFileName);
 
 	QString m_curFile;
+	QString m_saveFilter;
 	QStringList m_recentFiles;
 
 	enum { MaxRecentFiles = 5 };

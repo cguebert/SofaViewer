@@ -4,7 +4,8 @@
 #include <ui/PropertiesDialog.h>
 #include <ui/SimpleGUIImpl.h>
 
-#include <modules/SFELocal/Document.h>
+#include <core/DocumentFactory.h>
+#include <core/Graph.h>
 
 #include <QtWidgets>
 
@@ -82,10 +83,12 @@ void MainWindow::createActions()
 	m_saveAction->setIcon(QIcon(":/share/icons/save.png"));
 	m_saveAction->setShortcut(QKeySequence::Save);
 	m_saveAction->setStatusTip(tr("Save the scene to disk"));
+	m_saveAction->setEnabled(false);
 	connect(m_saveAction, SIGNAL(triggered()), this, SLOT(save()));
 
 	m_saveAsAction = new QAction(tr("Save &As..."), this);
 	m_saveAsAction->setStatusTip(tr("Save the scene under a new name"));
+	m_saveAsAction->setEnabled(false);
 	connect(m_saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
 
 	for (int i = 0; i < MaxRecentFiles; ++i) {
@@ -232,9 +235,10 @@ bool MainWindow::save()
 
 bool MainWindow::saveAs()
 {
+	auto filters = DocumentFactory::instance().saveFilesFilter();
 	QString fileName = QFileDialog::getSaveFileName(this,
 							   tr("Save Document"), ".",
-							   tr("Panda files (*.pnd);;XML Files (*.xml)"));
+							   filters.c_str());
 	if (fileName.isEmpty())
 		return false;
 
@@ -248,8 +252,14 @@ QString MainWindow::strippedName(const QString& fullFileName)
 
 bool MainWindow::loadFile(const QString& fileName)
 {
-	auto document = std::make_shared<Document>(*m_simpleGUI.get());
 	std::string cpath = fileName.toStdString();
+	auto document = DocumentFactory::instance().createForFile(cpath, *m_simpleGUI.get());
+	if(!document) // TODO: show a dialog so that the user can choose the correct document to use
+	{
+		statusBar()->showMessage(tr("Cannot create a document to load this file"), 2000);
+		return false;
+	}
+
 	ChangeDir cd(cpath);
 
 	if (!document->loadFile(cpath))
@@ -267,7 +277,7 @@ bool MainWindow::loadFile(const QString& fileName)
 
 bool MainWindow::saveFile(const QString& fileName)
 {
-//	if (!m_document->writeFile(fileName))
+	if (!m_document->saveFile(fileName.toStdString()))
 	{
 		statusBar()->showMessage(tr("Saving failed"), 2000);
 		return false;
@@ -281,13 +291,12 @@ bool MainWindow::saveFile(const QString& fileName)
 void MainWindow::open()
 {
 	if (okToContinue()) {
+		auto filters = DocumentFactory::instance().loadFilesFilter();
 		QString fileName = QFileDialog::getOpenFileName(this,
 								   tr("Open Document"), ".",
-								   tr("Sofa scene (*.scn);;Obj Mesh (*.obj)"));
+								   filters.c_str());
 		if (!fileName.isEmpty())
-		{
 			loadFile(fileName);
-		}
 	}
 }
 
@@ -455,6 +464,11 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 		delete oldModel;
 
 	m_document = document;
+
+	m_saveFilter = DocumentFactory::instance().saveFilesFilter().c_str();
+	bool canSave = !m_saveFilter.isEmpty();
+	m_saveAction->setEnabled(canSave);
+	m_saveAsAction->setEnabled(canSave);
 
 	auto& graph = m_document->graph();
 	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });

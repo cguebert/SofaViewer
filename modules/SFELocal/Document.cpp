@@ -1,6 +1,7 @@
 #include "Document.h"
 #include "SofaProperties.h"
 
+#include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
 #include <core/SimpleGUI.h>
 #include <core/VectorWrapper.h>
@@ -9,6 +10,10 @@
 
 #include <iostream>
 #include <future>
+
+int SFELocalDoc = RegisterDocument<Document>("SFELocalDoc").setDescription("Run Sofa scenes using Sofa Front End Local")
+	.addLoadFile("Sofa scenes (*.scn)");
+ModuleHandle SFELocalModule = RegisterModule("SFELocal").addDocument(SFELocalDoc);
 
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
@@ -45,6 +50,7 @@ bool Document::loadFile(const std::string& path)
 
 void Document::initUI()
 {
+	std::cout << "Document::initUI()" << std::endl;
 	// Update the scene graph
 	createGraph();
 
