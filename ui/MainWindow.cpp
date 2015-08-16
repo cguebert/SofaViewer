@@ -235,7 +235,7 @@ bool MainWindow::save()
 
 bool MainWindow::saveAs()
 {
-	auto filters = DocumentFactory::instance().saveFilesFilter();
+	auto filters = DocumentFactory::instance().saveFilesFilter(m_document.get());
 	QString fileName = QFileDialog::getSaveFileName(this,
 							   tr("Save Document"), ".",
 							   filters.c_str());
@@ -261,9 +261,11 @@ bool MainWindow::loadFile(const QString& fileName)
 	}
 
 	ChangeDir cd(cpath);
+	m_simpleGUI->setDocumentType(document->documentType());
 
 	if (!document->loadFile(cpath))
 	{
+		m_simpleGUI->setDocumentType(m_document ? m_document->documentType() : "");
 		statusBar()->showMessage(tr("Loading failed"), 2000);
 		return false;
 	}
@@ -465,7 +467,7 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 
 	m_document = document;
 
-	m_saveFilter = DocumentFactory::instance().saveFilesFilter().c_str();
+	m_saveFilter = DocumentFactory::instance().saveFilesFilter(m_document.get()).c_str();
 	bool canSave = !m_saveFilter.isEmpty();
 	m_saveAction->setEnabled(canSave);
 	m_saveAsAction->setEnabled(canSave);

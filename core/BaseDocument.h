@@ -16,6 +16,8 @@ public:
 	BaseDocument(ui::SimpleGUI& /*gui*/) {}
 	virtual ~BaseDocument() {}
 
+	virtual std::string documentType() = 0; // Return the unique name of the implementation (used for settings and factory)
+
 	virtual bool loadFile(const std::string& /*path*/) { return false; }
 	virtual bool saveFile(const std::string& /*path*/) { return false; }
 	virtual void initUI() = 0; // The document is now tied to the GUI, the implemenation can create the graph and the menus

@@ -25,11 +25,7 @@ std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, u
 	{
 		const auto& creator = iter->creator;
 		if(creator)
-		{
-			auto doc = creator->create(gui);
-			const_cast<DocumentFactory*>(this)->m_currentDocument = doc ? name : "";
-			return doc;
-		}
+			return creator->create(gui);
 	}
 
 	std::cerr << "Factory has no entry for " << name << std::endl;
@@ -176,12 +172,12 @@ std::string DocumentFactory::loadFilesFilter() const
 	return m_loadFilesFilter;
 }
 
-std::string DocumentFactory::saveFilesFilter() const
+std::string DocumentFactory::saveFilesFilter(BaseDocument* document) const
 {
-	if(m_currentDocument.empty())
+	if(!document)
 		return "";
 
-	auto name = m_currentDocument;
+	auto name = document->documentType();
 	auto it = std::find_if(m_documents.begin(), m_documents.end(), [name](const DocumentEntry& entry){
 		return entry.name == name;
 	});

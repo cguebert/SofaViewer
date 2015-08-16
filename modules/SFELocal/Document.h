@@ -15,6 +15,8 @@ class Document : public BaseDocument
 {
 public:
 	Document(ui::SimpleGUI& gui);
+	std::string documentType() override;
+
 	bool loadFile(const std::string& path) override;
 	void initUI() override;
 

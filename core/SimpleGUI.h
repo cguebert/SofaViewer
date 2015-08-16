@@ -41,6 +41,28 @@ public:
 
 /******************************************************************************/
 
+class Settings
+{
+public:
+	virtual ~Settings() {}
+
+	virtual void set(const std::string& name, int val) = 0;
+	virtual void set(const std::string& name, double val) = 0;
+	virtual void set(const std::string& name, const std::string& val) = 0;
+	virtual void set(const std::string& name, const std::vector<int>& val) = 0;
+	virtual void set(const std::string& name, const std::vector<double>& val) = 0;
+	virtual void set(const std::string& name, const std::vector<std::string>& val) = 0;
+
+	virtual bool get(const std::string& name, int& val) = 0;
+	virtual bool get(const std::string& name, double& val) = 0;
+	virtual bool get(const std::string& name, std::string& val) = 0;
+	virtual bool get(const std::string& name, std::vector<int>& val) = 0;
+	virtual bool get(const std::string& name, std::vector<double>& val) = 0;
+	virtual bool get(const std::string& name, std::vector<std::string>& val) = 0;
+};
+
+/******************************************************************************/
+
 class SimpleGUI
 {
 public:
@@ -61,7 +83,9 @@ public:
 
 	virtual void updateView() = 0; // Update the OpenGL view
 
-	virtual void closeDialog(ObjectProperties* objProp) = 0;
+	virtual void closePropertiesDialog(ObjectProperties* objProp) = 0;
+
+	virtual Settings& settings() = 0;
 };
 
 } // namespace ui

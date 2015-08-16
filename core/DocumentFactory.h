@@ -22,7 +22,7 @@ public:
 	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName, ui::SimpleGUI& gui) const;
 
 	std::string loadFilesFilter() const; // For all documents
-	std::string saveFilesFilter() const; // Only for current document
+	std::string saveFilesFilter(BaseDocument* document) const; // Only for current document
 
 	struct DocumentEntry
 	{
@@ -65,7 +65,6 @@ protected:
 
 	DocumentsList m_documents;
 	ModulesList m_modules;
-	std::string m_currentDocument; // Last document created
 	std::string m_loadFilesFilter;
 	std::vector<std::pair<std::string, std::string>> m_loadFilesAssociation;
 

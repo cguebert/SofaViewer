@@ -25,8 +25,18 @@ Document::Document(ui::SimpleGUI& gui)
 {
 }
 
+std::string Document::documentType()
+{
+	return "SFELocalDoc";
+}
+
 bool Document::loadFile(const std::string& path)
 {
+	// Read settings
+	std::vector<std::string> sofaPaths;
+	if(m_gui.settings().get("dataRepositoryPaths", sofaPaths))
+		m_simulation.getHelper()->setDataRepositoryPaths(sofaPaths);
+
 	m_simulation.setAnimate(false, true);
 	if (!m_simulation.loadFile(path))
 		return false;
@@ -375,7 +385,7 @@ void Document::resetSimulation()
 		m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
 	auto objProps = m_openedObjectProperties;
 	for(auto objProp : objProps)
-		m_gui.closeDialog(objProp.get());
+		m_gui.closePropertiesDialog(objProp.get());
 	m_simulation.reset();
 	createGraph();
 	m_fpsCount = 1;
@@ -394,9 +404,10 @@ void Document::modifyDataRepository()
 	panel.addProperty(Property::createRefProperty("Paths", paths));
 
 	if(dialog->exec())
+	{
 		helper->setDataRepositoryPaths(paths);
-	for(const auto& path : paths)
-		std::cout << path << std::endl;
+		m_gui.settings().set("dataRepositoryPaths", paths);
+	}
 }
 
 void Document::updateProperties()

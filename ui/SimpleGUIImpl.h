@@ -8,6 +8,7 @@ class QDialog;
 class QGridLayout;
 class QLabel;
 class QLayout;
+class QSettings;
 
 class PanelImpl : public ui::Panel
 {
@@ -55,6 +56,34 @@ protected:
 
 /******************************************************************************/
 
+class SettingsImpl : public ui::Settings
+{
+public:
+	SettingsImpl(MainWindow* mainWindow);
+
+	void setDocumentType(const std::string& type);
+
+	void set(const std::string& name, int val) override;
+	void set(const std::string& name, double val) override;
+	void set(const std::string& name, const std::string& val) override;
+	void set(const std::string& name, const std::vector<int>& val) override;
+	void set(const std::string& name, const std::vector<double>& val) override;
+	void set(const std::string& name, const std::vector<std::string>& val) override;
+
+	bool get(const std::string& name, int& val) override;
+	bool get(const std::string& name, double& val) override;
+	bool get(const std::string& name, std::string& val) override;
+	bool get(const std::string& name, std::vector<int>& val) override;
+	bool get(const std::string& name, std::vector<double>& val) override;
+	bool get(const std::string& name, std::vector<std::string>& val) override;
+
+protected:
+	QSettings* m_settings;
+	std::string m_documentType;
+};
+
+/******************************************************************************/
+
 class SimpleGUIImpl : public ui::SimpleGUI
 {
 public:
@@ -66,9 +95,11 @@ public:
 	void setStatusBarText(int id, const std::string& text) override;
 	DialogPtr createDialog(const std::string& title) override;
 	void updateView() override;
-	void closeDialog(ObjectProperties* objProp) override;
+	void closePropertiesDialog(ObjectProperties* objProp) override;
+	ui::Settings& settings() override;
 
 	void clear();
+	void setDocumentType(const std::string& type);
 
 protected:
 	MainWindow* m_mainWindow;
@@ -77,4 +108,5 @@ protected:
 	std::vector<QAction*> m_menuActions;
 	using DialogImplPtr = std::shared_ptr<DialogImpl>;
 	std::vector<DialogImplPtr> m_dialogs;
+	SettingsImpl m_settings;
 };
