@@ -22,7 +22,7 @@ class BaseTableWidgetContainer : public QObject
 {
 	Q_OBJECT
 public slots:
-	virtual void resizeValue(int) {}
+	virtual void resizeValue() {}
 	virtual void toggleView(bool) {}
 };
 
@@ -40,6 +40,7 @@ template <class T> class TableValueAccessor; // Don't forget to implement value/
 // Table model for property widgets for lists of values
 class TablePropertyModel : public QAbstractTableModel
 {
+	Q_OBJECT
 public:
 	TablePropertyModel(QObject* parent, std::shared_ptr<BaseTableValueAccessor> accessor);
 
@@ -55,6 +56,9 @@ public:
 
 	void beginReset();
 	void endReset();
+
+signals:
+	void modified();
 
 protected:
 	std::shared_ptr<BaseTableValueAccessor> m_accessor;

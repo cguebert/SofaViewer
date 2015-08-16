@@ -37,6 +37,8 @@ protected:
 	void createGraph();
 
 	void singleStep();
+	void resetSimulation();
+	void modifyDataRepository();
 
 	void parseNode(GraphNode::Ptr parent, sfe::Node node);
 	GraphNode::Ptr createNode(sfe::Object object, GraphNode::Ptr parent);

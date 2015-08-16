@@ -28,6 +28,7 @@ public:
 		auto value = parent->property()->value<value_type>();
 		m_accessor = std::make_shared<TableValueAccessor<value_type>>(value->value());
 		m_model = new TablePropertyModel(m_view, m_accessor);
+		connect(m_model, SIGNAL(modified()), parent, SLOT(setWidgetDirty()));
 		m_view->setModel(m_model);
 
 		if(m_accessor->fixed())
@@ -66,7 +67,8 @@ public:
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
-			connect(m_spinBox, SIGNAL(valueChanged(int)), this, SLOT(resizeValue(int)));
+			connect(m_spinBox, SIGNAL(editingFinished()), this, SLOT(resizeValue()));
+			connect(m_spinBox, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()));
 			topLayout->addWidget(m_spinBox, 1);
 
 			layout->addLayout(topLayout);
@@ -91,8 +93,9 @@ public:
 	{
 		v = m_accessor->value();
 	}
-	void resizeValue(int nb) override
+	void resizeValue() override
 	{
+		int nb = m_spinBox->value();
 		m_model->resizeValue(nb);
 	}
 	void toggleView(bool show) override
@@ -101,14 +104,6 @@ public:
 		m_toggleButton->setText(show ? tr("hide") : tr("show"));
 	}
 };
-
-template <>
-QVariant toVariant(const std::string& value)
-{ return QVariant(value.c_str()); }
-
-template <>
-std::string fromVariant(const QVariant& data)
-{ return data.toString().toStdString(); }
 
 /*****************************************************************************/
 
@@ -158,6 +153,7 @@ bool TablePropertyModel::setData(const QModelIndex& index, const QVariant& value
 		return false;
 
 	m_accessor->setData(index.row(), index.column(), value);
+	emit modified();
 	return true;
 }
 
@@ -190,6 +186,16 @@ void TablePropertyModel::endReset()
 {
 	endResetModel();
 }
+
+/*****************************************************************************/
+
+template <>
+QVariant toVariant(const std::string& value)
+{ return QVariant(value.c_str()); }
+
+template <>
+std::string fromVariant(const QVariant& data)
+{ return data.toString().toStdString(); }
 
 /*****************************************************************************/
 
@@ -232,7 +238,39 @@ protected:
 
 /*****************************************************************************/
 
+template <class T>
+class TableValueAccessor<std::vector<T>> : public BaseTableValueAccessor
+{
+public:
+	using vector_type = std::vector<T>;
+	using base_value = typename T;
+	TableValueAccessor(const vector_type& value) : m_value(value) {}
+
+	const vector_type& value() const { return m_value; }
+	void setValue(const vector_type& value) { m_value = value; }
+
+	int rowCount() const override 	{ return m_value.size(); }
+	int columnCount() const override	{ return 1; }
+	bool fixed() const override		{ return false; }
+	QVariant data(int row, int /*column*/) const override
+	{ return toVariant(m_value[row]); }
+	void setData(int row, int /*column*/, QVariant value) override
+	{ m_value[row] = fromVariant<base_value>(value); }
+	void resize(int nb) override
+	{ m_value.resize(nb); }
+
+protected:
+	vector_type m_value;
+};
+
+/*****************************************************************************/
+
 template <class T> using TablePropertyWidget = SimplePropertyWidget<T, TableWidgetContainer<T>>;
+RegisterWidget<TablePropertyWidget<std::vector<int>>> PW_vector_int("default");
+RegisterWidget<TablePropertyWidget<std::vector<float>>> PW_vector_float("default");
+RegisterWidget<TablePropertyWidget<std::vector<double>>> PW_vector_double("default");
+RegisterWidget<TablePropertyWidget<std::vector<std::string>>> PW_vector_string("default");
+
 RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<int>>>> PW_vector_wrapper_int("default");
 RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<float>>>> PW_vector_wrapper_float("default");
 RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<double>>>> PW_vector_wrapper_double("default");

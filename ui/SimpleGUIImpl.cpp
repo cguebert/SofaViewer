@@ -6,6 +6,8 @@
 
 #include <QtWidgets>
 
+#include <iostream>
+
 PanelImpl::PanelImpl(MainWindow* mainWindow, QGridLayout* layout)
 	: m_mainWindow(mainWindow)
 	, m_layout(layout)
@@ -39,6 +41,12 @@ void PanelImpl::addProperty(Property::PropertyPtr property,
 							int rowSpan, int columnSpan)
 {
 	std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(property, m_mainWindow);
+	if(!propWidget)
+	{
+		std::cerr << "Could not create a property widget for " << property->name() << std::endl;
+		return;
+	}
+
 	m_propertyWidgets.push_back(propWidget);
 
 	auto widget = propWidget->createWidgets();

@@ -7,6 +7,7 @@
 #include <core/VectorWrapper.h>
 
 #include <sfe/sofaFrontEndLocal.h>
+#include <sfe/Helpers.h>
 
 #include <iostream>
 #include <future>
@@ -60,20 +61,7 @@ void Document::initUI()
 	});
 	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
 
-	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){
-		bool animating = m_simulation.isAnimating();
-		if(animating)
-			m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
-		auto objProps = m_openedObjectProperties;
-		for(auto objProp : objProps)
-			m_gui.closeDialog(objProp.get());
-		m_simulation.reset();
-		createGraph();
-		m_fpsCount = 1;
-		m_fpsStart = std::chrono::high_resolution_clock::now();
-		if(animating)
-			m_simulation.setAnimate(true);
-	}, 1, 0);
+	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
 	auto prop = Property::createCopyProperty("Dt", 0.02f);
 	m_gui.buttonsPanel().addProperty(prop, 1, 1);
@@ -85,6 +73,7 @@ void Document::initUI()
 	m_gui.setStatusBarText(m_statusFPS, ""); // Set it to empty because we do not have the fps information yet
 
 	// Menu actions
+	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Sofa paths", "", [this](){ modifyDataRepository(); } );
 	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Open Dialog", "", [this](){
 		auto dialog = m_gui.createDialog("Test dialog");
 		auto& panel = dialog->content();
@@ -377,6 +366,37 @@ void Document::singleStep()
 	ss.precision(1);
 	ss << std::fixed << fps;
 	m_gui.setStatusBarText(m_statusFPS, ss.str());
+}
+
+void Document::resetSimulation()
+{
+	bool animating = m_simulation.isAnimating();
+	if(animating)
+		m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
+	auto objProps = m_openedObjectProperties;
+	for(auto objProp : objProps)
+		m_gui.closeDialog(objProp.get());
+	m_simulation.reset();
+	createGraph();
+	m_fpsCount = 1;
+	m_fpsStart = std::chrono::high_resolution_clock::now();
+	if(animating)
+		m_simulation.setAnimate(true);
+}
+
+void Document::modifyDataRepository()
+{
+	auto dialog = m_gui.createDialog("Sofa Data Repository");
+	auto& panel = dialog->content();
+
+	auto helper = m_simulation.getHelper();
+	std::vector<std::string> paths = helper->dataRepositoryPaths();
+	panel.addProperty(Property::createRefProperty("Paths", paths));
+
+	if(dialog->exec())
+		helper->setDataRepositoryPaths(paths);
+	for(const auto& path : paths)
+		std::cout << path << std::endl;
 }
 
 void Document::updateProperties()
