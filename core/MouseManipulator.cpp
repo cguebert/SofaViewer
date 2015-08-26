@@ -24,8 +24,8 @@ bool SofaMouseManipulator::mouseEvent(const MouseEvent& event)
 			switch(event.button)
 			{
 			case MouseEvent::LeftButton:	m_mouseManipulation = MouseManipulation::Rotation;		break;
-			case MouseEvent::RightButton:	m_mouseManipulation = MouseManipulation::Zoom;			break;
-			case MouseEvent::MiddleButton:	m_mouseManipulation = MouseManipulation::Translation;	break;
+			case MouseEvent::RightButton:	m_mouseManipulation = MouseManipulation::Translation;	break;
+			case MouseEvent::MiddleButton:	m_mouseManipulation = MouseManipulation::Zoom;			break;
 			}
 
 			if(m_mouseManipulation != MouseManipulation::None)
