@@ -1,7 +1,6 @@
 #pragma once
 
-#include <QOpenGLFunctions_3_3_Core>
-#include <QOpenGLShaderProgram>
+#include <render/Shader.h>
 
 #include <glm/glm.hpp>
 #include <sfe/DataTypeTrait.h>
@@ -11,9 +10,9 @@
 
 using Vertices = std::vector < glm::vec3 >;
 using Normals = std::vector < glm::vec3 >;
-using Triangle = std::array < GLuint, 3 >;
+using Triangle = std::array < unsigned int, 3 >;
 using Triangles = std::vector < Triangle >;
-using Quad = std::array < GLuint, 4 >;
+using Quad = std::array < unsigned int, 4 >;
 using Quads = std::vector < Quad >;
 using TexCoords = std::vector < glm::vec2 >;
 
@@ -25,7 +24,7 @@ namespace sfe
 	template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
-class Model : public QOpenGLFunctions_3_3_Core
+class Model
 {
 public:
 	void init();
@@ -45,7 +44,7 @@ public:
 	Quads m_quads;
 
 	TexCoords m_texCoords;
-	GLuint m_texture;
+	unsigned int  m_texture;
 	bool m_hasTexture = false;
 
 	glm::vec4 m_color;
@@ -54,7 +53,7 @@ public:
 	sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 
 	Triangles m_mergedTriangles; // With the quads
-	GLuint m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
+	unsigned int  m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
 
-	QOpenGLShaderProgram m_program;
+	ShaderProgram m_program;
 };

@@ -1,4 +1,8 @@
 #include <render/Scene.h>
+#include <render/shaders.h>
+
+#define GLEW_STATIC
+#include <GL/glew.h>
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -10,7 +14,10 @@ void Scene::addModel(ModelPtr model)
 
 void Scene::initOpenGL()
 {
-	initializeOpenGLFunctions();
+	// Get OpenGL functions
+	glewExperimental = GL_TRUE;
+	glewInit();
+
 	for(auto& model : m_models)
 		model->init();
 
@@ -25,9 +32,9 @@ void Scene::initOpenGL()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	m_program.removeAllShaders();
-	m_program.addShaderFromSourceFile(QOpenGLShader::Vertex, "://share/shaders/shader.vert");
-	m_program.addShaderFromSourceFile(QOpenGLShader::Fragment, "://share/shaders/shader.frag");
+	m_program.removeShaders();
+	m_program.addShaderFromMemory(ShaderType::Vertex, vertexShader);
+	m_program.addShaderFromMemory(ShaderType::Fragment, fragmentShader);
 	m_program.link();
 
 	m_mvLoc = m_program.uniformLocation("MV");
@@ -64,7 +71,7 @@ void Scene::render()
 	m_modelview = glm::translate(m_modelview, -m_center);		// move scene to origin to apply rotation
 
 	glm::mat4 modelviewProjection = m_projection * m_modelview;
-	m_program.bind();
+	m_program.use();
 	glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
 	glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
 

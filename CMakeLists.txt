@@ -5,8 +5,12 @@ project(${PROJECT_NAME})
 
 set(LIBRARIES_BASE_DIR "" CACHE PATH "Directory where other libraries are installed")
 
-# Plugins
 include_directories(".")
+
+# Librairies
+add_subdirectory("render")
+
+# Plugins
 add_subdirectory("modules/SFELocal")
 
 set(QT_BASE_DIR "" CACHE PATH "Qt5 install prefix") # C:/Qt/5/msvc2015/
@@ -20,12 +24,10 @@ set(HEADER_FILES
 	core/BaseDocument.h
 	core/DocumentFactory.h
 	core/Graph.h
-	core/Model.h
 	core/MouseEvent.h
 	core/MouseManipulator.h
 	core/ObjectProperties.h
 	core/Property.h
-	core/Scene.h
 	core/SimpleGUI.h
 	core/VectorWrapper.h
 	ui/GraphModel.h
@@ -43,11 +45,9 @@ set(SOURCE_FILES
 	main.cpp
 	core/DocumentFactory.cpp
 	core/Graph.cpp
-	core/Model.cpp
 	core/MouseManipulator.cpp
 	core/ObjectProperties.cpp
 	core/Property.cpp
-	core/Scene.cpp
 	ui/GraphModel.cpp
 	ui/MainWindow.cpp
 	ui/OpenGLView.cpp

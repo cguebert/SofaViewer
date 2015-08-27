@@ -6,7 +6,7 @@
 
 #include <memory>
 
-class Scene : public QOpenGLFunctions_3_3_Core
+class Scene
 {
 public:
 	using ModelPtr = std::shared_ptr<Model>;
@@ -36,8 +36,8 @@ protected:
 	glm::quat m_rotation;
 	glm::vec3 m_translation = { 0.f, 0.f, 0.f };
 
-	QOpenGLShaderProgram m_program;
-	GLint m_mvLoc = 0, m_mvpLoc = 0, m_colLoc = 0, m_texLoc = 0;
+	ShaderProgram m_program;
+	int m_mvLoc = 0, m_mvpLoc = 0, m_colLoc = 0, m_texLoc = 0;
 };
 
 inline const std::vector<Scene::ModelPtr>& Scene::models()
