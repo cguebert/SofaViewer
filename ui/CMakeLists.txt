@@ -53,6 +53,8 @@ endif()
 
 add_executable(${PROJECT_NAME} ${GUI_TYPE} ${HEADER_FILES} ${SOURCE_FILES} ${RESSOURCE_FILES})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Applications")
+
 target_link_libraries(${PROJECT_NAME} "Core")
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
 

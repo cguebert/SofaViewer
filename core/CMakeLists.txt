@@ -24,3 +24,5 @@ set(SOURCE_FILES
 )
 
 add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Libraries")

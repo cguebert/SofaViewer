@@ -25,3 +25,5 @@ if(NOT OPENGL_FOUND)
 endif(NOT OPENGL_FOUND)
  
 target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})
+
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Libraries")

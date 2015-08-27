@@ -19,6 +19,8 @@ set(MODULE_DIR "${TARGET_DIR}/modules/${PROJECT_NAME}")
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
+set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Plugins")
+
 install(TARGETS ${PROJECT_NAME} DESTINATION ${MODULE_DIR})
 
 # Dependencies
