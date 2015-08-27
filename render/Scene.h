@@ -1,6 +1,6 @@
 #pragma once
 
-#include <core/Model.h>
+#include <render/Model.h>
 
 #include <glm/gtc/quaternion.hpp>
 

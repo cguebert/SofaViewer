@@ -8,14 +8,14 @@ TEMPLATE = app
 SOURCES += main.cpp \
 	core/DocumentFactory.cpp \
 	core/Graph.cpp \
-	core/Model.cpp \
 	core/MouseManipulator.cpp \
 	core/ObjectProperties.cpp \
 	core/Property.cpp \
-	core/Scene.cpp \
 	modules/SFELocal/Document.cpp \
 	modules/SFELocal/GraphImages.cpp \
 	modules/SFELocal/SofaProperties.cpp \
+	render/Model.cpp \
+	render/Scene.cpp \
 	ui/GraphModel.cpp \
 	ui/MainWindow.cpp \
 	ui/OpenGLView.cpp \
@@ -31,17 +31,17 @@ HEADERS  += \
 	core/BaseDocument.h \
 	core/DocumentFactory.h \
 	core/Graph.h \
-	core/Model.h \
 	core/MouseEvent.h \
 	core/MouseManipulator.h \
 	core/ObjectProperties.h \
 	core/Property.h \
-	core/Scene.h \
 	core/SimpleGUI.h \
 	core/VectorWrapper.h \
 	modules/SFELocal/Document.h \
 	modules/SFELocal/GraphImages.h \
 	modules/SFELocal/SofaProperties.h \
+	render/Model.h \
+	render/Scene.h \
 	ui/GraphModel.h \
 	ui/MainWindow.h \
 	ui/OpenGLView.h \

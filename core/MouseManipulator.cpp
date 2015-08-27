@@ -1,5 +1,5 @@
 #include "MouseManipulator.h"
-#include "Scene.h"
+#include <render/Scene.h>
 
 MouseManipulator::MouseManipulator(Scene& scene)
 	: m_scene(scene)

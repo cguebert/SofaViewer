@@ -2,8 +2,8 @@
 
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
-#include <core/Scene.h>
 #include <core/MouseManipulator.h>
+#include <render/Scene.h>
 #include <sfe/Simulation.h>
 
 #include "GraphImages.h"

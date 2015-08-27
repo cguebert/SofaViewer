@@ -1,4 +1,4 @@
-#include <core/Model.h>
+#include <render/Model.h>
 
 void Model::init()
 {
