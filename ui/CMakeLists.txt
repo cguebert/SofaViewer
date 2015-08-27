@@ -3,7 +3,6 @@ cmake_minimum_required(VERSION 3.1)
 set(PROJECT_NAME "SofaFrontEndViewer")
 project(${PROJECT_NAME})
 
-
 set(QT_BASE_DIR "" CACHE PATH "Qt5 install prefix") # C:/Qt/5/msvc2015/
 list(APPEND CMAKE_PREFIX_PATH ${QT_BASE_DIR})
 
@@ -72,9 +71,9 @@ if(WIN32)
 		list(APPEND qtLibsDebug		"${QT_BASE_DIR}/bin/${libName}.dll")
 	endforeach(libName)
 	
-	install(FILES ${qtLibsRelease} CONFIGURATIONS Release RelWithDebInfo DESTINATION ${TARGETDIR})
-	install(FILES ${qtLibsDebug} CONFIGURATIONS Debug DESTINATION ${TARGETDIR})
+	install(FILES ${qtLibsRelease} CONFIGURATIONS Release RelWithDebInfo DESTINATION ${TARGET_DIR})
+	install(FILES ${qtLibsDebug} CONFIGURATIONS Debug DESTINATION ${TARGET_DIR})
 	
-	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindows.dll" CONFIGURATIONS Release RelWithDebInfo DESTINATION "${TARGETDIR}/plugins/platforms")
-	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindowsd.dll" CONFIGURATIONS Debug DESTINATION "${TARGETDIR}/plugins/platforms")
+	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindows.dll" CONFIGURATIONS Release RelWithDebInfo DESTINATION "${TARGET_DIR}/plugins/platforms")
+	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindowsd.dll" CONFIGURATIONS Debug DESTINATION "${TARGET_DIR}/plugins/platforms")
 endif()

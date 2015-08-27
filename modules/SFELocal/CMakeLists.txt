@@ -15,12 +15,11 @@ set(SOURCE_FILES
 	SofaProperties.cpp
 )
 
-include_directories(${LIBRARIES_BASE_DIR}/include)
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
-set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+set(MODULE_DIR "${TARGET_DIR}/modules/${PROJECT_NAME}")
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
+
+install(TARGETS ${PROJECT_NAME} DESTINATION ${MODULE_DIR})
 
 # Dependencies
 target_link_libraries(${PROJECT_NAME} "Core")
@@ -97,9 +96,9 @@ foreach(libName ${libNames})
 	list(APPEND libsRelWithDebInfo  "${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${libName}rd${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	list(APPEND libsDebug           "${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${libName}d${CMAKE_SHARED_LIBRARY_SUFFIX}")
 endforeach(libName)
-install(FILES ${libsRelease} CONFIGURATIONS Release DESTINATION ${TARGETDIR})
-install(FILES ${libsRelWithDebInfo} CONFIGURATIONS RelWithDebInfo DESTINATION ${TARGETDIR})
-install(FILES ${libsDebug} CONFIGURATIONS Debug DESTINATION ${TARGETDIR})
+install(FILES ${libsRelease} CONFIGURATIONS Release DESTINATION ${MODULE_DIR})
+install(FILES ${libsRelWithDebInfo} CONFIGURATIONS RelWithDebInfo DESTINATION ${MODULE_DIR})
+install(FILES ${libsDebug} CONFIGURATIONS Debug DESTINATION ${MODULE_DIR})
 
 # Install directive for additional sofa dependencies that do not depend on the configuration.
 if(WIN32)
@@ -109,6 +108,6 @@ if(WIN32)
 		set(libfullpath "${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${lib}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 		list(APPEND libs "${libfullpath} ")
 	endforeach(lib)	
-	install(FILES ${libs} CONFIGURATIONS Release RelWithDebInfo Debug DESTINATION ${TARGETDIR})
+	install(FILES ${libs} CONFIGURATIONS Release RelWithDebInfo Debug DESTINATION ${MODULE_DIR})
 endif()
 
