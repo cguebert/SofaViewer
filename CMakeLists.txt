@@ -20,95 +20,11 @@ if(MSVC)
 endif()
 
 # Librairies
+add_subdirectory("core")
 add_subdirectory("render")
 
 # Plugins
 add_subdirectory("modules/SFELocal")
 
-set(QT_BASE_DIR "" CACHE PATH "Qt5 install prefix") # C:/Qt/5/msvc2015/
-list(APPEND CMAKE_PREFIX_PATH ${QT_BASE_DIR})
-
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
-set(HEADER_FILES
-	core/BaseDocument.h
-	core/DocumentFactory.h
-	core/Graph.h
-	core/MouseEvent.h
-	core/MouseManipulator.h
-	core/ObjectProperties.h
-	core/Property.h
-	core/SimpleGUI.h
-	core/VectorWrapper.h
-	ui/GraphModel.h
-	ui/MainWindow.h
-	ui/OpenGLView.h
-	ui/PropertiesDialog.h
-	ui/SimpleGUIImpl.h
-	ui/widget/PropertyWidget.h
-	ui/widget/PropertyWidgetFactory.h
-	ui/widget/SimplePropertyWidget.h
-	ui/widget/TablePropertyWidget.h
-)
-
-set(SOURCE_FILES
-	main.cpp
-	core/DocumentFactory.cpp
-	core/Graph.cpp
-	core/MouseManipulator.cpp
-	core/ObjectProperties.cpp
-	core/Property.cpp
-	ui/GraphModel.cpp
-	ui/MainWindow.cpp
-	ui/OpenGLView.cpp
-	ui/PropertiesDialog.cpp
-	ui/SimpleGUIImpl.cpp
-	ui/widget/NumericalPropertyWidget.cpp
-	ui/widget/PropertyWidget.cpp
-	ui/widget/PropertyWidgetFactory.cpp
-	ui/widget/StringPropertyWidget.cpp
-	ui/widget/TablePropertyWidget.cpp
-)
-
-set(RESSOURCE_FILES ${PROJECT_NAME}.qrc)
-if(WIN32)
-	set(RESSOURCE_FILES ${RESSOURCE_FILES} ${PROJECT_NAME}.rc)
-endif()
-
-find_package(Qt5Widgets)
-find_package(Qt5OpenGL)
-
-if(WIN32)
-	set(GUI_TYPE WIN32)
-endif()
-
-add_executable(${PROJECT_NAME} ${GUI_TYPE} ${HEADER_FILES} ${SOURCE_FILES} ${RESSOURCE_FILES})
-
-target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
-
-# Install Qt files
-if(WIN32)
-	set(QT_LIBS Qt5Core Qt5Gui Qt5OpenGL Qt5Widgets)
-	set(QT_ADDITIONAL_LIBS icudt54 icuin54 icuuc54)
-	
-	set(qtLibsRelease)
-	set(qtLibsDebug)
-	
-	foreach(libName ${QT_LIBS})
-		list(APPEND qtLibsRelease	"${QT_BASE_DIR}/bin/${libName}.dll")
-		list(APPEND qtLibsDebug		"${QT_BASE_DIR}/bin/${libName}d.dll")
-	endforeach(libName)
-	
-	foreach(libName ${QT_ADDITIONAL_LIBS})
-		list(APPEND qtLibsRelease	"${QT_BASE_DIR}/bin/${libName}.dll")
-		list(APPEND qtLibsDebug		"${QT_BASE_DIR}/bin/${libName}.dll")
-	endforeach(libName)
-	
-	install(FILES ${qtLibsRelease} CONFIGURATIONS Release RelWithDebInfo DESTINATION ${TARGETDIR})
-	install(FILES ${qtLibsDebug} CONFIGURATIONS Debug DESTINATION ${TARGETDIR})
-	
-	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindows.dll" CONFIGURATIONS Release RelWithDebInfo DESTINATION "${TARGETDIR}/plugins/platforms")
-	install(FILES "${QT_BASE_DIR}/plugins/platforms/qwindowsd.dll" CONFIGURATIONS Debug DESTINATION "${TARGETDIR}/plugins/platforms")
-endif()
+# Application
+add_subdirectory("ui")

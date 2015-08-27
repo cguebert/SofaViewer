@@ -22,7 +22,8 @@ set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
-# Link to SimpleRender
+# Dependencies
+target_link_libraries(${PROJECT_NAME} "Core")
 target_link_libraries(${PROJECT_NAME} "SimpleRender")
 
 # List of all sofa libs.
