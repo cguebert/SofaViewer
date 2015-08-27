@@ -15,9 +15,13 @@ set(SOURCE_FILES
 	Shader.cpp
 )
 
-include_directories(${LIBRARIES_BASE_DIR}/include)
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
-set(TARGETDIR ${LIBRARY_OUTPUT_PATH}/\${BUILD_TYPE})
-
 add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})
+
+target_link_libraries(${PROJECT_NAME} "${LIBRARIES_LIB_DIRS}/glew32s.lib")
+
+find_package(OpenGL REQUIRED)
+if(NOT OPENGL_FOUND)
+    message(ERROR " OPENGL not found!")
+endif(NOT OPENGL_FOUND)
+ 
+target_link_libraries(${PROJECT_NAME} ${OPENGL_LIBRARIES})

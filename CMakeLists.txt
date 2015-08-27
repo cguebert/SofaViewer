@@ -4,8 +4,20 @@ set(PROJECT_NAME "SofaFrontEndViewer")
 project(${PROJECT_NAME})
 
 set(LIBRARIES_BASE_DIR "" CACHE PATH "Directory where other libraries are installed")
+set(LIBRARIES_INCLUDE_DIRS ${LIBRARIES_BASE_DIR}/include)
+set(LIBRARIES_LIB_DIRS ${LIBRARIES_BASE_DIR}/lib)
 
 include_directories(".")
+include_directories(${LIBRARIES_INCLUDE_DIRS})
+
+set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
+set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
+set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
+
+# Multiprocessor build on Visual C++
+if(MSVC)
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
+endif()
 
 # Librairies
 add_subdirectory("render")
@@ -68,11 +80,6 @@ endif()
 find_package(Qt5Widgets)
 find_package(Qt5OpenGL)
 
-include_directories(${LIBRARIES_BASE_DIR}/include)
-set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE INTERNAL "" FORCE)
-set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE INTERNAL "" FORCE)
-set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
-
 if(WIN32)
 	set(GUI_TYPE WIN32)
 endif()
@@ -80,10 +87,6 @@ endif()
 add_executable(${PROJECT_NAME} ${GUI_TYPE} ${HEADER_FILES} ${SOURCE_FILES} ${RESSOURCE_FILES})
 
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
-
-if(MSVC)
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /MP")
-endif()
 
 # Install Qt files
 if(WIN32)

@@ -22,6 +22,9 @@ set(TARGETDIR ${EXECUTABLE_OUTPUT_PATH}/\${BUILD_TYPE})
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})
 
+# Link to SimpleRender
+target_link_libraries(${PROJECT_NAME} "SimpleRender")
+
 # List of all sofa libs.
 set(SOFA_LIBS
 	Qwt SofaBaseAnimationLoop SofaBaseCollision SofaBaseLinearSolver SofaBaseMechanics SofaBaseTopology SofaBaseVisual SofaBoundaryCondition SofaComponentAdvanced SofaComponentBase SofaComponentCommon SofaComponentGeneral SofaComponentMain SofaComponentMisc SofaConstraint SofaCore SofaDefaultType SofaDeformable SofaDenseSolver SofaEigen2Solver SofaEngine SofaEulerianFluid SofaExplicitOdeSolver SofaExporter SofaGraphComponent SofaGuiCommon SofaGuiGlut SofaGuiMain SofaGuiQt SofaHaptics SofaHelper SofaImplicitOdeSolver SofaLoader SofaMeshCollision SofaMiscCollision SofaMiscEngine SofaMiscFem SofaMiscForceField SofaMiscMapping SofaMiscSolver SofaMiscTopology SofaMisc SofaNonUniformFem SofaObjectInteraction SofaOpenglVisual SofaPreconditioner SofaRigid SofaSimpleFem SofaSimulationCommon SofaSimulationGraph SofaSimulationTree SofaSphFluid SofaTopologyMapping SofaUserInteraction SofaValidation SofaVolumetricData tinyxml
