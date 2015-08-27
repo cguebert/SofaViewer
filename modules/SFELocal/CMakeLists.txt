@@ -41,9 +41,6 @@ if(WIN32)
 		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0d.lib)
 	target_link_libraries(${PROJECT_NAME} "SofaFrontEnd")
 	
-	add_definitions(-DSFE_USE_LOCAL)
-	list(APPEND SOFA_LIBS SofaFrontEnd SofaFrontEndLocal)
-	
 	add_library("SofaFrontEndLocal" SHARED IMPORTED)
 	set_target_properties("SofaFrontEndLocal" PROPERTIES 
 		IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0.lib
@@ -51,6 +48,8 @@ if(WIN32)
 		IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0rd.lib
 		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0d.lib)
 	target_link_libraries(${PROJECT_NAME} "SofaFrontEndLocal")
+	
+	list(APPEND SOFA_LIBS SofaFrontEnd SofaFrontEndLocal)
 elseif(UNIX)	
 	if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")

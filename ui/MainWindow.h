@@ -47,6 +47,7 @@ private slots:
 private:
 	void createActions();
 	void createMenus();
+	void loadModules();
 
 	bool loadFile(const QString &fileName);
 	bool saveFile(const QString &fileName);

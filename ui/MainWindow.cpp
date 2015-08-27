@@ -1,3 +1,4 @@
+#define CREATE_INSTANCES
 #include <ui/GraphModel.h>
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
@@ -8,6 +9,8 @@
 #include <core/Graph.h>
 
 #include <QtWidgets>
+
+#include <iostream>
 
 class ChangeDir
 {
@@ -69,6 +72,8 @@ MainWindow::MainWindow(QWidget *parent)
 	setCurrentFile("");
 
 	readSettings();
+
+	loadModules();
 }
 
 void MainWindow::createActions()
@@ -537,4 +542,36 @@ void MainWindow::graphCallback(uint16_t reasonVal)
 			break;
 		}
 	} // switch
+}
+
+void MainWindow::loadModules()
+{
+	DocumentFactory::instance();
+	QDir dir(QApplication::applicationDirPath() + "/modules");
+	auto modules = dir.entryList(QDir::Dirs, QDir::Name);
+
+	for (const auto& module : modules)
+	{
+		if (module.startsWith("."))
+			continue;
+
+		QDir moduleDir = dir;
+		moduleDir.cd(module);
+		QString dirPath = moduleDir.absolutePath();
+
+#ifdef WIN32
+		SetDllDirectory(dirPath.toStdString().c_str());
+#endif
+		QFileInfo file(moduleDir, module);
+		QString path = file.absoluteFilePath();
+		QLibrary lib(path);
+		lib.load();
+		std::cout << path.toStdString() << " " << lib.isLoaded() << std::endl;
+
+#ifdef WIN32
+		SetDllDirectory(NULL);
+#endif
+	}
+
+	std::cout << "modules : " << DocumentFactory::instance().modules().size() << std::endl;
 }
