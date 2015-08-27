@@ -36,6 +36,9 @@ set(SOURCE_FILES
 	widget/TablePropertyWidget.cpp
 )
 
+GroupFiles(HEADER_FILES)
+GroupFiles(SOURCE_FILES)
+
 set(RESSOURCE_FILES ../${PROJECT_NAME}.qrc)
 if(WIN32)
 	set(RESSOURCE_FILES ${RESSOURCE_FILES} ../${PROJECT_NAME}.rc)

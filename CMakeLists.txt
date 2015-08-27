@@ -3,6 +3,10 @@ cmake_minimum_required(VERSION 3.1)
 set(PROJECT_NAME "SofaFrontEndViewer")
 project(${PROJECT_NAME})
 
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+include(cmake/functions.cmake)
+
 set(LIBRARIES_BASE_DIR "" CACHE PATH "Directory where other libraries are installed")
 set(LIBRARIES_INCLUDE_DIRS ${LIBRARIES_BASE_DIR}/include)
 set(LIBRARIES_LIB_DIRS ${LIBRARIES_BASE_DIR}/lib)
