@@ -47,10 +47,12 @@ bool ShaderProgram::addShaderFromMemory(ShaderType type, const std::string& cont
 	if (!success)
 	{
 		glGetShaderInfoLog(shader, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+		std::cout << "Error : Compilation of shader failed\n" << infoLog << std::endl;
 		glDeleteShader(shader);
 		return false;
 	};
+
+	addShader(type, shader);
 
 	return true;
 }
@@ -72,7 +74,7 @@ bool ShaderProgram::addShaderFromFile(ShaderType type, const std::string& path)
 	}
 	catch (ifstream::failure e)
 	{
-		cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << endl;
+		cout << "Error : Cannot load shader file " << path << endl;
 		return false;
 	}
 	
@@ -95,7 +97,7 @@ bool ShaderProgram::link()
 	if (!success)
 	{
 		glGetProgramInfoLog(program, 512, nullptr, infoLog);
-		std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
+		std::cout << "Error : Shader program link failed\n" << infoLog << std::endl;
 		glDeleteProgram(program);
 		return false;
 	}
