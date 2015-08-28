@@ -7,6 +7,7 @@ set(HEADER_FILES
 	Model.h
 	Scene.h
 	Shader.h
+	shaders.h
 )
 
 set(SOURCE_FILES

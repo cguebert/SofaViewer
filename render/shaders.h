@@ -1,6 +1,4 @@
-const char* fragmentShader = R"~~(
-#version 330 core
-
+const char* fragmentShader = R"~~(#version 330 core
 in vec4 vPosition;
 in vec4 vNormal;
 
@@ -42,8 +40,7 @@ void main()
 }
 )~~";
 
-const char* vertexShader = R"~~(
-#version 330 core
+const char* vertexShader = R"~~(#version 330 core
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 
