@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/core.h>
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -7,7 +8,7 @@
 class BasePropertyValue;
 template <class T> class PropertyValue;
 
-class Property
+class CORE_API Property
 {
 public:
 	using ValuePtr = std::shared_ptr<BasePropertyValue>;

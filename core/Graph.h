@@ -1,12 +1,14 @@
 #pragma once
 
+#include <core/core.h>
+
 #include <functional>
 #include <memory>
 #include <string>
 #include <vector>
 
 // One node of the graph
-class GraphNode
+class CORE_API GraphNode
 {
 public:
 	virtual ~GraphNode() {}
@@ -25,7 +27,7 @@ public:
 
 //****************************************************************************//
 
-class Graph
+class CORE_API Graph
 {
 public:
 	// Image container for the graph decoration

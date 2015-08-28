@@ -5,7 +5,7 @@
 #include <functional>
 #include <vector>
 
-class ObjectProperties
+class CORE_API ObjectProperties
 {
 public:
 	ObjectProperties(const std::string& name);

@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <string>
+#include <vector>
 
 class ObjectProperties;
 
@@ -12,10 +13,10 @@ namespace ui
 
 using CallbackFunc = std::function<void()>;
 
-class Panel
+class CORE_API Panel
 {
 public:
-	virtual ~Panel() {}
+	virtual ~Panel();
 
 	virtual void addButton(const std::string& name, const std::string& help,
 						   CallbackFunc callback,
@@ -29,10 +30,10 @@ public:
 
 /******************************************************************************/
 
-class Dialog
+class CORE_API Dialog
 {
 public:
-	virtual ~Dialog() {}
+	virtual ~Dialog();
 
 	virtual Panel& content() = 0; // Add buttons and property widgets
 	virtual bool exec() = 0; // Modal dialog (blocks, then returns true if "Ok" was pressed)
@@ -41,10 +42,10 @@ public:
 
 /******************************************************************************/
 
-class Settings
+class CORE_API Settings
 {
 public:
-	virtual ~Settings() {}
+	virtual ~Settings();
 
 	virtual void set(const std::string& name, int val) = 0;
 	virtual void set(const std::string& name, double val) = 0;
@@ -63,10 +64,10 @@ public:
 
 /******************************************************************************/
 
-class SimpleGUI
+class CORE_API SimpleGUI
 {
 public:
-	virtual ~SimpleGUI() {}
+	virtual ~SimpleGUI();
 
 	enum class Menu : unsigned char
 	{ File, Tools, View, Help };

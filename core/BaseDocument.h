@@ -1,5 +1,6 @@
 #pragma once
 
+#include <core/core.h>
 #include <memory>
 #include <string>
 
@@ -10,7 +11,7 @@ struct MouseEvent;
 
 namespace ui { class SimpleGUI; }
 
-class BaseDocument
+class CORE_API BaseDocument
 {
 public:
 	BaseDocument(ui::SimpleGUI& /*gui*/) {}

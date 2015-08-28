@@ -12,7 +12,7 @@ public:
 	virtual std::shared_ptr<BaseDocument> create(ui::SimpleGUI& /*gui*/) const = 0;
 };
 
-class DocumentFactory
+class CORE_API DocumentFactory
 {
 public:
 	static DocumentFactory& instance();
@@ -112,7 +112,7 @@ protected:
 
 //****************************************************************************//
 
-class RegisterModule
+class CORE_API RegisterModule
 {
 public:
 	RegisterModule() = delete;
@@ -129,7 +129,7 @@ protected:
 };
 
 // This class is used by RegisterModule to automatically unregister a module when unloading a library
-class ModuleHandle
+class CORE_API ModuleHandle
 {
 public:
 	ModuleHandle() = delete;

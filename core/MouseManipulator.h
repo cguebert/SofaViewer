@@ -1,10 +1,11 @@
 #pragma once
 
+#include <core/core.h>
 #include <core/MouseEvent.h>
 
 class Scene;
 
-class MouseManipulator
+class CORE_API MouseManipulator
 {
 public:
 	MouseManipulator(Scene& scene);
@@ -14,7 +15,7 @@ protected:
 	Scene& m_scene;
 };
 
-class SofaMouseManipulator : public MouseManipulator
+class CORE_API SofaMouseManipulator : public MouseManipulator
 {
 public:
 	SofaMouseManipulator(Scene& scene);
