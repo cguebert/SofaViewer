@@ -129,7 +129,7 @@ void DialogImpl::completeLayout()
 /******************************************************************************/
 
 SettingsImpl::SettingsImpl(MainWindow* mainWindow)
-	: m_settings(new QSettings("Christophe Guebert", "SFE Viewer", mainWindow))
+	: m_settings(new QSettings(mainWindow))
 {
 }
 

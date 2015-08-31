@@ -1,4 +1,3 @@
-#define CREATE_INSTANCES
 #include <ui/GraphModel.h>
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
@@ -152,8 +151,7 @@ void MainWindow::closeEvent(QCloseEvent* event)
 
 void MainWindow::readSettings()
 {
-	QSettings settings("Christophe Guebert", "SofaFrontEndViewer");
-
+	QSettings settings;
 	restoreGeometry(settings.value("geometry").toByteArray());
 	restoreState(settings.value("state").toByteArray());
 
@@ -163,8 +161,7 @@ void MainWindow::readSettings()
 
 void MainWindow::writeSettings()
 {
-	QSettings settings("Christophe Guebert", "SofaFrontEndViewer");
-
+	QSettings settings;
 	settings.setValue("recentFiles", m_recentFiles);
 	settings.setValue("geometry", saveGeometry());
 	settings.setValue("state", saveState());
