@@ -8,7 +8,7 @@ void Graph::setRoot(GraphNode::Ptr root)
 
 }
 
-int Graph::addImage(const Image& image)
+int Graph::addImage(const GraphImage& image)
 {
 	int id = m_images.size();
 	m_images.push_back(image);

@@ -33,7 +33,7 @@ enum
 
 // See http://www.graphviz.org/doc/info/colors.html
 // The following is mostly the "set312" colors
-static const uint32_t colorTable[ALLCOLORS]=
+static const GraphImage::Color colorTable[ALLCOLORS] =
 {
 	/*Node                  =*/ 0xffdedede, // color 9
 	/*Sleeping Node			=*/ 0xff6f6f6f, // color 9 (darker)
@@ -61,109 +61,6 @@ static const uint32_t colorTable[ALLCOLORS]=
 
 namespace
 {
-
-Graph::Image createImage(int w, int h)
-{
-	Graph::Image img;
-	img.width = w;
-	img.height = h;
-	img.data.resize(w * h * 4, 0);
-	return img;
-}
-
-inline uint32_t rgba(unsigned char r, unsigned char g, unsigned char b, unsigned char a)
-{ return ((a & 0xff) << 24) | ((r & 0xff) << 16) | ((g & 0xff) << 8) | (b & 0xff); }
-
-inline void fromRgba(uint32_t c, unsigned char& r, unsigned char& g, unsigned char& b, unsigned char& a)
-{
-	a = c >> 24;
-	r = c >> 16;
-	g = c >> 8;
-	b = c;
-}
-
-inline uint32_t interpolateColor(uint32_t c1, uint32_t c2, float amt)
-{
-	amt = std::max(0.f, std::min(amt, 1.f));
-	unsigned char f2 = static_cast<unsigned char>(255 * amt);
-	unsigned char f1 = 255 - f2;
-	uint32_t t = (c1 & 0xff00ff) * f1 + (c2 & 0xff00ff) * f2;
-	t >>= 8;
-	t &= 0xff00ff;
-
-	c1 = ((c1 >> 8) & 0xff00ff) * f1 + ((c2 >> 8) & 0xff00ff) * f2;
-	c1 &= 0xff00ff00;
-	return (c1 | t);
-}
-
-inline float smoothstep(float val, float x0, float x1)
-{
-	if (val < x0)	return 0.f;
-	if (val >= x1)	return 1.f;
-	val = (val - x0) / (x1 - x0);
-	return (val*val * (3 - 2*val));
-}
-
-// Warning: no bounds check!
-inline void setPixel(Graph::Image& image, int x, int y, uint32_t color)
-{
-	reinterpret_cast<uint32_t*>(&image.data[0])[y * image.width + x] = color;
-}
-
-inline void fill(Graph::Image& image, int x0, int x1, int y0, int y1, uint32_t color)
-{
-	for(int y = y0; y <= y1; ++y)
-		for(int x = x0; x <= x1; ++x)
-			setPixel(image, x, y, color);
-}
-
-void disk(Graph::Image& image, uint32_t color)
-{
-	const int w = image.width, h = image.height;
-	const float cx = (w-1) / 2.0f, cy = (h-1) / 2.0f;
-	const float d2 = std::min(cx, cy);
-	const float d1 = d2 - 0.5f;
-	const float d0 = std::max(0.f, d1 - 1.5f);
-	const auto black = rgba(0, 0, 0, 255);
-	const auto transparent = rgba(0, 0, 0, 0);
-
-	for(int y = 0; y < h; ++y)
-	{
-		for(int x = 0; x < w; ++x)
-		{
-			const float dx = x - cx, dy = y - cy;
-			const float d = sqrt(dx*dx + dy*dy);
-
-			if(d < d0) // Inside
-				setPixel(image, x, y, color);
-			else if(d > d2) // Outside
-				setPixel(image, x, y, transparent);
-			else if(d < d1) // From inside to the stroke
-				setPixel(image, x, y,
-						 interpolateColor(color, black, smoothstep(d, d0, d1))
-						 );
-			else if(d > d1) // From the stroke to outside
-				setPixel(image, x, y,
-						 interpolateColor(black, transparent, smoothstep(d, d1, d2))
-						 );
-		}
-	}
-}
-
-using ColorList = std::vector<uint32_t>;
-const int squareSize = 10;
-void squares(Graph::Image& image, const ColorList& colors)
-{
-	const int w = image.width, h = image.height;
-	const auto black = rgba(0, 0, 0, 255);
-	fill(image, 0, w-1, 0, 0, black);
-	fill(image, 0, w-1, h-1, h-1, black);
-	fill(image, 0, 0, 0, h-1, black);
-	fill(image, w-1, w-1, 0, h-1, black);
-
-	for(int i = 0, nb = colors.size(); i < nb; ++i)
-		fill(image, 1 + i * squareSize, (i+1) * squareSize, 1, h - 2, colors[i]);
-}
 
 inline void addFlag(unsigned int& flags, const std::vector<std::string>& hierarchy, const std::string& type, int flag)
 {
@@ -203,9 +100,9 @@ unsigned int getFlags(const sfe::Object& object)
 	return flags;
 }
 
-ColorList getColors(unsigned int flags)
+GraphImage::ColorsList getColors(unsigned int flags)
 {
-	ColorList colorsList;
+	GraphImage::ColorsList colorsList;
 	for(int i = 0; i < Colors::ALLCOLORS; ++i)
 	{
 		if(flags & (1 << i))
@@ -250,22 +147,19 @@ int GraphImages::getImage(unsigned int flags)
 	// For nodes, create a disk
 	if(flags == Colors::NODE)
 	{
-		auto img = createImage(16, 16);
-		disk(img, Colors::colorTable[Colors::NODE]);
+		auto img = GraphImage::createDiskImage(Colors::colorTable[Colors::NODE]);
 		return addImage(flags, img);
 	}
 	else if(flags == Colors::NODE_SLEEPING)
 	{
-		auto img = createImage(16, 16);
-		disk(img, Colors::colorTable[Colors::NODE_SLEEPING]);
+		auto img = GraphImage::createDiskImage(Colors::colorTable[Colors::NODE_SLEEPING]);
 		return addImage(flags, img);
 	}
 	// For objects, create a rectangle composed of a colored square for each active flag
 	else
 	{
 		auto colors = getColors(flags);
-		auto img = createImage(squareSize * colors.size() + 2, squareSize + 2);
-		squares(img, colors);
+		auto img = GraphImage::createSquaresImage(colors);
 		return addImage(flags, img);
 	}
 }
@@ -282,7 +176,7 @@ int GraphImages::imageId(unsigned int flags)
 	return it->second;
 }
 
-int GraphImages::addImage(unsigned int flags, const Graph::Image& image)
+int GraphImages::addImage(unsigned int flags, const GraphImage& image)
 {
 	auto id = m_graph.addImage(image);
 	m_images.emplace_back(flags, id);

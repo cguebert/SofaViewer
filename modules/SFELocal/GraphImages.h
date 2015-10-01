@@ -13,7 +13,7 @@ public:
 protected:
 	int getImage(unsigned int flags);
 	int imageId(unsigned int flags);
-	int addImage(unsigned int flags, const Graph::Image& image);
+	int addImage(unsigned int flags, const GraphImage& image);
 
 	using ImagePair = std::pair<unsigned int, int>;
 	using ImagePairList = std::vector<ImagePair>;

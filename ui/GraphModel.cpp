@@ -125,7 +125,16 @@ void GraphModel::updatePixmaps()
 	for(int i = m_pixmaps.size(), nb = images.size(); i < nb; ++i)
 	{
 		const auto& graphImg = images[i];
-		QImage img(&graphImg.data[0], graphImg.width, graphImg.height, QImage::Format_ARGB32);
-		m_pixmaps.push_back(QPixmap::fromImage(std::move(img)));
+		if (graphImg.data())
+		{
+			QImage img(graphImg.data(), graphImg.width(), graphImg.height(), QImage::Format_ARGB32);
+			m_pixmaps.push_back(QPixmap::fromImage(std::move(img)));
+		}
+		else // Fallback if empty image
+		{
+			QPixmap pix(10, 10);
+			pix.fill(QColor(255, 0, 255));
+			m_pixmaps.push_back(pix);
+		}		
 	}
 }

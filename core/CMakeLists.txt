@@ -8,6 +8,7 @@ set(HEADER_FILES
 	BaseDocument.h
 	DocumentFactory.h
 	Graph.h
+	GraphImage.h
 	MouseEvent.h
 	MouseManipulator.h
 	ObjectProperties.h
@@ -19,6 +20,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
 	DocumentFactory.cpp
 	Graph.cpp
+	GraphImage.cpp
 	MouseManipulator.cpp
 	ObjectProperties.cpp
 	Property.cpp

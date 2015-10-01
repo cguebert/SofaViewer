@@ -1,6 +1,7 @@
 #pragma once
 
 #include <core/core.h>
+#include <core/GraphImage.h>
 
 #include <functional>
 #include <memory>
@@ -30,19 +31,12 @@ public:
 class CORE_API Graph
 {
 public:
-	// Image container for the graph decoration
-	struct Image
-	{
-		int width, height;
-		std::vector<unsigned char> data; // ARGB32
-	};
-
 	GraphNode* root() const;
 	void setRoot(GraphNode::Ptr root);
 
-	using ImagesList = std::vector<Image>;
+	using ImagesList = std::vector<GraphImage>;
 	const ImagesList& images() const;
-	int addImage(const Image& image); // Return the id of this image
+	int addImage(const GraphImage& image); // Return the id of this image
 
 	enum class CallbackReason : uint16_t
 	{ BeginSetNode, EndSetNode };
