@@ -3,10 +3,9 @@
 #include <render/Shader.h>
 
 #include <glm/glm.hpp>
-#include <sfe/DataTypeTrait.h>
-#include <vector>
 
-#include <sfe/Object.h>
+#include <array>
+#include <vector>
 
 using Vertices = std::vector < glm::vec3 >;
 using Normals = std::vector < glm::vec3 >;
@@ -17,12 +16,6 @@ using Quads = std::vector < Quad >;
 using TexCoords = std::vector < glm::vec2 >;
 
 using IdList = std::vector < int >;
-
-namespace sfe
-{
-	template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>{};
-	template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
-}
 
 class Model
 {
@@ -48,9 +41,6 @@ public:
 	bool m_hasTexture = false;
 
 	glm::vec4 m_color;
-
-	sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
-	sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 
 	Triangles m_mergedTriangles; // With the quads
 	unsigned int  m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;

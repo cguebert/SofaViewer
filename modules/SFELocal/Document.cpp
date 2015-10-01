@@ -8,6 +8,7 @@
 
 #include <sfe/sofaFrontEndLocal.h>
 #include <sfe/Helpers.h>
+#include <sfe/DataTypeTrait.h>
 
 #include <iostream>
 #include <future>
@@ -15,6 +16,13 @@
 int SFELocalDoc = RegisterDocument<Document>("SFELocalDoc").setDescription("Run Sofa scenes using Sofa Front End Local")
 	.addLoadFile("Sofa scenes (*.scn)");
 ModuleHandle SFELocalModule = RegisterModule("SFELocal").addDocument(SFELocalDoc);
+
+// Register the types used in the SimpleRender lib so that SFE can directly copy to them
+namespace sfe
+{
+template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>{};
+template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
+}
 
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
@@ -156,10 +164,10 @@ std::string trim(const std::string& str)
 	return str.substr(first, last - first + 1);
 }
 
-Scene::ModelPtr createSofaModel(sfe::Object& visualModel)
+Document::SofaModel Document::createSofaModel(sfe::Object& visualModel)
 {
-	Scene::ModelPtr model = std::make_shared<Model>();
-	model->m_sofaObject = visualModel; // Store the proxy to this object
+	SofaModel sofaModel;
+	sofaModel.m_sofaObject = visualModel; // Store the proxy to this object
 
 	// Store every Data proxy we will use in the updateObjects function
 	auto posData = visualModel.data("position");
@@ -169,16 +177,17 @@ Scene::ModelPtr createSofaModel(sfe::Object& visualModel)
 	std::vector<float> tmp;
 	vertData.get(tmp);
 	if(tmp.empty())
-		model->d_vertices = posData;
+		sofaModel.d_vertices = posData;
 	else
-		model->d_vertices = posData;
-	model->d_normals = visualModel.data("normal");
+		sofaModel.d_vertices = posData;
+	sofaModel.d_normals = visualModel.data("normal");
 
-	if (!model->d_vertices || !model->d_normals)
-		return nullptr;
+	if (!sofaModel.d_vertices || !sofaModel.d_normals)
+		return sofaModel;
 
-	model->d_vertices.get(model->m_vertices);
-	model->d_normals.get(model->m_normals);
+	Scene::ModelPtr model = std::make_shared<Model>();
+	sofaModel.d_vertices.get(model->m_vertices);
+	sofaModel.d_normals.get(model->m_normals);
 
 	// Get the constant information (topology and color)
 	// Triangles
@@ -192,7 +201,7 @@ Scene::ModelPtr createSofaModel(sfe::Object& visualModel)
 		quadsData.get(model->m_quads);
 
 	if (model->m_triangles.empty() && model->m_quads.empty())
-		return nullptr;
+		return sofaModel;
 
 	model->mergeIndices();
 
@@ -212,7 +221,8 @@ Scene::ModelPtr createSofaModel(sfe::Object& visualModel)
 		if (texCoords)	texCoords.get(model->texCoords);
 	}
 */
-	return model;
+	sofaModel.model = model;
+	return sofaModel;
 }
 
 void Document::parseScene()
@@ -225,19 +235,20 @@ void Document::parseScene()
 	auto visualModels = rootNode.findObjects("VisualModelImpl", {}, sfe::Node::SearchDirection::Down);
 	for (auto& visualModel : visualModels)
 	{
-		auto model = createSofaModel(visualModel);
+		auto sofaModel = createSofaModel(visualModel);
 
-		if (model)
-			m_scene.addModel(model);
+		if (sofaModel.model)
+			m_scene.addModel(sofaModel.model);
+		m_sofaModels.push_back(sofaModel);
 	}
 }
 
 void Document::updateObjects()
 {
-	for(auto model : m_scene.models())
+	for(auto sofaModel : m_sofaModels)
 	{
-		model->d_vertices.get(model->m_vertices);
-		model->d_normals.get(model->m_normals);
+		sofaModel.d_vertices.get(sofaModel.model->m_vertices);
+		sofaModel.d_normals.get(sofaModel.model->m_normals);
 	}
 }
 

@@ -46,6 +46,15 @@ protected:
 	GraphNode::Ptr createNode(sfe::Object object, GraphNode::Ptr parent);
 	GraphNode::Ptr createNode(sfe::Node node, GraphNode::Ptr parent);
 
+	struct SofaModel
+	{
+		Scene::ModelPtr model;
+		sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
+		sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
+	};
+
+	SofaModel createSofaModel(sfe::Object& visualModel);
+
 	ui::SimpleGUI& m_gui;
 	Scene m_scene;
 	Graph m_graph;
@@ -59,6 +68,8 @@ protected:
 	bool m_singleStep = false;
 	int m_statusFPS = -1, m_fpsCount = 0;
 	std::chrono::high_resolution_clock::time_point m_fpsStart;
+
+	std::vector<SofaModel> m_sofaModels;
 };
 
 inline Graph& Document::graph()
