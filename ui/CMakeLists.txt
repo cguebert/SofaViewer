@@ -58,10 +58,11 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Applications")
 target_link_libraries(${PROJECT_NAME} "Core")
 target_link_libraries(${PROJECT_NAME} Qt5::Widgets Qt5::OpenGL)
 
+install(TARGETS ${PROJECT_NAME} RUNTIME DESTINATION ${TARGET_DIR})
+
 # Install Qt files
 if(WIN32)
 	set(QT_LIBS Qt5Core Qt5Gui Qt5OpenGL Qt5Widgets)
-	set(QT_ADDITIONAL_LIBS icudt54 icuin54 icuuc54)
 	
 	set(qtLibsRelease)
 	set(qtLibsDebug)
@@ -69,11 +70,6 @@ if(WIN32)
 	foreach(libName ${QT_LIBS})
 		list(APPEND qtLibsRelease	"${QT_BASE_DIR}/bin/${libName}.dll")
 		list(APPEND qtLibsDebug		"${QT_BASE_DIR}/bin/${libName}d.dll")
-	endforeach(libName)
-	
-	foreach(libName ${QT_ADDITIONAL_LIBS})
-		list(APPEND qtLibsRelease	"${QT_BASE_DIR}/bin/${libName}.dll")
-		list(APPEND qtLibsDebug		"${QT_BASE_DIR}/bin/${libName}.dll")
 	endforeach(libName)
 	
 	install(FILES ${qtLibsRelease} CONFIGURATIONS Release RelWithDebInfo DESTINATION ${TARGET_DIR})
