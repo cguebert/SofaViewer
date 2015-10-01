@@ -95,7 +95,8 @@ void DocumentFactory::unregisterModule(const std::string& moduleName)
 	auto remIt = std::remove_if(m_documents.begin(), m_documents.end(), [moduleName](const DocumentEntry& entry){
 		return entry.module == moduleName;
 	});
-	m_documents.erase(remIt, m_documents.end());
+	if (remIt != m_documents.end())
+		m_documents.erase(remIt, m_documents.end());
 	m_modules.erase(iter);
 
 	recomputeLoadFiles();
@@ -159,11 +160,11 @@ void DocumentFactory::recomputeLoadFiles()
 	bool first = true;
 	for(const auto& filter : filters)
 	{
-		m_loadFilesFilter += filter;
 		if(!first)
 			m_loadFilesFilter += ";;";
 		else
 			first = false;
+		m_loadFilesFilter += filter;
 	}
 }
 
