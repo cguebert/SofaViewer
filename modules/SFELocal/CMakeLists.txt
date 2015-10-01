@@ -109,6 +109,6 @@ if(WIN32)
 		set(libfullpath "${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}${lib}${CMAKE_SHARED_LIBRARY_SUFFIX}")
 		list(APPEND libs "${libfullpath} ")
 	endforeach(lib)	
-	install(FILES ${libs} CONFIGURATIONS Release RelWithDebInfo Debug DESTINATION ${MODULE_DIR})
+	install(FILES ${libs} DESTINATION ${MODULE_DIR})
 endif()
 

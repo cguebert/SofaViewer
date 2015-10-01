@@ -27,6 +27,7 @@ add_subdirectory("render")
 
 # Plugins
 add_subdirectory("modules/SFELocal")
+add_subdirectory("modules/ModelViewer")
 
 # Application
 add_subdirectory("ui")
