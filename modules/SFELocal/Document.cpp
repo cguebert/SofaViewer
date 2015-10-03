@@ -185,7 +185,7 @@ Document::SofaModel Document::createSofaModel(sfe::Object& visualModel)
 	if (!sofaModel.d_vertices || !sofaModel.d_normals)
 		return sofaModel;
 
-	Scene::ModelPtr model = std::make_shared<Model>();
+	auto model = std::make_shared<Model>();
 	sofaModel.d_vertices.get(model->m_vertices);
 	sofaModel.d_normals.get(model->m_normals);
 
@@ -202,8 +202,6 @@ Document::SofaModel Document::createSofaModel(sfe::Object& visualModel)
 
 	if (model->m_triangles.empty() && model->m_quads.empty())
 		return sofaModel;
-
-	model->mergeIndices();
 
 	// The diffuse color
 	auto matData = visualModel.data("material");

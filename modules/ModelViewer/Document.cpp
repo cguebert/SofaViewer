@@ -84,6 +84,11 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
+inline glm::vec3 convert(aiVector3D v)
+{
+	return glm::vec3{ v.x, v.y, v.z };
+}
+
 void Document::parseScene(const aiScene* scene)
 {
 	// Root
@@ -95,6 +100,9 @@ void Document::parseScene(const aiScene* scene)
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto& mesh = scene->mMeshes[i];
+		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
+			continue;
+
 		auto node = ModelNode::create();
 		if (mesh->mName.length)
 			node->name = mesh->mName.C_Str();
@@ -103,6 +111,23 @@ void Document::parseScene(const aiScene* scene)
 		node->type = "Mesh";
 		node->parent = m_rootNode.get();
 		m_rootNode->objects.push_back(node);
+
+		auto model = std::make_shared<Model>();
+		node->model = model;
+		
+		model->m_vertices.reserve(mesh->mNumVertices);
+		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+			model->m_vertices.push_back(convert(mesh->mVertices[i]));
+
+		model->m_triangles.reserve(mesh->mNumFaces);
+		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+			model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+
+		model->m_normals.reserve(mesh->mNumVertices);
+		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+			model->m_normals.push_back(convert(mesh->mNormals[j]));
+
+		m_scene.addModel(model);
 	}
 }
 
@@ -111,6 +136,12 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	auto item = dynamic_cast<ModelNode*>(baseItem);
 	if(!item)
 		return nullptr;
+
+	auto model = item->model;
+	if (!model)
+		return nullptr;
+
+	//ObjectPropertiesPtr ptr = std::make_shared<ObjectProperties>();
 	
 	return nullptr;
 }

@@ -5,6 +5,7 @@
 
 void Model::init()
 {
+	mergeIndices();
 	prepareBuffers();
 	updateIndices();
 	updatePositions();

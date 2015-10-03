@@ -49,4 +49,5 @@ public:
 	using ModelNodePtr = std::shared_ptr<ModelNode>;
 	static ModelNodePtr create() { return std::make_shared<ModelNode>(); }
 
+	Scene::ModelPtr model;
 };
