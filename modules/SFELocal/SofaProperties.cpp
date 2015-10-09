@@ -1,4 +1,5 @@
 #include "SofaProperties.h"
+#include <core/VectorWrapper.h>
 
 #include <iostream>
 

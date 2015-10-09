@@ -13,6 +13,7 @@ set(HEADER_FILES
 	MouseManipulator.h
 	ObjectProperties.h
 	Property.h
+	PropertiesUtils.h
 	SimpleGUI.h
 	VectorWrapper.h
 )

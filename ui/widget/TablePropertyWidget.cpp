@@ -38,9 +38,10 @@ public:
 			m_view->verticalHeader()->hide();
 			m_view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-			// Set max height
-			auto maxHeight = m_view->rowHeight(0) * m_accessor->rowCount();
-			m_view->setMaximumHeight(maxHeight);
+			// Set height
+			auto height = m_view->rowHeight(0) * m_accessor->rowCount() + 2;
+			m_view->setMinimumHeight(height);
+			m_view->setMaximumHeight(height);
 
 			// Set min width
 			int width = 0;
@@ -206,11 +207,7 @@ public:
 	using wrapper_type = VectorWrapper<T>;
 	using base_value = typename T::value_type;
 	TableValueAccessor(const wrapper_type& value)
-		: m_value(value)
-	{
-		m_columnCount = m_value.columnCount();
-		m_fixed = m_value.fixedSize();
-	}
+		: m_value(value) {}
 
 	const wrapper_type& value() const { return m_value; }
 	void setValue(const wrapper_type& value)
@@ -220,20 +217,18 @@ public:
 		m_value = value;
 	}
 
-	int rowCount() const override 	{ return m_value.value().size() / m_columnCount; }
-	int columnCount() const override	{ return m_columnCount; }
-	bool fixed() const override		{ return m_fixed; }
+	int rowCount() const override 	{ return m_value.rowCount(); }
+	int columnCount() const override	{ return m_value.columnCount(); }
+	bool fixed() const override		{ return m_value.fixedSize(); }
 	QVariant data(int row, int column) const override
-	{ return toVariant(m_value.value()[row * m_columnCount + column]); }
+	{ return toVariant(m_value.get(row, column)); }
 	void setData(int row, int column, QVariant value) override
-	{ m_value.value()[row * m_columnCount + column] = fromVariant<base_value>(value); }
+	{ m_value.set(row, column, fromVariant<base_value>(value)); }
 	void resize(int nb) override
-	{ m_value.value().resize(nb * m_columnCount); }
+	{ m_value.setRowCount(nb); }
 
 protected:
 	wrapper_type m_value;
-	int m_columnCount;
-	bool m_fixed;
 };
 
 /*****************************************************************************/
@@ -265,13 +260,23 @@ protected:
 
 /*****************************************************************************/
 
-template <class T> using TablePropertyWidget = SimplePropertyWidget<T, TableWidgetContainer<T>>;
-RegisterWidget<TablePropertyWidget<std::vector<int>>> PW_vector_int("default");
-RegisterWidget<TablePropertyWidget<std::vector<float>>> PW_vector_float("default");
-RegisterWidget<TablePropertyWidget<std::vector<double>>> PW_vector_double("default");
-RegisterWidget<TablePropertyWidget<std::vector<std::string>>> PW_vector_string("default");
+template <class T>
+class RegisterTableWidget
+{
+public:
+	template <class U> using TablePropertyWidget = SimplePropertyWidget<U, TableWidgetContainer<U>>;
 
-RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<int>>>> PW_vector_wrapper_int("default");
-RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<float>>>> PW_vector_wrapper_float("default");
-RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<double>>>> PW_vector_wrapper_double("default");
-RegisterWidget<TablePropertyWidget<VectorWrapper<std::vector<std::string>>>> PW_vector_wrapper_string("default");
+	explicit RegisterTableWidget(const std::string& widgetName)
+	{
+		using vector_type = std::vector<T>;
+		RegisterWidget<TablePropertyWidget<vector_type>> PW_vector(widgetName);
+		RegisterWidget<TablePropertyWidget<VectorWrapper<vector_type>>> PW_vector_wrapper(widgetName);
+	}
+};
+/*****************************************************************************/
+
+RegisterTableWidget<int> PW_vector_int("default");
+RegisterTableWidget<unsigned int> PW_vector_unsigned_int("default");
+RegisterTableWidget<float> PW_vector_float("default");
+RegisterTableWidget<double> PW_vector_double("default");
+RegisterTableWidget<std::string> PW_vector_string("default");

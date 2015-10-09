@@ -23,21 +23,6 @@ public:
 			 const std::string& help = "",
 			 const std::string& group = "");
 
-	template <class T>
-	static PropertyPtr createCopyProperty(const std::string& name, T&& val)
-	{
-		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
-		auto value = std::make_shared<PropertyValueCopy<value_type>>(std::forward<T>(val));
-		return std::make_shared<Property>(name, value);
-	}
-
-	template <class T>
-	static PropertyPtr createRefProperty(const std::string& name, T& val)
-	{
-		auto value = std::make_shared<PropertyValueRef<T>>(val);
-		return std::make_shared<Property>(name, value);
-	}
-
 	const std::string& name() const;
 	void setName(const std::string& name);
 	const std::string& help() const;
@@ -61,7 +46,6 @@ protected:
 	std::string m_name, m_help, m_group, m_widget;
 	bool m_readOnly = false;
 	std::type_index m_type;
-	int m_columnCount = 1;
 	std::shared_ptr<BasePropertyValue> m_value;
 };
 

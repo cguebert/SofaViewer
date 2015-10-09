@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/ObjectProperties.h>
-#include <core/VectorWrapper.h>
 
 #include <sfe/Node.h>
 

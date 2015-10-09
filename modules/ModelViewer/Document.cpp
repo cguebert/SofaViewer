@@ -2,8 +2,8 @@
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
+#include <core/PropertiesUtils.h>
 #include <core/SimpleGUI.h>
-#include <core/VectorWrapper.h>
 
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
@@ -28,6 +28,21 @@ int ModelViewerDoc = RegisterDocument<Document>("ModelViewerDoc").setDescription
 	.addLoadFile("AC3D (*.ac)")
 	.addLoadFile("Milkshape 3D (*.ms3d)");
 ModuleHandle ModelViewerModule = RegisterModule("ModelViewer").addDocument(ModelViewerDoc);
+
+namespace property
+{
+	namespace details
+	{
+		template <>
+		struct ArrayTraits<glm::vec3>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 3;
+			using value_type = glm::vec3::value_type;
+		};
+	}
+}
 
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
@@ -117,7 +132,7 @@ void Document::parseScene(const aiScene* scene)
 		
 		model->m_vertices.reserve(mesh->mNumVertices);
 		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-			model->m_vertices.push_back(convert(mesh->mVertices[i]));
+			model->m_vertices.push_back(convert(mesh->mVertices[j]));
 
 		model->m_triangles.reserve(mesh->mNumFaces);
 		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
@@ -141,7 +156,10 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	if (!model)
 		return nullptr;
 
-	//ObjectPropertiesPtr ptr = std::make_shared<ObjectProperties>();
+	ObjectPropertiesPtr ptr = std::make_shared<ObjectProperties>(item->name);
+	ptr->addProperty(property::createCopyProperty("vertices", model->m_vertices));
+	ptr->addProperty(property::createCopyProperty("triangles", model->m_triangles));
+	ptr->addProperty(property::createCopyProperty("normals", model->m_normals));
 	
-	return nullptr;
+	return ptr;
 }

@@ -3,8 +3,8 @@
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
+#include <core/PropertiesUtils.h>
 #include <core/SimpleGUI.h>
-#include <core/VectorWrapper.h>
 
 #include <sfe/sofaFrontEndLocal.h>
 #include <sfe/Helpers.h>
@@ -81,7 +81,7 @@ void Document::initUI()
 
 	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
-	auto prop = Property::createCopyProperty("Dt", 0.02f);
+	auto prop = property::createCopyProperty("Dt", 0.02f);
 	m_gui.buttonsPanel().addProperty(prop, 1, 1);
 
 	m_gui.buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
@@ -103,8 +103,8 @@ void Document::initUI()
 		}, 0, 1);
 
 		int intVal = 42;
-		auto prop1 = Property::createRefProperty("int", intVal);
-		auto prop2 = Property::createCopyProperty("floatCopy", 123.0f);
+		auto prop1 = property::createRefProperty("int", intVal);
+		auto prop2 = property::createCopyProperty("floatCopy", 123.0f);
 
 		panel.addProperty(prop1);
 		panel.addProperty(prop2);
@@ -410,7 +410,7 @@ void Document::modifyDataRepository()
 
 	auto helper = m_simulation.getHelper();
 	std::vector<std::string> paths = helper->dataRepositoryPaths();
-	panel.addProperty(Property::createRefProperty("Paths", paths));
+	panel.addProperty(property::createRefProperty("Paths", paths));
 
 	if(dialog->exec())
 	{
