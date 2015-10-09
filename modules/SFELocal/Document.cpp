@@ -343,31 +343,31 @@ void Document::postStep()
 	m_gui.updateView();
 }
 
-Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
+ObjectProperties::SPtr Document::objectProperties(GraphNode* baseItem)
 {
 	auto item = dynamic_cast<SofaNode*>(baseItem);
 	if(!item)
 		return nullptr;
 
-	ObjectPropertiesPtr ptr;
+	ObjectProperties::SPtr properties;
 	if(item->isObject)
-		ptr = std::make_shared<SofaObjectProperties>(item->object);
+		properties = createSofaObjectProperties(item->object);
 	else
-		ptr = std::make_shared<SofaObjectProperties>(item->node);
+		properties = createSofaObjectProperties(item->node);
 
 	{
 		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-		m_openedObjectProperties.push_back(ptr);
+		m_openedObjectProperties.push_back(properties);
 	}
-	return ptr;
+	return properties;
 }
 
-void Document::closeObjectProperties(ObjectPropertiesPtr ptr)
+void Document::closeObjectProperties(ObjectPropertiesPtr properties)
 {
 	if(!m_openedObjectProperties.empty())
 	{
 		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-		m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), ptr));
+		m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), properties));
 	}
 }
 
@@ -429,9 +429,7 @@ void Document::updateProperties()
 
 	for(auto& op : opened)
 	{
-		auto sofaOP = std::dynamic_pointer_cast<SofaObjectProperties>(op);
-		if(sofaOP)
-			sofaOP->updateProperties();
+		op->updateProperties();
 		op->modified();
 	}
 }

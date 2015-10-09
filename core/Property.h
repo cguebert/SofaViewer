@@ -11,10 +11,10 @@ template <class T> class PropertyValue;
 class CORE_API Property
 {
 public:
+	using SPtr = std::shared_ptr<Property>;
 	using ValuePtr = std::shared_ptr<BasePropertyValue>;
 	template <class T> using ValueTPtr = std::shared_ptr<PropertyValue<T>>;
-	using PropertyPtr = std::shared_ptr<Property>;
-
+	
 	Property();
 	Property(const std::string& name, ValuePtr value);
 	Property(const std::string& name,
@@ -51,10 +51,11 @@ protected:
 
 //****************************************************************************//
 
+// Stores the value of a Property
 class BasePropertyValue
 {
 public:
-	~BasePropertyValue() {}
+	virtual ~BasePropertyValue() {}
 	virtual std::type_index type() const = 0;
 };
 
@@ -107,6 +108,27 @@ public:
 
 protected:
 	T& m_value;
+};
+
+//****************************************************************************//
+
+// Used in ObjectProperties, as a way to copy both way between a Property and a value of a compatible type
+class BaseValueWrapper
+{
+public:
+	using SPtr = std::shared_ptr<BaseValueWrapper>;
+
+	BaseValueWrapper(Property::SPtr property)
+		: m_property(property) {}
+	virtual ~BaseValueWrapper() {}
+
+	virtual void writeToValue() = 0; // Property -> value
+	virtual void readFromValue() = 0; // Value -> property
+
+	Property::SPtr property() const { return m_property; }
+
+protected:
+	Property::SPtr m_property;
 };
 
 //****************************************************************************//

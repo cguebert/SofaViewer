@@ -36,7 +36,7 @@ void PanelImpl::addButton(const std::string& name, const std::string& help,
 	m_layout->addWidget(button, row, column, rowSpan, columnSpan);
 }
 
-void PanelImpl::addProperty(Property::PropertyPtr property,
+void PanelImpl::addProperty(Property::SPtr property,
 							int row, int column,
 							int rowSpan, int columnSpan)
 {

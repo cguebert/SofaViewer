@@ -3,24 +3,28 @@
 
 #include <iostream>
 
-SofaObjectProperties::SofaObjectProperties(sfe::Node node)
-	: ObjectProperties(node.name())
+void addData(ObjectProperties::SPtr properties, sfe::Data data);
+
+ObjectProperties::SPtr createSofaObjectProperties(sfe::Node node)
 {
+	auto properties = std::make_shared<ObjectProperties>(node.name());
 	auto names = node.listData();
-	for(const auto& name : names)
-		addData(node.data(name));
+	for (const auto& name : names)
+		addData(properties, node.data(name));
+	return properties;
 }
 
-SofaObjectProperties::SofaObjectProperties(sfe::Object object)
-	: ObjectProperties(object.name())
+ObjectProperties::SPtr createSofaObjectProperties(sfe::Object object)
 {
+	auto properties = std::make_shared<ObjectProperties>(object.name());
 	auto names = object.listData();
-	for(const auto& name : names)
-		addData(object.data(name));
+	for (const auto& name : names)
+		addData(properties, object.data(name));
+	return properties;
 }
 
 template <class T>
-std::shared_ptr<BaseDataWrapper> createProp(sfe::Data data, const std::string& widget)
+BaseValueWrapper::SPtr createProp(sfe::Data data, const std::string& widget)
 {
 	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
 
@@ -32,7 +36,7 @@ std::shared_ptr<BaseDataWrapper> createProp(sfe::Data data, const std::string& w
 }
 
 template <class T>
-std::shared_ptr<BaseDataWrapper> createVectorProp(sfe::Data data, const std::string& widget, bool fixedSize, int columnCount)
+BaseValueWrapper::SPtr createVectorProp(sfe::Data data, const std::string& widget, bool fixedSize, int columnCount)
 {
 	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
 
@@ -49,7 +53,7 @@ std::shared_ptr<BaseDataWrapper> createVectorProp(sfe::Data data, const std::str
 	return std::make_shared<VectorDataWrapper<WrapperType>>(data, prop);
 }
 
-void SofaObjectProperties::addData(sfe::Data data)
+void addData(ObjectProperties::SPtr properties, sfe::Data data)
 {
 	if(!data || !data.displayed())
 		return;
@@ -71,7 +75,7 @@ void SofaObjectProperties::addData(sfe::Data data)
 	if(valueType == "bool")
 		widget = "checkbox";
 
-	std::shared_ptr<BaseDataWrapper> wrapper;
+	BaseValueWrapper::SPtr wrapper;
 	switch(storageType)
 	{
 	case sfe::Data::DataType::Int:		wrapper = createProp<int>(data, widget);			break;
@@ -84,18 +88,6 @@ void SofaObjectProperties::addData(sfe::Data data)
 	case sfe::Data::DataType::Vector_String:	wrapper = createVectorProp<std::string>(data, widget, fixedSize, columnCount);	break;
 	}
 
-	addProperty(wrapper->property());
-	m_dataWrappers.push_back(wrapper);
-}
-
-void SofaObjectProperties::apply()
-{
-	for(auto wrapper : m_dataWrappers)
-		wrapper->writeToData();
-}
-
-void SofaObjectProperties::updateProperties()
-{
-	for(auto wrapper : m_dataWrappers)
-		wrapper->readFromData();
+	properties->addProperty(wrapper->property());
+	properties->addValueWrapper(wrapper);
 }

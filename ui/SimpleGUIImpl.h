@@ -20,7 +20,7 @@ public:
 				   int row, int column,
 				   int rowSpan, int columnSpan) override;
 
-	void addProperty(Property::PropertyPtr property,
+	void addProperty(Property::SPtr property,
 								 int row, int column,
 								 int rowSpan, int columnSpan) override;
 

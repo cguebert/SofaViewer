@@ -151,17 +151,49 @@ namespace property
 	} // namespace details
 
 	template <class T>
-	Property::PropertyPtr createCopyProperty(const std::string& name, T&& val)
+	Property::SPtr createCopyProperty(const std::string& name, T&& val)
 	{
 		auto value = details::createValueCopy(std::forward<T>(val));
 		return std::make_shared<Property>(name, value);
 	}
 
 	template <class T>
-	Property::PropertyPtr createRefProperty(const std::string& name, T& val)
+	Property::SPtr createRefProperty(const std::string& name, T& val)
 	{
 		auto value = std::make_shared<PropertyValueRef<T>>(val);
 		return std::make_shared<Property>(name, value);
 	}
+
+	//****************************************************************************//
+
+	template <class valType, class propType = valType>
+	class ValueRefWrapper : public BaseValueWrapper
+	{
+	public:
+		ValueRefWrapper(valType& value, Property::SPtr property)
+			: BaseValueWrapper(property), m_value(value)
+		{ m_propertyValue = property->value<propType>(); }
+
+		void writeToValue() override	{ m_value = m_propertyValue->value(); }
+		void readFromValue() override	{ m_propertyValue->setValue(m_value); }
+	protected:
+		valType& m_value;
+		std::shared_ptr<PropertyValue<propType>> m_propertyValue;
+	};
+
+	template <class valType, class propType = valType>
+	class ValuePtrWrapper : public BaseValueWrapper
+	{
+	public:
+		ValuePtrWrapper(valType* value, Property::SPtr property)
+			: BaseValueWrapper(property), m_value(value)
+		{ m_propertyValue = property->value<propType>(); }
+
+		void writeToValue() override	{ *m_value = m_propertyValue->value(); }
+		void readFromValue() override	{ m_propertyValue->setValue(*m_value); }
+	protected:
+		valType* m_value;
+		std::shared_ptr<PropertyValue<propType>> m_propertyValue;
+	};
 
 }

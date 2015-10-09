@@ -29,7 +29,7 @@ protected:
 public:
 	typedef T value_type;
 
-	SimplePropertyWidget(Property::PropertyPtr prop, QWidget* parent)
+	SimplePropertyWidget(Property::SPtr prop, QWidget* parent)
 		: PropertyWidget<T>(prop, parent)
 	{}
 

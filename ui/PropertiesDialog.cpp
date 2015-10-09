@@ -10,7 +10,7 @@
 #include <iostream>
 
 template <class T>
-QWidget* createPropWidget(const Property::PropertyPtr& prop, QWidget* parent)
+QWidget* createPropWidget(const Property::SPtr& prop, QWidget* parent)
 {
 	auto propValue = prop->value<T>();
 	if(!propValue)
@@ -178,7 +178,7 @@ bool PropertiesDialog::doApply()
 	}
 
 	writeToProperties();
-	m_objectProperties->apply();
+	m_objectProperties->applyProperties();
 	return true;
 }
 

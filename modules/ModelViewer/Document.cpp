@@ -156,10 +156,10 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	if (!model)
 		return nullptr;
 
-	ObjectPropertiesPtr ptr = std::make_shared<ObjectProperties>(item->name);
-	ptr->addProperty(property::createCopyProperty("vertices", model->m_vertices));
-	ptr->addProperty(property::createCopyProperty("triangles", model->m_triangles));
-	ptr->addProperty(property::createCopyProperty("normals", model->m_normals));
+	auto properties = std::make_shared<ObjectProperties>(item->name);
+	properties->addProperty(property::createCopyProperty("vertices", model->m_vertices));
+	properties->addProperty(property::createCopyProperty("triangles", model->m_triangles));
+	properties->addProperty(property::createCopyProperty("normals", model->m_normals));
 	
-	return ptr;
+	return properties;
 }

@@ -23,7 +23,7 @@ public:
 						   int row = -1, int column = 0,
 						   int rowSpan = 1, int columnSpan = 1) = 0;
 
-	virtual void addProperty(Property::PropertyPtr property,
+	virtual void addProperty(Property::SPtr property,
 							 int row = -1, int column = 0,
 							 int rowSpan = 1, int columnSpan = 1) = 0;
 };

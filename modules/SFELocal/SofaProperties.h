@@ -6,24 +6,17 @@
 
 class Property;
 
-class BaseDataWrapper
+class BaseDataWrapper : public BaseValueWrapper
 {
 public:
-	using PropertyPtr = std::shared_ptr<Property>;
-
-	BaseDataWrapper(sfe::Data data, PropertyPtr property)
-		: m_data(data), m_property(property) {}
-	~BaseDataWrapper() {}
-
-	virtual void writeToData() = 0;
-	virtual void readFromData() = 0;
+	BaseDataWrapper(sfe::Data data, Property::SPtr property)
+		: BaseValueWrapper(property)
+		, m_data(data) {}
 
 	sfe::Data data() const { return m_data; }
-	PropertyPtr property() const { return m_property; }
 
 protected:
 	sfe::Data m_data;
-	PropertyPtr m_property;
 };
 
 //****************************************************************************//
@@ -32,12 +25,12 @@ template <class T>
 class DataWrapper : public BaseDataWrapper
 {
 public:
-	DataWrapper(sfe::Data data, PropertyPtr property)
+	DataWrapper(sfe::Data data, Property::SPtr property)
 		: BaseDataWrapper(data, property)
 	{ m_propertyValue = property->value<T>(); }
-	void writeToData() override
+	void writeToValue() override
 	{ T val = m_propertyValue->value(); m_data.set(val); }
-	void readFromData() override
+	void readFromValue() override
 	{ T val; if(m_data.get(val)) m_propertyValue->setValue(val); }
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;
@@ -50,12 +43,12 @@ class VectorDataWrapper : public BaseDataWrapper
 {
 public:
 	using value_type = typename T::value_type;
-	VectorDataWrapper(sfe::Data data, PropertyPtr property)
+	VectorDataWrapper(sfe::Data data, Property::SPtr property)
 		: BaseDataWrapper(data, property)
 	{ m_propertyValue = property->value<T>(); }
-	void writeToData() override
+	void writeToValue() override
 	{ value_type val = m_propertyValue->value(); m_data.set(val); }
-	void readFromData() override
+	void readFromValue() override
 	{ value_type val; if(m_data.get(val)) m_propertyValue->value() = val; }
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;
@@ -63,17 +56,5 @@ protected:
 
 //****************************************************************************//
 
-class SofaObjectProperties : public ObjectProperties
-{
-public:
-	SofaObjectProperties(sfe::Node node);
-	SofaObjectProperties(sfe::Object object);
-
-	void apply() override; // Property -> Data
-	void updateProperties(); // Data -> Property
-
-protected:
-	void addData(sfe::Data data);
-
-	std::vector<std::shared_ptr<BaseDataWrapper>> m_dataWrappers;
-};
+ObjectProperties::SPtr createSofaObjectProperties(sfe::Node node);
+ObjectProperties::SPtr createSofaObjectProperties(sfe::Object object);

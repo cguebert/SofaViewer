@@ -14,7 +14,7 @@ class BasePropertyWidget : public QWidget
 {
 	Q_OBJECT
 public:
-	BasePropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
+	BasePropertyWidget(Property::SPtr property, QWidget* parent = nullptr)
 		: QWidget(parent)
 		, m_property(property)
 		, m_state(State::unchanged)
@@ -24,7 +24,7 @@ public:
 
 	std::string displayName() const { return m_property->name(); }
 	bool readOnly() const { return m_property->readOnly(); }
-	Property::PropertyPtr property() { return m_property; }
+	Property::SPtr property() { return m_property; }
 
 	enum class State { unchanged, modified, conflict };
 	State state() const { return m_state; }
@@ -67,7 +67,7 @@ protected:
 
 	void setState(State state);
 
-	Property::PropertyPtr m_property;
+	Property::SPtr m_property;
 	State m_state;
 	SaveTrigger m_saveTrigger;
 };
@@ -82,7 +82,7 @@ public:
 	typedef T value_type;
 	typedef const T& const_reference;
 
-	PropertyWidget(Property::PropertyPtr property, QWidget* parent = nullptr)
+	PropertyWidget(Property::SPtr property, QWidget* parent = nullptr)
 		: BasePropertyWidget(property, parent)
 		, m_propertyValue(std::dynamic_pointer_cast<PropertyValue<T>>(property->value()))
 		, m_resetValue(m_propertyValue->value())
