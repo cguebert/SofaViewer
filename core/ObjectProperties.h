@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Property.h"
+#include "PropertiesUtils.h"
 
 #include <functional>
 #include <vector>
@@ -22,6 +23,15 @@ public:
 	void addValueWrapper(BaseValueWrapper::SPtr wrap);
 	using ValueWrapperList = std::vector<BaseValueWrapper::SPtr>;
 	const ValueWrapperList& valueWrappers();
+
+	template <class T>
+	void createPropertyAndWrapper(const std::string& name, T& val)
+	{
+		auto prop = property::createCopyProperty(name, val);
+		auto wrapper = property::createValueRefWrapper(val, prop);
+		addProperty(prop);
+		addValueWrapper(wrapper);
+	}
 
 	void applyProperties(); /// Save the properties
 	void updateProperties(); /// Reload the properties
