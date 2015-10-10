@@ -24,10 +24,13 @@ endif()
 # Librairies
 add_subdirectory("core")
 add_subdirectory("render")
+add_subdirectory("modules/SFELib")
+
+include_directories("modules")
 
 # Plugins
-add_subdirectory("modules/SFELocal")
 add_subdirectory("modules/ModelViewer")
+add_subdirectory("modules/SFELocal")
 
 # Application
 add_subdirectory("ui")

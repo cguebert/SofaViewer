@@ -1,5 +1,5 @@
 #include "GraphImages.h"
-#include "Document.h"
+#include "SofaDocument.h"
 
 #include <iostream>
 

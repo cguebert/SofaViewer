@@ -5,14 +5,10 @@ project(${PROJECT_NAME})
 
 set(HEADER_FILES
 	Document.h
-	GraphImages.h
-	SofaProperties.h
 )
 
 set(SOURCE_FILES
 	Document.cpp
-	GraphImages.cpp
-	SofaProperties.cpp
 )
 
 set(MODULE_DIR "${TARGET_DIR}/modules/${PROJECT_NAME}")
@@ -24,8 +20,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Plugins")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${MODULE_DIR})
 
 # Dependencies
-target_link_libraries(${PROJECT_NAME} "Core")
-target_link_libraries(${PROJECT_NAME} "SimpleRender")
+target_link_libraries(${PROJECT_NAME} "SFELib")
 
 # List of all sofa libs.
 set(SOFA_LIBS
@@ -71,10 +66,6 @@ elseif(UNIX)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
     endif()
 
-	list(APPEND INC_SYS
-		${SOFA_INCLUDE_DIRS}
-	)
-	
 	set_target_properties(${target} PROPERTIES
 		BUILD_WITH_INSTALL_RPATH 1
 		INSTALL_RPATH ".")
