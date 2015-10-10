@@ -4,7 +4,9 @@
 #include <core/Graph.h>
 #include <core/MouseManipulator.h>
 #include <render/Scene.h>
+
 #include <sfe/Simulation.h>
+#include <sfe/Communication.h>
 
 #include "GraphImages.h"
 
@@ -41,6 +43,7 @@ protected:
 	void singleStep();
 	void resetSimulation();
 	void modifyDataRepository();
+	void launchServer();
 
 	void parseNode(GraphNode::Ptr parent, sfe::Node node);
 	GraphNode::Ptr createNode(sfe::Object object, GraphNode::Ptr parent);
@@ -70,6 +73,9 @@ protected:
 	std::chrono::high_resolution_clock::time_point m_fpsStart;
 
 	std::vector<SofaModel> m_sofaModels;
+
+	sfecom::Communication m_communication;
+	bool m_serverRunning = false;
 };
 
 inline Graph& Document::graph()

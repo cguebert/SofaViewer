@@ -7,6 +7,7 @@
 #include <core/SimpleGUI.h>
 
 #include <sfe/sofaFrontEndLocal.h>
+#include <sfe/Server.h>
 #include <sfe/Helpers.h>
 #include <sfe/DataTypeTrait.h>
 
@@ -92,26 +93,8 @@ void Document::initUI()
 
 	// Menu actions
 	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Sofa paths", "", [this](){ modifyDataRepository(); } );
-	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Open Dialog", "", [this](){
-		auto dialog = m_gui.createDialog("Test dialog");
-		auto& panel = dialog->content();
-		panel.addButton("Toto", "", [](){
-			std::cout << "Toto" << std::endl;
-		});
-		panel.addButton("Titi", "", [](){
-			std::cout << "Titi" << std::endl;
-		}, 0, 1);
-
-		int intVal = 42;
-		auto prop1 = property::createRefProperty("int", intVal);
-		auto prop2 = property::createCopyProperty("floatCopy", 123.0f);
-
-		panel.addProperty(prop1);
-		panel.addProperty(prop2);
-
-		std::cout << dialog->exec() << std::endl;
-		std::cout << intVal << std::endl;
-	});
+	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Launch Server", "", [this](){ launchServer(); } );
+	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
 }
 
 void Document::initOpenGL()
@@ -431,5 +414,51 @@ void Document::updateProperties()
 	{
 		op->updateProperties();
 		op->modified();
+	}
+}
+
+void connectionFunc(int socket, bool readOnly)
+{
+	auto com = std::make_shared<sfecom::Communication>(socket);
+
+	{
+		sfes::Server server(com);
+		server.setReadOnly(readOnly);
+		server.defaultMessageLoop();
+	}
+}
+
+void acceptFunc(sfecom::Communication* com, bool readOnly)
+{
+	while (true)
+	{
+		int socket = com->acceptConnection();
+		if (socket < 0)
+			return;
+		std::thread(connectionFunc, socket, readOnly).detach();
+	}
+}
+
+void Document::launchServer()
+{
+	if (m_serverRunning)
+		return;
+
+	auto dialog = m_gui.createDialog("Launch SFE Server");
+	auto& panel = dialog->content();
+
+	int port = 5074;
+	panel.addProperty(property::createRefProperty("Server port", port));
+
+	int readOnly = 0;
+	auto readOnlyProp = property::createRefProperty("Read only", readOnly);
+	readOnlyProp->setWidget("checkbox");
+	panel.addProperty(readOnlyProp);
+
+	if (dialog->exec())
+	{
+		m_serverRunning = m_communication.createServer(port);
+
+		std::thread(acceptFunc, &m_communication, readOnly != 0).detach();
 	}
 }

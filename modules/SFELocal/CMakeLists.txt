@@ -49,7 +49,23 @@ if(WIN32)
 		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0d.lib)
 	target_link_libraries(${PROJECT_NAME} "SofaFrontEndLocal")
 	
-	list(APPEND SOFA_LIBS SofaFrontEnd SofaFrontEndLocal)
+	add_library("SofaFrontEndServer" SHARED IMPORTED)
+	set_target_properties("SofaFrontEndServer" PROPERTIES 
+		IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndServer_1_0.lib
+		IMPORTED_IMPLIB_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndServer_1_0.lib
+		IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndServer_1_0rd.lib
+		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndServer_1_0d.lib)
+	target_link_libraries(${PROJECT_NAME} "SofaFrontEndServer")
+	
+	add_library("SofaFrontEndCommunication" STATIC IMPORTED)
+	set_target_properties("SofaFrontEndCommunication" PROPERTIES 
+		IMPORTED_LOCATION ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndCommunication_1_0.lib
+		IMPORTED_LOCATION_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndCommunication_1_0.lib
+		IMPORTED_LOCATION_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndCommunication_1_0rd.lib
+		IMPORTED_LOCATION_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndCommunication_1_0d.lib)
+	target_link_libraries(${PROJECT_NAME} "SofaFrontEndCommunication")
+	
+	list(APPEND SOFA_LIBS SofaFrontEnd SofaFrontEndLocal SofaFrontEndServer)
 elseif(UNIX)	
 	if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
