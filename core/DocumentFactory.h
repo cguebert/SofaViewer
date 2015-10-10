@@ -21,11 +21,13 @@ public:
 	std::shared_ptr<BaseDocument> create(const std::string& name, ui::SimpleGUI& gui) const;
 	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName, ui::SimpleGUI& gui) const;
 
+	std::vector<std::string> creatableDocuments() const;
 	std::string loadFilesFilter() const; // For all documents
 	std::string saveFilesFilter(BaseDocument* document) const; // Only for current document
 
 	struct DocumentEntry
 	{
+		bool canCreateNew = false;
 		std::string name;
 		std::string description;
 		std::string module;
@@ -92,6 +94,9 @@ public:
 		m_entry.name = uniqueName;
 		m_entry.creator = std::make_shared<DocumentCreator<T>>();
 	}
+
+	RegisterDocument& canCreateNew(bool createNew)
+	{ m_entry.canCreateNew = createNew; return *this; }
 
 	RegisterDocument& setDescription(const std::string& description)
 	{ m_entry.description = description; return *this; }

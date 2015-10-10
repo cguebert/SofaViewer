@@ -168,6 +168,18 @@ void DocumentFactory::recomputeLoadFiles()
 	}
 }
 
+std::vector<std::string> DocumentFactory::creatableDocuments() const
+{
+	std::vector<std::string> creatables;
+	for (const auto& doc : m_documents)
+	{
+		if (doc.canCreateNew)
+			creatables.push_back(doc.name);
+	}
+
+	return creatables;
+}
+
 std::string DocumentFactory::loadFilesFilter() const
 {
 	return m_loadFilesFilter;

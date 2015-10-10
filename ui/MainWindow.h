@@ -33,6 +33,7 @@ public:
 	void removeDialog(PropertiesDialog* dialog);
 
 private slots:
+	void newDoc();
 	void open();
 	bool save();
 	bool saveAs();
@@ -91,6 +92,7 @@ private:
 	QMenu* m_viewMenu;
 	QMenu* m_helpMenu;
 
+	QAction* m_newAction;
 	QAction* m_openAction;
 	QAction* m_saveAction;
 	QAction* m_saveAsAction;

@@ -77,10 +77,16 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::createActions()
 {
+	m_newAction = new QAction(tr("&New..."), this);
+	m_newAction->setIcon(QIcon(":/share/icons/new.png"));
+	m_newAction->setShortcut(QKeySequence::Open);
+	m_newAction->setStatusTip(tr("Create a new document"));
+	connect(m_newAction, SIGNAL(triggered()), this, SLOT(newDoc()));
+
 	m_openAction = new QAction(tr("&Open..."), this);
 	m_openAction->setIcon(QIcon(":/share/icons/open.png"));
 	m_openAction->setShortcut(QKeySequence::Open);
-	m_openAction->setStatusTip(tr("Open an existing Sofa scene"));
+	m_openAction->setStatusTip(tr("Open a file"));
 	connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
 
 	m_saveAction = new QAction(tr("&Save"), this);
@@ -119,6 +125,7 @@ void MainWindow::createActions()
 void MainWindow::createMenus()
 {
 	m_fileMenu = menuBar()->addMenu(tr("&File"));
+	m_fileMenu->addAction(m_newAction);
 	m_fileMenu->addAction(m_openAction);
 	m_fileMenu->addAction(m_saveAction);
 	m_fileMenu->addAction(m_saveAsAction);
@@ -225,6 +232,29 @@ void MainWindow::updateRecentFileActions()
 			m_recentFileActions[j]->setVisible(false);
 	}
 	m_separatorAction->setVisible(!m_recentFiles.isEmpty());
+}
+
+void MainWindow::newDoc()
+{
+	const auto creatable = DocumentFactory::instance().creatableDocuments();
+	QStringList items;
+	for (const auto& c : creatable)
+		items.push_back(QString::fromStdString(c));
+
+	QString item = QInputDialog::getItem(this, tr("New document"), tr("Document type:"), items);
+
+	auto document = DocumentFactory::instance().create(item.toStdString(), *m_simpleGUI.get());
+	if (!document)
+	{
+		statusBar()->showMessage(tr("Cannot create the document").arg(item), 2000);
+		return;
+	}
+
+	m_simpleGUI->setDocumentType(document->documentType());
+	setDocument(document);
+
+	setCurrentFile("");
+	statusBar()->showMessage(tr("New document created"), 2000);
 }
 
 bool MainWindow::save()

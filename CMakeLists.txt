@@ -31,6 +31,7 @@ include_directories("modules")
 # Plugins
 add_subdirectory("modules/ModelViewer")
 add_subdirectory("modules/SFELocal")
+add_subdirectory("modules/SFEClient")
 
 # Application
 add_subdirectory("ui")
