@@ -20,17 +20,10 @@ void OpenGLView::setDocument(BaseDocument* doc)
 {
 	m_document = doc;
 
+	m_documentInitialized = false;
+
 	if(m_OpenGLInitialized)
-	{
-		makeCurrent();
-		m_document->initOpenGL();
-		if(m_width && m_height)
-			m_document->resize(m_width, m_height);
-		m_documentInitialized = true;
 		update();
-	}
-	else
-		m_documentInitialized = false;
 }
 
 void OpenGLView::initializeGL()
@@ -49,16 +42,21 @@ void OpenGLView::resizeGL(int w, int h)
 
 void OpenGLView::paintGL()
 {
-	if(!m_documentInitialized && m_document)
+	if (!m_document)
+	{
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		return;
+	}
+
+	if(!m_documentInitialized)
 	{
 		m_document->initOpenGL();
+		if (m_width && m_height)
+			m_document->resize(m_width, m_height);
 		m_documentInitialized = true;
 	}
 
-	if(m_document)
-		m_document->render();
-	else
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	m_document->render();
 }
 
 MouseEvent convert(QMouseEvent* event, MouseEvent::EventType type, int w, int h)

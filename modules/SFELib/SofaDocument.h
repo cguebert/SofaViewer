@@ -17,7 +17,6 @@ class SofaDocument : public BaseDocument
 public:
 	SofaDocument(ui::SimpleGUI& gui, sfe::Simulation simulation);
 
-	bool loadFile(const std::string& path) override;
 	void initUI() override;
 
 	void initOpenGL() override;
@@ -33,6 +32,7 @@ public:
 
 protected:
 	void parseScene();
+	void setupCallbacks();
 	void postStep();
 	void updateObjects();
 	void updateProperties();

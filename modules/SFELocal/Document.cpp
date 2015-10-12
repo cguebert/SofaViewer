@@ -39,7 +39,24 @@ bool Document::loadFile(const std::string& path)
 	if(m_gui.settings().get("dataRepositoryPaths", sofaPaths))
 		m_simulation.getHelper()->setDataRepositoryPaths(sofaPaths);
 
-	return SofaDocument::loadFile(path);
+	m_simulation.setAnimate(false, true);
+	if (!m_simulation.loadFile(path))
+		return false;
+	else
+	{
+		//	simulation.root().createObject("RequiredPlugin", { { "pluginName", "DtExtensions" } });
+		//	mouseInteractor = simulation.root().createObject("DtMouseInteractor");
+
+		// Initializes the scene
+		m_simulation.init();
+
+		// Create the models for rendering
+		parseScene();
+
+		setupCallbacks();
+
+		return true;
+	}
 }
 
 void Document::initUI()

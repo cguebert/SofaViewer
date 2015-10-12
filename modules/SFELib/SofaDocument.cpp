@@ -29,30 +29,6 @@ SofaDocument::SofaDocument(ui::SimpleGUI& gui, sfe::Simulation simulation)
 {
 }
 
-bool SofaDocument::loadFile(const std::string& path)
-{
-	m_simulation.setAnimate(false, true);
-	if (!m_simulation.loadFile(path))
-		return false;
-	else
-	{
-	//	simulation.root().createObject("RequiredPlugin", { { "pluginName", "DtExtensions" } });
-	//	mouseInteractor = simulation.root().createObject("DtMouseInteractor");
-
-		// Initializes the scene
-		m_simulation.init();
-
-		// Create the models for rendering
-		parseScene();
-
-		// Setup the callbacks
-		m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
-		m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
-
-		return true;
-	}
-}
-
 void SofaDocument::initUI()
 {
 	// Update the scene graph
@@ -202,6 +178,12 @@ void SofaDocument::parseScene()
 			m_scene.addModel(sofaModel.model);
 		m_sofaModels.push_back(sofaModel);
 	}
+}
+
+void SofaDocument::setupCallbacks()
+{
+	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
+	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
 }
 
 void SofaDocument::updateObjects()

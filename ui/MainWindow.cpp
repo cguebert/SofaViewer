@@ -507,8 +507,8 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 	auto& graph = m_document->graph();
 	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });
 
-	m_view->setDocument(m_document.get());
 	m_document->initUI();
+	m_view->setDocument(m_document.get());
 }
 
 void MainWindow::graphCallback(uint16_t reasonVal)

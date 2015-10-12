@@ -12,13 +12,6 @@
 int SFEClientDoc = RegisterDocument<Document>("SFEClientDoc").setDescription("Run Sofa scenes using Sofa Front End Client").canCreateNew(true);
 ModuleHandle SFEClientModule = RegisterModule("SFEClient").addDocument(SFEClientDoc);
 
-// Register the types used in the SimpleRender lib so that SFE can directly copy to them
-namespace sfe
-{
-template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>{};
-template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
-}
-
 Document::Document(ui::SimpleGUI& gui)
 	: SofaDocument(gui, sfe::Simulation())
 {
@@ -31,8 +24,6 @@ std::string Document::documentType()
 
 void Document::initUI()
 {
-	SofaDocument::initUI();
-
 	auto dialog = m_gui.createDialog("Connect to SFE Server");
 	auto& panel = dialog->content();
 
@@ -45,7 +36,11 @@ void Document::initUI()
 	if (dialog->exec())
 	{
 		m_simulation = sfe::getRemoteSimulation(serverAddress, std::to_string(serverPort));
-		if (m_simulation)
-			parseScene();
+		if (!m_simulation)
+			return;
+
+		SofaDocument::initUI();
+		parseScene();
+		setupCallbacks();
 	}
 }
