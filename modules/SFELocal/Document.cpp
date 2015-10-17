@@ -88,6 +88,7 @@ void Document::modifyDataRepository()
 void connectionFunc(int socket, bool readOnly)
 {
 	auto com = std::make_shared<sfecom::Communication>(socket);
+	com->setTcpNoDelay(true);
 
 	{
 		sfes::Server server(com);

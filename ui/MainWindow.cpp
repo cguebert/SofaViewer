@@ -79,7 +79,7 @@ void MainWindow::createActions()
 {
 	m_newAction = new QAction(tr("&New..."), this);
 	m_newAction->setIcon(QIcon(":/share/icons/new.png"));
-	m_newAction->setShortcut(QKeySequence::Open);
+	m_newAction->setShortcut(QKeySequence::New);
 	m_newAction->setStatusTip(tr("Create a new document"));
 	connect(m_newAction, SIGNAL(triggered()), this, SLOT(newDoc()));
 

@@ -182,6 +182,7 @@ void SofaDocument::parseScene()
 
 void SofaDocument::setupCallbacks()
 {
+	sfe::SetAsynchronousCallbacks(true);
 	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
 	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
 }

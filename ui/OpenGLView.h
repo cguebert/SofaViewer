@@ -1,11 +1,11 @@
 #pragma once
 
 #include <QOpenGLWidget>
-#include <QOpenGLFunctions_3_3_Core>
+#include <QOpenGLFunctions_3_0>
 
 class BaseDocument;
 
-class OpenGLView : public QOpenGLWidget, public QOpenGLFunctions_3_3_Core
+class OpenGLView : public QOpenGLWidget, public QOpenGLFunctions_3_0
 {
 	Q_OBJECT
 
