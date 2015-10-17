@@ -15,15 +15,15 @@ public:
 	virtual ~GraphNode() {}
 	std::string name, type;
 
-	using Ptr = std::shared_ptr<GraphNode>;
-	std::vector<Ptr> children, objects;
+	using SPtr = std::shared_ptr<GraphNode>;
+	std::vector<SPtr> children, objects;
 	GraphNode* parent = nullptr; // Only null for the root
 
 	int imageId = -1; // Id of the image to draw for this node (-1 if no image)
 	size_t uniqueId = 0; // Used to recognize nodes when the graph is reconstructed
 	bool expanded = true; // Only the initial state
 
-	static Ptr create() { return std::make_shared<GraphNode>(); }
+	static SPtr create() { return std::make_shared<GraphNode>(); }
 };
 
 //****************************************************************************//
@@ -32,7 +32,7 @@ class CORE_API Graph
 {
 public:
 	GraphNode* root() const;
-	void setRoot(GraphNode::Ptr root);
+	void setRoot(GraphNode::SPtr root);
 
 	using ImagesList = std::vector<GraphImage>;
 	const ImagesList& images() const;
@@ -47,7 +47,7 @@ public:
 protected:
 	void executeCallback(CallbackReason reason);
 
-	GraphNode::Ptr m_root;
+	GraphNode::SPtr m_root;
 	ImagesList m_images;
 	CallbackFunc m_updateCallback;
 };

@@ -43,7 +43,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(applyAndClose()));
 	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
 
-	connect(this, SIGNAL(finished(int)), this, SLOT(removeSelf()));
+	connect(this, SIGNAL(finished(int)), this, SLOT(removeSelf(int)));
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabWidget);
@@ -191,9 +191,9 @@ void PropertiesDialog::resetWidgets()
 	}
 }
 
-void PropertiesDialog::removeSelf()
+void PropertiesDialog::removeSelf(int result)
 {
-	m_mainWindow->removeDialog(this);
+	m_mainWindow->removeDialog(this, result == QDialog::Accepted);
 }
 
 void PropertiesDialog::writeToProperties()

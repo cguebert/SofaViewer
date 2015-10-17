@@ -476,9 +476,9 @@ void MainWindow::closeDialog(ObjectProperties* objProp)
 		it->second->reject();
 }
 
-void MainWindow::removeDialog(PropertiesDialog* dlg)
+void MainWindow::removeDialog(PropertiesDialog* dlg, bool accepted)
 {
-	m_document->closeObjectProperties(dlg->objectProperties());
+	m_document->closeObjectProperties(dlg->objectProperties(), accepted);
 	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dlg](const PropertiesDialogPair& p){
 		return p.second == dlg;
 	});

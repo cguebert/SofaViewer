@@ -4,11 +4,11 @@
 
 #include <QtWidgets>
 
-template<>
-class PropretyWidgetContainer<int>
+template <class T>
+class SpinBoxPropertyWidgetContainer
 {
 protected:
-	typedef int value_type;
+	typedef T value_type;
 	QSpinBox* m_spinBox = nullptr;
 
 public:
@@ -35,12 +35,16 @@ public:
 	}
 };
 
+template<> class PropretyWidgetContainer<int> : public SpinBoxPropertyWidgetContainer<int>{};
+template<> class PropretyWidgetContainer<unsigned int> : public SpinBoxPropertyWidgetContainer<unsigned int>{};
+
 //****************************************************************************//
 
-class CheckboxPropertyWidget : public PropretyWidgetContainer<int>
+template <class T>
+class CheckboxPropertyWidget : public PropretyWidgetContainer<T>
 {
 protected:
-	typedef int value_type;
+	typedef T value_type;
 	QCheckBox* m_checkBox = nullptr;
 
 public:
@@ -136,6 +140,8 @@ public:
 //****************************************************************************//
 
 RegisterWidget<SimplePropertyWidget<int>> PW_int("default");
-RegisterWidget<SimplePropertyWidget<int, CheckboxPropertyWidget> > PW_checkbox("checkbox");
+RegisterWidget<SimplePropertyWidget<int, CheckboxPropertyWidget<int>> > PW_checkbox("checkbox");
+RegisterWidget<SimplePropertyWidget<unsigned int>> PW_unsigned_int("default");
+RegisterWidget<SimplePropertyWidget<unsigned int, CheckboxPropertyWidget<unsigned int>> > PW_unsigned_checkbox("checkbox");
 RegisterWidget<SimplePropertyWidget<float>> PW_float("default");
 RegisterWidget<SimplePropertyWidget<double>> PW_double("default");

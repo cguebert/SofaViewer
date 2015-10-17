@@ -1,6 +1,6 @@
 #include <core/Graph.h>
 
-void Graph::setRoot(GraphNode::Ptr root)
+void Graph::setRoot(GraphNode::SPtr root)
 {
 	executeCallback(CallbackReason::BeginSetNode);
 	m_root = root;

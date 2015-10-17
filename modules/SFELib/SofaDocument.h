@@ -28,7 +28,7 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
-	void closeObjectProperties(ObjectPropertiesPtr ptr) override;
+	void closeObjectProperties(ObjectPropertiesPtr ptr, bool accepted) override;
 
 protected:
 	void parseScene();
@@ -41,9 +41,9 @@ protected:
 	void singleStep();
 	void resetSimulation();
 
-	void parseNode(GraphNode::Ptr parent, sfe::Node node);
-	GraphNode::Ptr createNode(sfe::Object object, GraphNode::Ptr parent);
-	GraphNode::Ptr createNode(sfe::Node node, GraphNode::Ptr parent);
+	void parseNode(GraphNode::SPtr parent, sfe::Node node);
+	GraphNode::SPtr createNode(sfe::Object object, GraphNode::SPtr parent);
+	GraphNode::SPtr createNode(sfe::Node node, GraphNode::SPtr parent);
 
 	struct SofaModel
 	{

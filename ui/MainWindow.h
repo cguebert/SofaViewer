@@ -30,7 +30,7 @@ public:
 	OpenGLView* view() const;
 
 	void closeDialog(ObjectProperties* objProp);
-	void removeDialog(PropertiesDialog* dialog);
+	void removeDialog(PropertiesDialog* dialog, bool accepted);
 
 private slots:
 	void newDoc();

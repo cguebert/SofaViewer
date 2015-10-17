@@ -24,7 +24,7 @@ public slots:
 	void apply();
 	void applyAndClose();
 	void resetWidgets();
-	void removeSelf();
+	void removeSelf(int);
 	void stateChanged(BasePropertyWidget*, int);
 
 protected:

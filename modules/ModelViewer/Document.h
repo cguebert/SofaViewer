@@ -3,10 +3,32 @@
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
 #include <core/MouseManipulator.h>
+
 #include <render/Scene.h>
 #include <sfe/Simulation.h>
+#include <glm/glm.hpp>
 
 struct aiScene;
+struct aiNode;
+struct aiMesh;
+class ModelNode;
+
+class ModelNode : public GraphNode
+{
+public:
+	using SPtr = std::shared_ptr<ModelNode>;
+	enum class Type { Node, Mesh, Instance };
+
+	static SPtr create() { return std::make_shared<ModelNode>(); }
+
+	Type nodeType;
+
+	glm::mat4 transformation;
+	Scene::ModelPtr model;
+	unsigned int meshId;
+};
+
+//****************************************************************************//
 
 class Document : public BaseDocument
 {
@@ -28,26 +50,23 @@ public:
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
 
 protected:
+	ModelNode::SPtr createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent);
 	void parseScene(const aiScene* scene);
+	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent);
+	void parseMeshInstance(const aiScene* scene, unsigned int id, GraphNode::SPtr parent);
+
+	std::shared_ptr<Model> createModel(const aiMesh* mesh);
+	int modelIndex(int meshId);
 
 	ui::SimpleGUI& m_gui;
 	Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 
-	GraphNode::Ptr m_rootNode;
+	GraphNode::SPtr m_rootNode;
+	size_t m_nextNodeId = 1;
+	std::vector<int> m_modelsIndices; // Mesh id in Assimp scene -> Model id
 };
 
 inline Graph& Document::graph()
 { return m_graph; }
-
-//****************************************************************************//
-
-class ModelNode : public GraphNode
-{
-public:
-	using ModelNodePtr = std::shared_ptr<ModelNode>;
-	static ModelNodePtr create() { return std::make_shared<ModelNode>(); }
-
-	Scene::ModelPtr model;
-};

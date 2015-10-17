@@ -41,6 +41,24 @@ namespace property
 			static const int size = 3;
 			using value_type = glm::vec3::value_type;
 		};
+
+		template <>
+		struct ArrayTraits<glm::vec4>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 4;
+			using value_type = glm::vec4::value_type;
+		};
+
+		template <>
+		struct ArrayTraits<glm::mat4>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 4;
+			using value_type = glm::mat4::col_type;
+		};
 	}
 }
 
@@ -99,51 +117,100 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
-inline glm::vec3 convert(aiVector3D v)
+ModelNode::SPtr Document::createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent)
 {
-	return glm::vec3{ v.x, v.y, v.z };
+	auto node = ModelNode::create();
+	node->name = name;
+	node->type = type;
+	node->nodeType = nodeType;
+	node->parent = parent.get();
+	node->uniqueId = m_nextNodeId++;
+	if (parent)
+		parent->children.push_back(node);
+
+	return node;
+}
+
+inline glm::mat4 convert(const aiMatrix4x4& in)
+{
+	glm::mat4 out(glm::uninitialize);
+	for (int i = 0; i < 4; ++i)
+		for (int j = 0; j < 4; ++j)
+			out[i][j] = in[i][j];
+	return out;
+}
+
+void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent)
+{
+	auto n = createNode(aNode->mName.C_Str(), "Node", ModelNode::Type::Node, parent);
+	n->transformation = transformation;
+	auto trans = convert(aNode->mTransformation) * transformation;
+
+	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
+		parseNode(scene, aNode->mChildren[i], trans, n);
+
+	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
+		parseMeshInstance(scene, aNode->mMeshes[i], n);
+}
+
+void Document::parseMeshInstance(const aiScene* scene, unsigned int id, GraphNode::SPtr parent)
+{
+	const auto mesh = scene->mMeshes[id];
+	const auto modelId = modelIndex(id);
+	if (modelId < 0)
+		return;
+
+	auto n = createNode(mesh->mName.C_Str(), "Instance", ModelNode::Type::Instance, parent);
+	n->meshId = modelId;
 }
 
 void Document::parseScene(const aiScene* scene)
 {
 	// Root
-	m_rootNode = ModelNode::create();
-	m_rootNode->name = "Model";
-	m_rootNode->type = "Root";
-	m_rootNode->parent = nullptr;
+	auto root = createNode("Model", "Root", ModelNode::Type::Node, nullptr);
+	m_rootNode = root;
 
+	// Adding meshes
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto& mesh = scene->mMeshes[i];
 		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
 			continue;
 
-		auto node = ModelNode::create();
-		if (mesh->mName.length)
-			node->name = mesh->mName.C_Str();
-		else
-			node->name = "mesh " + std::to_string(i);
-		node->type = "Mesh";
-		node->parent = m_rootNode.get();
-		m_rootNode->objects.push_back(node);
+		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", ModelNode::Type::Mesh, m_rootNode);
 
-		auto model = std::make_shared<Model>();
+		auto model = createModel(mesh);
 		node->model = model;
-		
-		model->m_vertices.reserve(mesh->mNumVertices);
-		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-			model->m_vertices.push_back(convert(mesh->mVertices[j]));
-
-		model->m_triangles.reserve(mesh->mNumFaces);
-		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-			model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
-
-		model->m_normals.reserve(mesh->mNumVertices);
-		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-			model->m_normals.push_back(convert(mesh->mNormals[j]));
-
 		m_scene.addModel(model);
+		m_modelsIndices.push_back(i);
 	}
+
+	// Adding graph
+	glm::mat4 transformation;
+	parseNode(scene, scene->mRootNode, transformation, m_rootNode);
+}
+
+inline glm::vec3 convert(aiVector3D v)
+{
+	return glm::vec3{ v.x, v.y, v.z };
+}
+
+std::shared_ptr<Model> Document::createModel(const aiMesh* mesh)
+{
+	auto model = std::make_shared<Model>();
+	model->m_vertices.reserve(mesh->mNumVertices);
+	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+		model->m_vertices.push_back(convert(mesh->mVertices[j]));
+
+	model->m_triangles.reserve(mesh->mNumFaces);
+	for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+		model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+
+	model->m_normals.reserve(mesh->mNumVertices);
+	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+		model->m_normals.push_back(convert(mesh->mNormals[j]));
+
+	return model;
 }
 
 Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
@@ -152,14 +219,46 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	if(!item)
 		return nullptr;
 
-	auto model = item->model;
-	if (!model)
-		return nullptr;
+	switch (item->nodeType)
+	{
+	case ModelNode::Type::Node:
+	{
+		auto properties = std::make_shared<ObjectProperties>(item->name);
+		properties->createPropertyAndWrapper("transformation", item->transformation);
+		return properties;
+	}
 
-	auto properties = std::make_shared<ObjectProperties>(item->name);
-	properties->createPropertyAndWrapper("vertices", model->m_vertices);
-	properties->createPropertyAndWrapper("triangles", model->m_triangles);
-	properties->createPropertyAndWrapper("normals", model->m_normals);
-	
-	return properties;
+	case ModelNode::Type::Mesh:
+	{
+		auto model = item->model;
+		if (!model)
+			return nullptr;
+
+		auto properties = std::make_shared<ObjectProperties>(item->name);
+		properties->createPropertyAndWrapper("vertices", model->m_vertices);
+		properties->createPropertyAndWrapper("triangles", model->m_triangles);
+		properties->createPropertyAndWrapper("normals", model->m_normals);
+		return properties;
+	}
+
+	case ModelNode::Type::Instance:
+	{
+		auto properties = std::make_shared<ObjectProperties>(item->name);
+		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
+		return properties;
+	}
+	}
+
+	return nullptr;
+}
+
+int Document::modelIndex(int meshId)
+{
+	for (int i = 0, nb = m_modelsIndices.size(); i < nb; ++i)
+	{
+		if (m_modelsIndices[i] == meshId)
+			return i;
+	}
+
+	return -1;
 }

@@ -33,5 +33,5 @@ public:
 
 	using ObjectPropertiesPtr = std::shared_ptr<ObjectProperties>;
 	virtual ObjectPropertiesPtr objectProperties(GraphNode* /*item*/) { return nullptr; } // Ask the object properties of a graph node
-	virtual void closeObjectProperties(ObjectPropertiesPtr ptr) {} // Signal that these object properties are not used anymore (closed dialog)
+	virtual void closeObjectProperties(ObjectPropertiesPtr ptr, bool accepted) {} // Signal that these object properties are not used anymore (closed dialog)
 };

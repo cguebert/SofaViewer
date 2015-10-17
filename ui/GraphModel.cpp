@@ -49,7 +49,7 @@ QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) co
 int indexOfChild(GraphNode* node)
 {
 	auto& children = node->parent->children;
-	auto it = std::find_if(children.begin(), children.end(), [node](const GraphNode::Ptr& ptr){
+	auto it = std::find_if(children.begin(), children.end(), [node](const GraphNode::SPtr& ptr){
 		return ptr.get() == node;
 	});
 	auto index = std::distance(children.begin(), it);

@@ -196,7 +196,7 @@ void SofaDocument::updateObjects()
 	}
 }
 
-void SofaDocument::parseNode(GraphNode::Ptr parent, sfe::Node node)
+void SofaDocument::parseNode(GraphNode::SPtr parent, sfe::Node node)
 {
 	for(auto& object : node.objects())
 	{
@@ -212,7 +212,7 @@ void SofaDocument::parseNode(GraphNode::Ptr parent, sfe::Node node)
 	}
 }
 
-GraphNode::Ptr SofaDocument::createNode(sfe::Object object, GraphNode::Ptr parent)
+GraphNode::SPtr SofaDocument::createNode(sfe::Object object, GraphNode::SPtr parent)
 {
 	auto n = SofaNode::create();
 	n->name = object.name();
@@ -234,7 +234,7 @@ GraphNode::Ptr SofaDocument::createNode(sfe::Object object, GraphNode::Ptr paren
 	return n;
 }
 
-GraphNode::Ptr SofaDocument::createNode(sfe::Node node, GraphNode::Ptr parent)
+GraphNode::SPtr SofaDocument::createNode(sfe::Node node, GraphNode::SPtr parent)
 {
 	auto n = SofaNode::create();
 	n->name = node.name();
@@ -308,7 +308,7 @@ ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)
 	return properties;
 }
 
-void SofaDocument::closeObjectProperties(ObjectPropertiesPtr properties)
+void SofaDocument::closeObjectProperties(ObjectPropertiesPtr properties, bool /*accepted*/)
 {
 	if(!m_openedObjectProperties.empty())
 	{
