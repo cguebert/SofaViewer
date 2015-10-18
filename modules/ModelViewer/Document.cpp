@@ -143,17 +143,18 @@ inline glm::mat4 convert(const aiMatrix4x4& in)
 void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent)
 {
 	auto n = createNode(aNode->mName.C_Str(), "Node", ModelNode::Type::Node, parent);
-	n->transformation = transformation;
-	auto trans = convert(aNode->mTransformation) * transformation;
+	auto nodeTransformation = convert(aNode->mTransformation);
+	n->transformation = nodeTransformation;
+	auto accTrans = nodeTransformation * transformation;
 
 	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
-		parseNode(scene, aNode->mChildren[i], trans, n);
+		parseNode(scene, aNode->mChildren[i], accTrans, n);
 
 	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
-		parseMeshInstance(scene, aNode->mMeshes[i], n);
+		parseMeshInstance(scene, aNode->mMeshes[i], accTrans, n);
 }
 
-void Document::parseMeshInstance(const aiScene* scene, unsigned int id, GraphNode::SPtr parent)
+void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent)
 {
 	const auto mesh = scene->mMeshes[id];
 	const auto modelId = modelIndex(id);
@@ -162,6 +163,8 @@ void Document::parseMeshInstance(const aiScene* scene, unsigned int id, GraphNod
 
 	auto n = createNode(mesh->mName.C_Str(), "Instance", ModelNode::Type::Instance, parent);
 	n->meshId = modelId;
+	n->transformation = transformation;
+	m_scene.addInstance({ transformation, m_scene.models()[modelId] });
 }
 
 void Document::parseScene(const aiScene* scene)
@@ -245,6 +248,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
+		properties->createPropertyAndWrapper("transformation", item->transformation);
 		return properties;
 	}
 	}

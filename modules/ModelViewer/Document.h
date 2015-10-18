@@ -53,7 +53,7 @@ protected:
 	ModelNode::SPtr createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent);
 	void parseScene(const aiScene* scene);
 	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent);
-	void parseMeshInstance(const aiScene* scene, unsigned int id, GraphNode::SPtr parent);
+	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent);
 
 	std::shared_ptr<Model> createModel(const aiMesh* mesh);
 	int modelIndex(int meshId);

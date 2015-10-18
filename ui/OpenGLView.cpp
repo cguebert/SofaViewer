@@ -19,7 +19,6 @@ OpenGLView::OpenGLView(QWidget *parent)
 void OpenGLView::setDocument(BaseDocument* doc)
 {
 	m_document = doc;
-
 	m_documentInitialized = false;
 
 	if(m_OpenGLInitialized)

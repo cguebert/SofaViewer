@@ -7,11 +7,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-void Scene::addModel(ModelPtr model)
-{
-	m_models.push_back(model);
-}
-
 void Scene::initOpenGL()
 {
 	// Get OpenGL functions
@@ -69,18 +64,35 @@ void Scene::render()
 	m_modelview = glm::rotate(m_modelview, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f) );					// correct rotation for the example scene
 	m_modelview = glm::rotate(m_modelview, glm::radians(-90.f), glm::vec3(0.f, 0.f, 1.f) );
 	m_modelview = glm::translate(m_modelview, -m_center);		// move scene to origin to apply rotation
-
-	glm::mat4 modelviewProjection = m_projection * m_modelview;
+	
 	m_program.use();
-	glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
-	glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	for(auto& object : m_models)
+	if (m_instances.empty())
 	{
-		glUniform4fv(m_colLoc, 1, &object->m_color[0]);
-		object->render();
+		glm::mat4 modelviewProjection = m_projection * m_modelview;
+		glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
+		glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
+
+		for (const auto& object : m_models)
+		{
+			glUniform4fv(m_colLoc, 1, &object->m_color[0]);
+			object->render();
+		}
+	}
+	else
+	{
+		for (const auto& instance : m_instances)
+		{
+			const auto& object = instance.second;
+			glm::mat4 modelview = instance.first * m_modelview;
+			glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
+			glm::mat4 modelviewProjection = m_projection * modelview;
+			glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
+			glUniform4fv(m_colLoc, 1, &object->m_color[0]);
+			object->render();
+		}
 	}
 }
 
