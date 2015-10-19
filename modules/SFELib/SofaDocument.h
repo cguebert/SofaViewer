@@ -47,7 +47,7 @@ protected:
 
 	struct SofaModel
 	{
-		Scene::ModelPtr model;
+		simplerender::Scene::ModelPtr model;
 		sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
 		sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 	};
@@ -55,7 +55,7 @@ protected:
 	SofaModel createSofaModel(sfe::Object& visualModel);
 
 	ui::SimpleGUI& m_gui;
-	Scene m_scene;
+	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 	sfe::Simulation m_simulation;

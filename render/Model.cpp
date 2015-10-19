@@ -3,6 +3,9 @@
 #define GLEW_STATIC
 #include <GL/glew.h>
 
+namespace simplerender
+{
+
 void Model::init()
 {
 	mergeIndices();
@@ -105,7 +108,7 @@ void Model::render()
 	glDrawElements(GL_TRIANGLES, m_mergedTriangles.size() * 3, GL_UNSIGNED_INT, nullptr);
 }
 
-std::pair<glm::vec3, glm::vec3> Model::boundingBox()
+std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model)
 {
 	glm::vec3 vMin, vMax;
 	for(int i = 0; i < 3; ++i)
@@ -114,7 +117,7 @@ std::pair<glm::vec3, glm::vec3> Model::boundingBox()
 		vMax[i] = -std::numeric_limits<float>::max();
 	}
 
-	for(const auto& vertex : m_vertices)
+	for(const auto& vertex : model.m_vertices)
 	{
 		for(int i = 0; i < 3; ++i)
 		{
@@ -125,3 +128,27 @@ std::pair<glm::vec3, glm::vec3> Model::boundingBox()
 
 	return std::make_pair(vMin, vMax);
 }
+
+std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model, const glm::mat4& transformation)
+{
+	glm::vec3 vMin, vMax;
+	for(int i = 0; i < 3; ++i)
+	{
+		vMin[i] = std::numeric_limits<float>::max();
+		vMax[i] = -std::numeric_limits<float>::max();
+	}
+
+	for(const auto& vertex : model.m_vertices)
+	{
+		auto vtransformed = transformation * glm::vec4(vertex, 1);
+		for(int i = 0; i < 3; ++i)
+		{
+			vMin[i] = std::min(vMin[i], vtransformed[i]);
+			vMax[i] = std::max(vMax[i], vtransformed[i]);
+		}
+	}
+
+	return std::make_pair(vMin, vMax);
+}
+
+} // namespace simplerender

@@ -8,6 +8,9 @@
 #include <sstream>
 #include <iostream>
 
+namespace simplerender
+{
+
 using namespace std;
 
 unsigned int m_program;
@@ -147,3 +150,5 @@ unsigned int ShaderProgram::uniformLocation(const std::string& name) const
 {
 	return glGetUniformLocation(id(), name.c_str());
 }
+
+} // namespace simplerender

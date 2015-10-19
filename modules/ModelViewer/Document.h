@@ -17,14 +17,14 @@ class ModelNode : public GraphNode
 {
 public:
 	using SPtr = std::shared_ptr<ModelNode>;
-	enum class Type { Node, Mesh, Instance };
+	enum class Type { Root, Node, Mesh, Instance };
 
 	static SPtr create() { return std::make_shared<ModelNode>(); }
 
 	Type nodeType;
 
 	glm::mat4 transformation;
-	Scene::ModelPtr model;
+	simplerender::Scene::ModelPtr model;
 	unsigned int meshId;
 };
 
@@ -55,11 +55,11 @@ protected:
 	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent);
 	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent);
 
-	std::shared_ptr<Model> createModel(const aiMesh* mesh);
+	std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh);
 	int modelIndex(int meshId);
 
 	ui::SimpleGUI& m_gui;
-	Scene m_scene;
+	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 

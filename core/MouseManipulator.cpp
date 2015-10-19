@@ -1,14 +1,14 @@
 #include "MouseManipulator.h"
 #include <render/Scene.h>
 
-MouseManipulator::MouseManipulator(Scene& scene)
+MouseManipulator::MouseManipulator(simplerender::Scene& scene)
 	: m_scene(scene)
 {
 }
 
 /******************************************************************************/
 
-SofaMouseManipulator::SofaMouseManipulator(Scene& scene)
+SofaMouseManipulator::SofaMouseManipulator(simplerender::Scene& scene)
 	: MouseManipulator(scene)
 {
 

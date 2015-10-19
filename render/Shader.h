@@ -4,6 +4,9 @@
 #include <string>
 #include <vector>
 
+namespace simplerender
+{
+
 // To destroy the shader program only when every copy is destroyed
 class ProgramId;
 
@@ -32,3 +35,5 @@ protected:
 	std::vector<ShaderPair> m_shaders;
 	std::shared_ptr<ProgramId> m_programId;
 };
+
+} // namespace simplerender

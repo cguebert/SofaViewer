@@ -62,6 +62,14 @@ namespace property
 	}
 }
 
+namespace std
+{
+
+inline glm::vec3::value_type* begin(glm::vec3& v) { return &v.x; }
+inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
+
+}
+
 Document::Document(ui::SimpleGUI& gui)
 	: BaseDocument(gui)
 	, m_gui(gui)
@@ -164,13 +172,13 @@ void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const gl
 	auto n = createNode(mesh->mName.C_Str(), "Instance", ModelNode::Type::Instance, parent);
 	n->meshId = modelId;
 	n->transformation = transformation;
-	m_scene.addInstance({ transformation, m_scene.models()[modelId] });
+	m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[modelId] });
 }
 
 void Document::parseScene(const aiScene* scene)
 {
 	// Root
-	auto root = createNode("Model", "Root", ModelNode::Type::Node, nullptr);
+	auto root = createNode("ModelViewer", "Root", ModelNode::Type::Root, nullptr);
 	m_rootNode = root;
 
 	// Adding meshes
@@ -198,9 +206,9 @@ inline glm::vec3 convert(aiVector3D v)
 	return glm::vec3{ v.x, v.y, v.z };
 }
 
-std::shared_ptr<Model> Document::createModel(const aiMesh* mesh)
+std::shared_ptr<simplerender::Model> Document::createModel(const aiMesh* mesh)
 {
-	auto model = std::make_shared<Model>();
+	auto model = std::make_shared<simplerender::Model>();
 	model->m_vertices.reserve(mesh->mNumVertices);
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
 		model->m_vertices.push_back(convert(mesh->mVertices[j]));
@@ -224,6 +232,16 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 
 	switch (item->nodeType)
 	{
+	case ModelNode::Type::Root:
+	{
+		auto properties = std::make_shared<ObjectProperties>(item->name);
+		properties->createPropertyAndWrapper("transformation", item->transformation);
+		auto bb = simplerender::boundingBox(m_scene);
+		auto sceneSize = bb.second - bb.first;
+		properties->addProperty(property::createCopyProperty("Scene size", sceneSize));
+		return properties;
+	}
+
 	case ModelNode::Type::Node:
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);

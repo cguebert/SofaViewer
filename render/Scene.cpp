@@ -7,6 +7,9 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+namespace simplerender
+{
+
 void Scene::initOpenGL()
 {
 	// Get OpenGL functions
@@ -16,7 +19,7 @@ void Scene::initOpenGL()
 	for(auto& model : m_models)
 		model->init();
 
-	auto bb = boundingBox();
+	auto bb = boundingBox(*this);
 	m_min = bb.first; m_max = bb.second;
 	m_center = (m_min + m_max) / 2.f;
 	m_size = m_max - m_min;
@@ -86,7 +89,7 @@ void Scene::render()
 		for (const auto& instance : m_instances)
 		{
 			const auto& object = instance.second;
-			glm::mat4 modelview = instance.first * m_modelview;
+			glm::mat4 modelview = m_modelview * instance.first;
 			glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
 			glm::mat4 modelviewProjection = m_projection * modelview;
 			glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
@@ -96,7 +99,7 @@ void Scene::render()
 	}
 }
 
-std::pair<glm::vec3, glm::vec3> Scene::boundingBox()
+std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 {
 	glm::vec3 vMin, vMax;
 	for(int i=0; i<3; ++i)
@@ -105,15 +108,32 @@ std::pair<glm::vec3, glm::vec3> Scene::boundingBox()
 		vMax[i] = -std::numeric_limits<float>::max();
 	}
 
-	for(const auto& model : m_models)
+	if (scene.instances().empty())
 	{
-		auto bb = model->boundingBox();
-		for(int i = 0; i < 3; ++i)
+		for (const auto& model : scene.models())
 		{
-			vMin[i] = std::min(vMin[i], bb.first[i]);
-			vMax[i] = std::max(vMax[i], bb.second[i]);
+			auto bb = boundingBox(*model.get());
+			for (int i = 0; i < 3; ++i)
+			{
+				vMin[i] = std::min(vMin[i], bb.first[i]);
+				vMax[i] = std::max(vMax[i], bb.second[i]);
+			}
+		}
+	}
+	else
+	{
+		for (const auto& instance : scene.instances())
+		{
+			auto bb = boundingBox(*instance.second.get(), instance.first);
+			for (int i = 0; i < 3; ++i)
+			{
+				vMin[i] = std::min(vMin[i], bb.first[i]);
+				vMax[i] = std::max(vMax[i], bb.second[i]);
+			}
 		}
 	}
 
 	return std::make_pair(vMin, vMax);
 }
+
+} // namespace simplerender

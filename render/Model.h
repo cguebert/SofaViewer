@@ -7,6 +7,9 @@
 #include <array>
 #include <vector>
 
+namespace simplerender
+{
+
 using Vertices = std::vector < glm::vec3 >;
 using Normals = std::vector < glm::vec3 >;
 using Triangle = std::array < unsigned int, 3 >;
@@ -28,8 +31,6 @@ public:
 	void initShader();
 	void render();
 
-	std::pair<glm::vec3, glm::vec3> boundingBox();
-
 	Vertices m_vertices;
 	Normals m_normals;
 
@@ -47,3 +48,8 @@ public:
 
 	ShaderProgram m_program;
 };
+
+std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model);
+std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model, const glm::mat4& transformation);
+
+} // namespace simplerender

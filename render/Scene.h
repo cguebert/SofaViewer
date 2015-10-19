@@ -7,6 +7,9 @@
 
 #include <memory>
 
+namespace simplerender
+{
+
 class Scene
 {
 public:
@@ -21,9 +24,11 @@ public:
 
 	void addModel(ModelPtr model);
 	Models& models();
+	const Models& models() const;
 
 	void addInstance(const ModelInstance& instance);
 	ModelInstances& instances();
+	const ModelInstances& instances() const;
 
 	glm::quat& rotation();
 	glm::quat rotation() const;
@@ -34,8 +39,6 @@ public:
 	glm::vec3 size() const;
 
 protected:
-	std::pair<glm::vec3, glm::vec3> boundingBox();
-
 	Models m_models;
 	ModelInstances m_instances;
 
@@ -49,16 +52,26 @@ protected:
 	int m_mvLoc = 0, m_mvpLoc = 0, m_colLoc = 0, m_texLoc = 0;
 };
 
+std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene);
+
+//****************************************************************************//
+
 inline void Scene::addModel(ModelPtr model)
 { m_models.push_back(model); }
 
 inline Scene::Models& Scene::models()
 { return m_models; }
 
+inline const Scene::Models& Scene::models() const
+{ return m_models; }
+
 inline void Scene::addInstance(const ModelInstance& instance)
 { m_instances.push_back(instance); }
 
 inline Scene::ModelInstances& Scene::instances()
+{ return m_instances; }
+
+inline const Scene::ModelInstances& Scene::instances() const
 { return m_instances; }
 
 inline glm::quat& Scene::rotation()
@@ -78,3 +91,5 @@ inline glm::vec3 Scene::center() const
 
 inline glm::vec3 Scene::size() const
 { return m_size; }
+
+} // namespace simplerender

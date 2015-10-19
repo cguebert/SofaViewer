@@ -3,22 +3,25 @@
 #include <core/core.h>
 #include <core/MouseEvent.h>
 
-class Scene;
+namespace simplerender 
+{
+	class Scene;
+}
 
 class CORE_API MouseManipulator
 {
 public:
-	MouseManipulator(Scene& scene);
+	MouseManipulator(simplerender::Scene& scene);
 	virtual bool mouseEvent(const MouseEvent& /*event*/) = 0; // Return true if an update is necessary
 
 protected:
-	Scene& m_scene;
+	simplerender::Scene& m_scene;
 };
 
 class CORE_API SofaMouseManipulator : public MouseManipulator
 {
 public:
-	SofaMouseManipulator(Scene& scene);
+	SofaMouseManipulator(simplerender::Scene& scene);
 	bool mouseEvent(const MouseEvent& event) override;
 
 protected:
