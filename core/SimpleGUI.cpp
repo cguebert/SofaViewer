@@ -11,6 +11,10 @@ Dialog::~Dialog()
 {
 }
 
+Menu::~Menu()
+{
+}
+
 Settings::~Settings()
 {
 }

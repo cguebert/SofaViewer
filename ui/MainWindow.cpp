@@ -441,7 +441,7 @@ void MainWindow::executeCallback()
 
 QMenu* MainWindow::menu(unsigned char idVal)
 {
-	using Type = ui::SimpleGUI::Menu;
+	using Type = ui::SimpleGUI::MenuType;
 	auto menuId = static_cast<Type>(idVal);
 	switch(menuId)
 	{

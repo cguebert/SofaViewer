@@ -64,9 +64,10 @@ void Document::initUI()
 	SofaDocument::initUI();
 
 	// Menu actions
-	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Sofa paths", "", [this](){ modifyDataRepository(); } );
-	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Launch Server", "", [this](){ launchServer(); } );
-	m_gui.addMenuItem(ui::SimpleGUI::Menu::Tools, "Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
+	auto& menu = m_gui.getMenu(ui::SimpleGUI::MenuType::Tools);
+	menu.addItem("Sofa paths", "", [this](){ modifyDataRepository(); } );
+	menu.addItem("Launch Server", "", [this](){ launchServer(); } );
+	menu.addItem("Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
 }
 
 void Document::modifyDataRepository()

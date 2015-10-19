@@ -2,12 +2,17 @@
 
 #include <core/SimpleGUI.h>
 
+#include <memory>
+
 class BasePropertyWidget;
 class MainWindow;
+class SimpleGUIImpl;
+
 class QDialog;
 class QGridLayout;
 class QLabel;
 class QLayout;
+class QMenu;
 class QSettings;
 
 class PanelImpl : public ui::Panel
@@ -56,6 +61,26 @@ protected:
 
 /******************************************************************************/
 
+class MenuImpl : public ui::Menu
+{
+public:
+	using SPtr = std::shared_ptr<MenuImpl>;
+	MenuImpl(SimpleGUIImpl* simpleGUI, QMenu* menu);
+	~MenuImpl();
+
+	void addItem(const std::string& name, const std::string& help, ui::CallbackFunc callback) override;
+	ui::Menu& addMenu(const std::string& name) override;
+	void addSeparator() override;
+
+protected:
+	SimpleGUIImpl* m_simpleGUI;
+	QMenu* m_menu;
+	std::vector<SPtr> m_subMenus;
+	std::vector<QAction*> m_actions;
+};
+
+/******************************************************************************/
+
 class SettingsImpl : public ui::Settings
 {
 public:
@@ -89,7 +114,7 @@ class SimpleGUIImpl : public ui::SimpleGUI
 public:
 	SimpleGUIImpl(MainWindow* mainWindow);
 
-	void addMenuItem(Menu menu, const std::string& name, const std::string& help, ui::CallbackFunc callback) override;
+	ui::Menu& getMenu(MenuType menuType) override;
 	ui::Panel& buttonsPanel() override;
 	int addStatusBarZone(const std::string& text) override;
 	void setStatusBarText(int id, const std::string& text) override;
@@ -101,11 +126,13 @@ public:
 	void clear();
 	void setDocumentType(const std::string& type);
 
+	MainWindow* mainWindow();
+
 protected:
 	MainWindow* m_mainWindow;
 	PanelImpl m_buttonsPanel;
 	std::vector<QLabel*> m_statusBarLabels;
-	std::vector<QAction*> m_menuActions;
+	std::vector<MenuImpl::SPtr> m_mainMenus;
 	using DialogImplPtr = std::shared_ptr<DialogImpl>;
 	std::vector<DialogImplPtr> m_dialogs;
 	SettingsImpl m_settings;

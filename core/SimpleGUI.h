@@ -42,6 +42,18 @@ public:
 
 /******************************************************************************/
 
+class CORE_API Menu
+{
+public:
+	virtual ~Menu();
+
+	virtual void addItem(const std::string& name, const std::string& help, CallbackFunc callback) = 0;
+	virtual Menu& addMenu(const std::string& name) = 0;
+	virtual void addSeparator() = 0;
+};
+
+/******************************************************************************/
+
 class CORE_API Settings
 {
 public:
@@ -69,10 +81,10 @@ class CORE_API SimpleGUI
 public:
 	virtual ~SimpleGUI();
 
-	enum class Menu : unsigned char
+	enum class MenuType : unsigned char
 	{ File, Tools, View, Help };
 
-	virtual void addMenuItem(Menu menu, const std::string& name, const std::string& help, CallbackFunc callback) = 0;
+	virtual Menu& getMenu(MenuType type) = 0;
 
 	virtual Panel& buttonsPanel() = 0; // Access to the buttons dock (on the side of the OpenGL view)
 

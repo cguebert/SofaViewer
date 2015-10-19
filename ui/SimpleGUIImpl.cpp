@@ -80,7 +80,7 @@ DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
 
 ui::Panel& DialogImpl::content()
 {
-	return *m_dialogPanel.get();
+	return *m_dialogPanel;
 }
 
 bool DialogImpl::exec()
@@ -124,6 +124,46 @@ void DialogImpl::completeLayout()
 		delete layout;
 
 	m_dialog->setLayout(mainLayout);
+}
+
+/******************************************************************************/
+
+MenuImpl::MenuImpl(SimpleGUIImpl* simpleGUI, QMenu* menu)
+	: m_simpleGUI(simpleGUI)
+	, m_menu(menu)
+{
+}
+
+MenuImpl::~MenuImpl()
+{
+	for (auto action : m_actions)
+		delete action;
+}
+
+void MenuImpl::addItem(const std::string& name, const std::string& help, ui::CallbackFunc callback)
+{
+	int id = m_simpleGUI->mainWindow()->addCallback(callback);
+	auto action = new QAction(name.c_str(), m_menu);
+	action->setStatusTip(help.c_str());
+	action->setData(QVariant(id));
+	m_actions.push_back(action);
+
+	m_simpleGUI->mainWindow()->connect(action, SIGNAL(triggered(bool)), m_simpleGUI->mainWindow(), SLOT(executeCallback()));
+	m_menu->addAction(action);
+}
+
+ui::Menu& MenuImpl::addMenu(const std::string& name)
+{
+	auto menu = m_menu->addMenu(name.c_str());
+	auto menuImpl = std::make_shared<MenuImpl>(m_simpleGUI, menu);
+	m_subMenus.push_back(menuImpl);
+	return *menuImpl;
+}
+
+void MenuImpl::addSeparator()
+{
+	auto action = m_menu->addSeparator();
+	m_actions.push_back(action);
 }
 
 /******************************************************************************/
@@ -273,20 +313,11 @@ SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
 	: m_mainWindow(mainWindow)
 	, m_buttonsPanel(mainWindow, mainWindow->buttonsLayout())
 	, m_settings(mainWindow)
-{ }
+{}
 
-void SimpleGUIImpl::addMenuItem(Menu menuId, const std::string& name, const std::string& help, ui::CallbackFunc callback)
+ui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
 {
-	auto menu = m_mainWindow->menu(static_cast<unsigned char>(menuId));
-
-	int id = m_mainWindow->addCallback(callback);
-	auto action = new QAction(name.c_str(), menu);
-	action->setStatusTip(help.c_str());
-	action->setData(QVariant(id));
-
-	m_mainWindow->connect(action, SIGNAL(triggered(bool)), m_mainWindow, SLOT(executeCallback()));
-	menu->addAction(action);
-	m_menuActions.push_back(action);
+	return *m_mainMenus[static_cast<unsigned char>(menuType)];
 }
 
 ui::Panel& SimpleGUIImpl::buttonsPanel()
@@ -318,9 +349,9 @@ void SimpleGUIImpl::clear()
 	m_statusBarLabels.clear();
 
 	// Menus
-	for(auto action : m_menuActions)
-		delete action;
-	m_menuActions.clear();
+	m_mainMenus.clear();
+	for (unsigned char i = 0; i < 4; ++i)
+		m_mainMenus.push_back(std::make_shared<MenuImpl>(this, m_mainWindow->menu(i)));
 
 	// Buttons box
 	auto layout = m_mainWindow->buttonsLayout();
@@ -361,4 +392,9 @@ void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
 ui::Settings& SimpleGUIImpl::settings()
 {
 	return m_settings;
+}
+
+MainWindow* SimpleGUIImpl::mainWindow()
+{
+	return m_mainWindow;
 }
