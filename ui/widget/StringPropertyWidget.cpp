@@ -16,7 +16,7 @@ public:
 	{
 		m_lineEdit = new QLineEdit(parent);
 		m_lineEdit->setEnabled(!parent->readOnly());
-		QObject::connect(m_lineEdit, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()) );
+		QObject::connect(m_lineEdit, &QLineEdit::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 		return m_lineEdit;
 	}
 	void readFromProperty(const value_type& v)

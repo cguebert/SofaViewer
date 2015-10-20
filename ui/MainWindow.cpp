@@ -72,45 +72,44 @@ void MainWindow::createActions()
 	m_newAction->setIcon(QIcon(":/share/icons/new.png"));
 	m_newAction->setShortcut(QKeySequence::New);
 	m_newAction->setStatusTip(tr("Create a new document"));
-	connect(m_newAction, SIGNAL(triggered()), this, SLOT(newDoc()));
+	connect(m_newAction, &QAction::triggered, this, &MainWindow::newDoc);
 
 	m_openAction = new QAction(tr("&Open..."), this);
 	m_openAction->setIcon(QIcon(":/share/icons/open.png"));
 	m_openAction->setShortcut(QKeySequence::Open);
 	m_openAction->setStatusTip(tr("Open a file"));
-	connect(m_openAction, SIGNAL(triggered()), this, SLOT(open()));
+	connect(m_openAction, &QAction::triggered, this, &MainWindow::open);
 
 	m_saveAction = new QAction(tr("&Save"), this);
 	m_saveAction->setIcon(QIcon(":/share/icons/save.png"));
 	m_saveAction->setShortcut(QKeySequence::Save);
 	m_saveAction->setStatusTip(tr("Save the scene to disk"));
 	m_saveAction->setEnabled(false);
-	connect(m_saveAction, SIGNAL(triggered()), this, SLOT(save()));
+	connect(m_saveAction, &QAction::triggered, this, &MainWindow::save);
 
 	m_saveAsAction = new QAction(tr("Save &As..."), this);
 	m_saveAsAction->setStatusTip(tr("Save the scene under a new name"));
 	m_saveAsAction->setEnabled(false);
-	connect(m_saveAsAction, SIGNAL(triggered()), this, SLOT(saveAs()));
+	connect(m_saveAsAction, &QAction::triggered, this, &MainWindow::saveAs);
 
 	for (int i = 0; i < MaxRecentFiles; ++i) {
 		m_recentFileActions[i] = new QAction(this);
 		m_recentFileActions[i]->setVisible(false);
-		connect(m_recentFileActions[i], SIGNAL(triggered()),
-				this, SLOT(openRecentFile()));
+		connect(m_recentFileActions[i], &QAction::triggered, this, &MainWindow::openRecentFile);
 	}
 
 	m_exitAction = new QAction(tr("E&xit"), this);
 	m_exitAction->setShortcut(tr("Ctrl+Q"));
 	m_exitAction->setStatusTip(tr("Exit Panda"));
-	connect(m_exitAction, SIGNAL(triggered()), this, SLOT(close()));
+	connect(m_exitAction, &QAction::triggered, this, &MainWindow::close);
 
 	m_aboutAction = new QAction(tr("&About"), this);
 	m_aboutAction->setStatusTip(tr("Show the application's About box"));
-	connect(m_aboutAction, SIGNAL(triggered()), this, SLOT(about()));
+	connect(m_aboutAction, &QAction::triggered, this, &MainWindow::about);
 
 	m_aboutQtAction = new QAction(tr("About &Qt"), this);
 	m_aboutQtAction->setStatusTip(tr("Show the Qt library's About box"));
-	connect(m_aboutQtAction, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
+	connect(m_aboutQtAction, &QAction::triggered, qApp, &QApplication::aboutQt);
 }
 
 void MainWindow::createMenus()

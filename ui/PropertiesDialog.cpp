@@ -36,10 +36,10 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	auto applyButton = buttonBox->button(QDialogButtonBox::Apply);
 	auto resetButton = buttonBox->button(QDialogButtonBox::Reset);
 	auto OkButton = buttonBox->button(QDialogButtonBox::Ok);
-	connect(applyButton, SIGNAL(clicked(bool)), this, SLOT(apply()));
-	connect(resetButton, SIGNAL(clicked(bool)), this, SLOT(resetWidgets()));
-	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(applyAndClose()));
-	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
+	connect(applyButton, &QPushButton::clicked, this, &PropertiesDialog::apply);
+	connect(resetButton, &QPushButton::clicked, this, &PropertiesDialog::resetWidgets);
+	connect(OkButton, &QPushButton::clicked, this, &PropertiesDialog::applyAndClose);
+	connect(buttonBox, &QDialogButtonBox::rejected, this, &PropertiesDialog::reject);
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabWidget);
@@ -56,7 +56,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 		std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(prop, this);
 		if(propWidget)
 		{
-			connect(propWidget.get(), SIGNAL(stateChanged(BasePropertyWidget*,int)), this, SLOT(stateChanged(BasePropertyWidget*,int)));
+			connect(propWidget.get(), &BasePropertyWidget::stateChanged, this, &PropertiesDialog::stateChanged);
 			int id  = m_propertyWidgets.size();
 			propertyGroups[prop->group()].push_back(id);
 

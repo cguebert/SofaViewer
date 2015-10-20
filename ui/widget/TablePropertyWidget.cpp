@@ -28,7 +28,7 @@ public:
 		auto value = parent->property()->value<value_type>();
 		m_accessor = std::make_shared<TableValueAccessor<value_type>>(value->value());
 		m_model = new TablePropertyModel(m_view, m_accessor);
-		connect(m_model, SIGNAL(modified()), parent, SLOT(setWidgetDirty()));
+		connect(m_model, &TablePropertyModel::modified, parent, &BasePropertyWidget::setWidgetDirty);
 		m_view->setModel(m_model);
 
 		if(m_accessor->fixed())
@@ -62,14 +62,14 @@ public:
 			auto topLayout = new QHBoxLayout;
 			m_toggleButton = new QPushButton(tr("show"));
 			m_toggleButton->setCheckable(true);
-			connect(m_toggleButton, SIGNAL(toggled(bool)), this, SLOT(toggleView(bool)));
+			connect(m_toggleButton, &QPushButton::toggled, this, &BaseTableWidgetContainer::toggleView);
 			topLayout->addWidget(m_toggleButton);
 
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
-			connect(m_spinBox, SIGNAL(editingFinished()), this, SLOT(resizeValue()));
-			connect(m_spinBox, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()));
+			connect(m_spinBox, &QSpinBox::editingFinished, this, &BaseTableWidgetContainer::resizeValue);
+			connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(m_spinBox, 1);
 
 			layout->addLayout(topLayout);

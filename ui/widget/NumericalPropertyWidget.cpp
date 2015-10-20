@@ -20,7 +20,7 @@ public:
 		m_spinBox->setSingleStep(1);
 		m_spinBox->setEnabled(!parent->readOnly());
 
-		QObject::connect(m_spinBox, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()));
+		QObject::connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 
 		return m_spinBox;
 	}
@@ -52,7 +52,7 @@ public:
 	{
 		m_checkBox = new QCheckBox(parent);
 		m_checkBox->setEnabled(!parent->readOnly());
-		QObject::connect(m_checkBox, SIGNAL(clicked(bool)), parent, SLOT(setWidgetDirty()));
+		QObject::connect(m_checkBox, &QCheckBox::clicked, parent, &BasePropertyWidget::setWidgetDirty);
 		return m_checkBox;
 	}
 	void readFromProperty(const value_type& v)
@@ -81,7 +81,7 @@ public:
 	{
 		m_lineEdit = new QLineEdit(parent);
 		m_lineEdit->setEnabled(!parent->readOnly());
-		QObject::connect(m_lineEdit, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()));
+		QObject::connect(m_lineEdit, &QLineEdit::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 		return m_lineEdit;
 	}
 	void readFromProperty(const value_type& v)
@@ -116,7 +116,7 @@ public:
 	{
 		m_lineEdit = new QLineEdit(parent);
 		m_lineEdit->setEnabled(!parent->readOnly());
-		QObject::connect(m_lineEdit, SIGNAL(editingFinished()), parent, SLOT(setWidgetDirty()));
+		QObject::connect(m_lineEdit, &QLineEdit::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 		return m_lineEdit;
 	}
 	void readFromProperty(const value_type& v)

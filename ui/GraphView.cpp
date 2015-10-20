@@ -16,9 +16,9 @@ GraphView::GraphView(QWidget* parent, SimpleGUIImpl* gui)
 	m_graph->header()->hide();
 	m_graph->setExpandsOnDoubleClick(false);
 
-	connect(m_graph, SIGNAL(doubleClicked(QModelIndex)), this, SLOT(graphItemDoubleClicked(QModelIndex)));
-	connect(m_graph, SIGNAL(expanded(QModelIndex)), this, SLOT(graphItemExpanded(QModelIndex)));
-	connect(m_graph, SIGNAL(collapsed(QModelIndex)), this, SLOT(graphItemCollapsed(QModelIndex)));
+	connect(m_graph, &QTreeView::doubleClicked, this, &GraphView::graphItemDoubleClicked);
+	connect(m_graph, &QTreeView::expanded, this, &GraphView::graphItemExpanded);
+	connect(m_graph, &QTreeView::collapsed, this, &GraphView::graphItemCollapsed);
 }
 
 QWidget* GraphView::view()
