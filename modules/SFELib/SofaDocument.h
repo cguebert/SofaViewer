@@ -15,7 +15,7 @@
 class SofaDocument : public BaseDocument
 {
 public:
-	SofaDocument(ui::SimpleGUI& gui, sfe::Simulation simulation);
+	SofaDocument(simplegui::SimpleGUI& gui, sfe::Simulation simulation);
 
 	void initUI() override;
 
@@ -54,7 +54,7 @@ protected:
 
 	SofaModel createSofaModel(sfe::Object& visualModel);
 
-	ui::SimpleGUI& m_gui;
+	simplegui::SimpleGUI& m_gui;
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;

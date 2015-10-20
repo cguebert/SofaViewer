@@ -16,7 +16,7 @@ PanelImpl::PanelImpl(MainWindow* mainWindow, QGridLayout* layout)
 }
 
 void PanelImpl::addButton(const std::string& name, const std::string& help,
-							 ui::CallbackFunc callback,
+							 simplegui::CallbackFunc callback,
 							 int row, int column,
 							 int rowSpan, int columnSpan)
 {
@@ -78,7 +78,7 @@ DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
 	m_dialogPanel = std::make_shared<PanelImpl>(mainWindow, m_panelLayout);
 }
 
-ui::Panel& DialogImpl::content()
+simplegui::Panel& DialogImpl::content()
 {
 	return *m_dialogPanel;
 }
@@ -140,7 +140,7 @@ MenuImpl::~MenuImpl()
 		delete action;
 }
 
-void MenuImpl::addItem(const std::string& name, const std::string& help, ui::CallbackFunc callback)
+void MenuImpl::addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback)
 {
 	int id = m_simpleGUI->mainWindow()->addCallback(callback);
 	auto action = new QAction(name.c_str(), m_menu);
@@ -152,7 +152,7 @@ void MenuImpl::addItem(const std::string& name, const std::string& help, ui::Cal
 	m_menu->addAction(action);
 }
 
-ui::Menu& MenuImpl::addMenu(const std::string& name)
+simplegui::Menu& MenuImpl::addMenu(const std::string& name)
 {
 	auto menu = m_menu->addMenu(name.c_str());
 	auto menuImpl = std::make_shared<MenuImpl>(m_simpleGUI, menu);
@@ -315,12 +315,12 @@ SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
 	, m_settings(mainWindow)
 {}
 
-ui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
+simplegui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
 {
 	return *m_mainMenus[static_cast<unsigned char>(menuType)];
 }
 
-ui::Panel& SimpleGUIImpl::buttonsPanel()
+simplegui::Panel& SimpleGUIImpl::buttonsPanel()
 {
 	return m_buttonsPanel;
 }
@@ -372,7 +372,7 @@ void SimpleGUIImpl::setDocumentType(const std::string& type)
 	m_settings.setDocumentType(type);
 }
 
-ui::SimpleGUI::DialogPtr SimpleGUIImpl::createDialog(const std::string& title)
+simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
 {
 	auto dialog = std::make_shared<DialogImpl>(m_mainWindow, title);
 	m_dialogs.push_back(dialog);
@@ -389,7 +389,7 @@ void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
 	m_mainWindow->closeDialog(objProp);
 }
 
-ui::Settings& SimpleGUIImpl::settings()
+simplegui::Settings& SimpleGUIImpl::settings()
 {
 	return m_settings;
 }

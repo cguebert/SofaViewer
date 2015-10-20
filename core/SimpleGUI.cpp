@@ -1,6 +1,6 @@
 #include <core/SimpleGUI.h>
 
-namespace ui
+namespace simplegui
 {
 
 Panel::~Panel() 
@@ -23,4 +23,4 @@ SimpleGUI::~SimpleGUI()
 {
 }
 
-} // namespace ui
+} // namespace simplegui

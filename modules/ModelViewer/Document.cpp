@@ -70,7 +70,7 @@ inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
 
 }
 
-Document::Document(ui::SimpleGUI& gui)
+Document::Document(simplegui::SimpleGUI& gui)
 	: BaseDocument(gui)
 	, m_gui(gui)
 	, m_mouseManipulator(m_scene)

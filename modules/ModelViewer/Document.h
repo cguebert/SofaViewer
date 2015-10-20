@@ -33,7 +33,7 @@ public:
 class Document : public BaseDocument
 {
 public:
-	Document(ui::SimpleGUI& gui);
+	Document(simplegui::SimpleGUI& gui);
 	std::string documentType() override;
 
 	bool loadFile(const std::string& path) override;
@@ -58,7 +58,7 @@ protected:
 	std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh);
 	int modelIndex(int meshId);
 
-	ui::SimpleGUI& m_gui;
+	simplegui::SimpleGUI& m_gui;
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;

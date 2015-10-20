@@ -8,7 +8,7 @@
 
 class ObjectProperties;
 
-namespace ui
+namespace simplegui
 {
 
 using CallbackFunc = std::function<void()>;
@@ -33,6 +33,7 @@ public:
 class CORE_API Dialog
 {
 public:
+	using SPtr = std::shared_ptr<Dialog>;
 	virtual ~Dialog();
 
 	virtual Panel& content() = 0; // Add buttons and property widgets
@@ -91,8 +92,7 @@ public:
 	virtual int addStatusBarZone(const std::string& text) = 0; // Use the text parameter to set the minimum size of the zone
 	virtual void setStatusBarText(int id, const std::string& text) = 0;
 
-	using DialogPtr = std::shared_ptr<Dialog>;
-	virtual DialogPtr createDialog(const std::string& title) = 0;
+	virtual Dialog::SPtr createDialog(const std::string& title) = 0;
 
 	virtual void updateView() = 0; // Update the OpenGL view
 
@@ -101,4 +101,4 @@ public:
 	virtual Settings& settings() = 0;
 };
 
-} // namespace ui
+} // namespace simplegui

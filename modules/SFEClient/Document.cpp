@@ -12,7 +12,7 @@
 int SFEClientDoc = RegisterDocument<Document>("SFEClientDoc").setDescription("Run Sofa scenes using Sofa Front End Client").canCreateNew(true);
 ModuleHandle SFEClientModule = RegisterModule("SFEClient").addDocument(SFEClientDoc);
 
-Document::Document(ui::SimpleGUI& gui)
+Document::Document(simplegui::SimpleGUI& gui)
 	: SofaDocument(gui, sfe::Simulation())
 {
 }

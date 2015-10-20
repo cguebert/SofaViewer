@@ -6,7 +6,7 @@
 class Document : public SofaDocument
 {
 public:
-	Document(ui::SimpleGUI& gui);
+	Document(simplegui::SimpleGUI& gui);
 	std::string documentType() override;
 
 	void initUI() override;

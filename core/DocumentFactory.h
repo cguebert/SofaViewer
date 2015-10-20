@@ -9,7 +9,7 @@ class BaseDocumentCreator
 {
 public:
 	virtual ~BaseDocumentCreator() {}
-	virtual std::shared_ptr<BaseDocument> create(ui::SimpleGUI& /*gui*/) const = 0;
+	virtual std::shared_ptr<BaseDocument> create(simplegui::SimpleGUI& /*gui*/) const = 0;
 };
 
 class CORE_API DocumentFactory
@@ -18,8 +18,8 @@ public:
 	static DocumentFactory& instance();
 	~DocumentFactory();
 
-	std::shared_ptr<BaseDocument> create(const std::string& name, ui::SimpleGUI& gui) const;
-	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName, ui::SimpleGUI& gui) const;
+	std::shared_ptr<BaseDocument> create(const std::string& name, simplegui::SimpleGUI& gui) const;
+	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName, simplegui::SimpleGUI& gui) const;
 
 	std::vector<std::string> creatableDocuments() const;
 	std::string loadFilesFilter() const; // For all documents
@@ -80,7 +80,7 @@ template <class T>
 class DocumentCreator : public BaseDocumentCreator
 {
 public:
-	std::shared_ptr<BaseDocument> create(ui::SimpleGUI& gui) const override
+	std::shared_ptr<BaseDocument> create(simplegui::SimpleGUI& gui) const override
 	{ return std::make_shared<T>(gui); }
 };
 

@@ -22,7 +22,7 @@ template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
-Document::Document(ui::SimpleGUI& gui)
+Document::Document(simplegui::SimpleGUI& gui)
 	: SofaDocument(gui, sfe::getLocalSimulation())
 {
 }
@@ -64,7 +64,7 @@ void Document::initUI()
 	SofaDocument::initUI();
 
 	// Menu actions
-	auto& menu = m_gui.getMenu(ui::SimpleGUI::MenuType::Tools);
+	auto& menu = m_gui.getMenu(simplegui::SimpleGUI::MenuType::Tools);
 	menu.addItem("Sofa paths", "", [this](){ modifyDataRepository(); } );
 	menu.addItem("Launch Server", "", [this](){ launchServer(); } );
 	menu.addItem("Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });

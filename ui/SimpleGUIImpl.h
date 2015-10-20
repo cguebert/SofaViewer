@@ -15,13 +15,13 @@ class QLayout;
 class QMenu;
 class QSettings;
 
-class PanelImpl : public ui::Panel
+class PanelImpl : public simplegui::Panel
 {
 public:
 	PanelImpl(MainWindow* mainWindow, QGridLayout* layout);
 
 	void addButton(const std::string& name, const std::string& help,
-				   ui::CallbackFunc callback,
+				   simplegui::CallbackFunc callback,
 				   int row, int column,
 				   int rowSpan, int columnSpan) override;
 
@@ -40,12 +40,12 @@ protected:
 
 /******************************************************************************/
 
-class DialogImpl : public ui::Dialog
+class DialogImpl : public simplegui::Dialog
 {
 public:
 	DialogImpl(MainWindow* mainWindow, const std::string& title);
 
-	ui::Panel& content() override;
+	simplegui::Panel& content() override;
 	bool exec() override;
 	void show() override;
 
@@ -61,15 +61,15 @@ protected:
 
 /******************************************************************************/
 
-class MenuImpl : public ui::Menu
+class MenuImpl : public simplegui::Menu
 {
 public:
 	using SPtr = std::shared_ptr<MenuImpl>;
 	MenuImpl(SimpleGUIImpl* simpleGUI, QMenu* menu);
 	~MenuImpl();
 
-	void addItem(const std::string& name, const std::string& help, ui::CallbackFunc callback) override;
-	ui::Menu& addMenu(const std::string& name) override;
+	void addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback) override;
+	simplegui::Menu& addMenu(const std::string& name) override;
 	void addSeparator() override;
 
 protected:
@@ -81,7 +81,7 @@ protected:
 
 /******************************************************************************/
 
-class SettingsImpl : public ui::Settings
+class SettingsImpl : public simplegui::Settings
 {
 public:
 	SettingsImpl(MainWindow* mainWindow);
@@ -109,19 +109,19 @@ protected:
 
 /******************************************************************************/
 
-class SimpleGUIImpl : public ui::SimpleGUI
+class SimpleGUIImpl : public simplegui::SimpleGUI
 {
 public:
 	SimpleGUIImpl(MainWindow* mainWindow);
 
-	ui::Menu& getMenu(MenuType menuType) override;
-	ui::Panel& buttonsPanel() override;
+	simplegui::Menu& getMenu(MenuType menuType) override;
+	simplegui::Panel& buttonsPanel() override;
 	int addStatusBarZone(const std::string& text) override;
 	void setStatusBarText(int id, const std::string& text) override;
-	DialogPtr createDialog(const std::string& title) override;
+	simplegui::Dialog::SPtr createDialog(const std::string& title) override;
 	void updateView() override;
 	void closePropertiesDialog(ObjectProperties* objProp) override;
-	ui::Settings& settings() override;
+	simplegui::Settings& settings() override;
 
 	void clear();
 	void setDocumentType(const std::string& type);

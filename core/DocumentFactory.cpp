@@ -16,7 +16,7 @@ DocumentFactory::~DocumentFactory()
 	documentFactoryCreated = false;
 }
 
-std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, ui::SimpleGUI& gui) const
+std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, simplegui::SimpleGUI& gui) const
 {
 	auto iter = std::find_if(m_documents.begin(), m_documents.end(), [name](const DocumentEntry& entry){
 		return entry.name == name;
@@ -32,7 +32,7 @@ std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, u
 	return nullptr;
 }
 
-std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& fileName, ui::SimpleGUI& gui) const
+std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& fileName, simplegui::SimpleGUI& gui) const
 {
 	auto suffixePos = fileName.find_last_of(".");
 	auto suffixe = fileName.substr(suffixePos + 1);

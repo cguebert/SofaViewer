@@ -9,7 +9,7 @@ class GraphNode;
 class ObjectProperties;
 struct MouseEvent;
 
-namespace ui 
+namespace simplegui
 {
 class Menu;
 class SimpleGUI; 
@@ -18,7 +18,7 @@ class SimpleGUI;
 class CORE_API BaseDocument
 {
 public:
-	BaseDocument(ui::SimpleGUI& /*gui*/) {}
+	BaseDocument(simplegui::SimpleGUI& /*gui*/) {}
 	virtual ~BaseDocument() {}
 
 	virtual std::string documentType() = 0; // Return the unique name of the implementation (used for settings and factory)
@@ -39,5 +39,5 @@ public:
 	virtual ObjectPropertiesPtr objectProperties(GraphNode* /*item*/) { return nullptr; } // Ask the object properties of a graph node
 	virtual void closeObjectProperties(ObjectPropertiesPtr ptr, bool accepted) {} // Signal that these object properties are not used anymore (closed dialog)
 
-	virtual void graphContextMenu(GraphNode* /*item*/, ui::Menu& /*menu*/) {}; // The context menu when right clicking a graph node (if empty, will not be shown)
+	virtual void graphContextMenu(GraphNode* /*item*/, simplegui::Menu& /*menu*/) {}; // The context menu when right clicking a graph node (if empty, will not be shown)
 };

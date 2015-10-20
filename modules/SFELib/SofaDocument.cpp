@@ -20,7 +20,7 @@ template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
-SofaDocument::SofaDocument(ui::SimpleGUI& gui, sfe::Simulation simulation)
+SofaDocument::SofaDocument(simplegui::SimpleGUI& gui, sfe::Simulation simulation)
 	: BaseDocument(gui)
 	, m_gui(gui)
 	, m_mouseManipulator(m_scene)
