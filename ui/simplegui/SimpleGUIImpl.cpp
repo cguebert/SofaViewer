@@ -1,318 +1,20 @@
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
+
 #include <ui/simplegui/SimpleGUIImpl.h>
-#include <ui/widget/PropertyWidget.h>
-#include <ui/widget/PropertyWidgetFactory.h>
+#include <ui/simplegui/DialogImpl.h>
+#include <ui/simplegui/MenuImpl.h>
+#include <ui/simplegui/PanelImpl.h>
+#include <ui/simplegui/SettingsImpl.h>
 
 #include <QtWidgets>
 
 #include <iostream>
 
-PanelImpl::PanelImpl(MainWindow* mainWindow, QGridLayout* layout)
-	: m_mainWindow(mainWindow)
-	, m_layout(layout)
-{
-
-}
-
-void PanelImpl::addButton(const std::string& name, const std::string& help,
-							 simplegui::CallbackFunc callback,
-							 int row, int column,
-							 int rowSpan, int columnSpan)
-{
-	auto button = new QPushButton(name.c_str());
-	button->setStatusTip(help.c_str());
-
-	int id = m_mainWindow->addCallback(callback);
-	auto action = new QAction(name.c_str(), m_mainWindow);
-	action->setData(QVariant(id));
-
-	QObject::connect(button, SIGNAL(clicked(bool)), action, SLOT(trigger()));
-	m_mainWindow->connect(action, SIGNAL(triggered(bool)), m_mainWindow, SLOT(executeCallback()));
-
-	if(row < 0)
-		row = m_layout->count() ? m_layout->rowCount() : 0;
-
-	m_layout->addWidget(button, row, column, rowSpan, columnSpan);
-}
-
-void PanelImpl::addProperty(Property::SPtr property,
-							int row, int column,
-							int rowSpan, int columnSpan)
-{
-	std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(property, m_mainWindow);
-	if(!propWidget)
-	{
-		std::cerr << "Could not create a property widget for " << property->name() << std::endl;
-		return;
-	}
-
-	m_propertyWidgets.push_back(propWidget);
-
-	auto widget = propWidget->createWidgets();
-
-	if(row < 0)
-		row = m_layout->count() ? m_layout->rowCount() : 0;
-
-	if(!property->name().empty())
-	{
-		auto containerLayout = new QHBoxLayout;
-		auto label = new QLabel(property->name().c_str());
-		containerLayout->addWidget(label);
-		containerLayout->addWidget(widget);
-		m_layout->addLayout(containerLayout, row, column, rowSpan, columnSpan);
-	}
-	else
-		m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
-}
-
-/******************************************************************************/
-
-DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
-{
-	m_dialog = new QDialog(mainWindow);
-	m_dialog->setWindowFlags(m_dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-	m_dialog->setWindowTitle(title.c_str());
-
-	m_panelLayout = new QGridLayout;
-	m_dialogPanel = std::make_shared<PanelImpl>(mainWindow, m_panelLayout);
-}
-
-simplegui::Panel& DialogImpl::content()
-{
-	return *m_dialogPanel;
-}
-
-bool DialogImpl::exec()
-{
-	completeLayout();
-	auto result = m_dialog->exec();
-	if(result)
-	{
-		for(const auto& widget : m_dialogPanel->propertyWidgets())
-			widget->updatePropertyValue();
-	}
-	return result != 0;
-}
-
-void DialogImpl::show()
-{
-	completeLayout();
-	m_dialog->show();
-}
-
-void DialogImpl::close()
-{
-	m_dialog->reject();
-}
-
-void DialogImpl::completeLayout()
-{
-	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
-										  QDialogButtonBox::Cancel);
-
-	QObject::connect(buttonBox, SIGNAL(accepted()), m_dialog, SLOT(accept()));
-	QObject::connect(buttonBox, SIGNAL(rejected()), m_dialog, SLOT(reject()));
-
-	auto mainLayout = new QVBoxLayout;
-	mainLayout->addLayout(m_panelLayout);
-	mainLayout->addWidget(buttonBox);
-	mainLayout->setContentsMargins(5, 5, 5, 5);
-
-	auto layout = m_dialog->layout();
-	if(layout)
-		delete layout;
-
-	m_dialog->setLayout(mainLayout);
-}
-
-/******************************************************************************/
-
-MenuImpl::MenuImpl(SimpleGUIImpl* simpleGUI, QMenu* menu)
-	: m_simpleGUI(simpleGUI)
-	, m_menu(menu)
-{
-}
-
-MenuImpl::~MenuImpl()
-{
-	for (auto action : m_actions)
-		delete action;
-}
-
-void MenuImpl::addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback)
-{
-	int id = m_simpleGUI->mainWindow()->addCallback(callback);
-	auto action = new QAction(name.c_str(), m_menu);
-	action->setStatusTip(help.c_str());
-	action->setData(QVariant(id));
-	m_actions.push_back(action);
-
-	m_simpleGUI->mainWindow()->connect(action, SIGNAL(triggered(bool)), m_simpleGUI->mainWindow(), SLOT(executeCallback()));
-	m_menu->addAction(action);
-}
-
-simplegui::Menu& MenuImpl::addMenu(const std::string& name)
-{
-	auto menu = m_menu->addMenu(name.c_str());
-	auto menuImpl = std::make_shared<MenuImpl>(m_simpleGUI, menu);
-	m_subMenus.push_back(menuImpl);
-	return *menuImpl;
-}
-
-void MenuImpl::addSeparator()
-{
-	auto action = m_menu->addSeparator();
-	m_actions.push_back(action);
-}
-
-/******************************************************************************/
-
-SettingsImpl::SettingsImpl(MainWindow* mainWindow)
-	: m_settings(new QSettings(mainWindow))
-{
-}
-
-void SettingsImpl::setDocumentType(const std::string& type)
-{
-	if(!m_documentType.empty())
-		m_settings->endGroup();
-
-	m_documentType = type;
-
-	if(!type.empty())
-		m_settings->beginGroup(type.c_str());
-}
-
-void SettingsImpl::set(const std::string& name, int val)
-{
-	m_settings->setValue(name.c_str(), val);
-}
-
-void SettingsImpl::set(const std::string& name, double val)
-{
-	m_settings->setValue(name.c_str(), val);
-}
-
-void SettingsImpl::set(const std::string& name, const std::string& val)
-{
-	m_settings->setValue(name.c_str(), val.c_str());
-}
-
-void SettingsImpl::set(const std::string& name, const std::vector<int>& val)
-{
-	QList<QVariant> list;
-	for(const auto& v : val)
-		list.push_back(v);
-	m_settings->setValue(name.c_str(), list);
-}
-
-void SettingsImpl::set(const std::string& name, const std::vector<double>& val)
-{
-	QList<QVariant> list;
-	for(const auto& v : val)
-		list.push_back(v);
-	m_settings->setValue(name.c_str(), list);
-}
-
-void SettingsImpl::set(const std::string& name, const std::vector<std::string>& val)
-{
-	QList<QVariant> list;
-	for(const auto& v : val)
-		list.push_back(v.c_str());
-	m_settings->setValue(name.c_str(), list);
-}
-
-bool SettingsImpl::get(const std::string& name, int& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	bool ok = false;
-	val = var.toInt(&ok);
-	return ok;
-}
-
-bool SettingsImpl::get(const std::string& name, double& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	bool ok = false;
-	val = var.toDouble(&ok);
-	return ok;
-}
-
-bool SettingsImpl::get(const std::string& name, std::string& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	val = var.toString().toStdString();
-	return true;
-}
-
-bool SettingsImpl::get(const std::string& name, std::vector<int>& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	auto list = var.toList();
-
-	val.clear();
-	for(const auto& v : list)
-	{
-		bool ok = false;
-		val.push_back(v.toInt(&ok));
-		if(!ok)
-			return false;
-	}
-	return true;
-}
-
-bool SettingsImpl::get(const std::string& name, std::vector<double>& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	auto list = var.toList();
-
-	val.clear();
-	for(const auto& v : list)
-	{
-		bool ok = false;
-		val.push_back(v.toDouble(&ok));
-		if(!ok)
-			return false;
-	}
-	return true;
-}
-
-bool SettingsImpl::get(const std::string& name, std::vector<std::string>& val)
-{
-	auto var = m_settings->value(name.c_str());
-	if(!var.isValid())
-		return false;
-
-	auto list = var.toList();
-
-	val.clear();
-	for(const auto& v : list)
-		val.push_back(v.toString().toStdString());
-	return true;
-}
-
-/******************************************************************************/
-
 SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
 	: m_mainWindow(mainWindow)
-	, m_buttonsPanel(mainWindow, mainWindow->buttonsLayout())
-	, m_settings(mainWindow)
+	, m_buttonsPanel(std::make_shared<PanelImpl>(mainWindow, mainWindow->buttonsLayout()))
+	, m_settings(std::make_shared<SettingsImpl>(mainWindow))
 {}
 
 simplegui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
@@ -322,7 +24,7 @@ simplegui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
 
 simplegui::Panel& SimpleGUIImpl::buttonsPanel()
 {
-	return m_buttonsPanel;
+	return *m_buttonsPanel;
 }
 
 int SimpleGUIImpl::addStatusBarZone(const std::string& text)
@@ -359,7 +61,7 @@ void SimpleGUIImpl::clear()
 	if(layout)
 		QWidget().setLayout(layout); // delete Layout doesn't remove the widgets
 	layout = new QGridLayout(buttonsWidget);
-	m_buttonsPanel = PanelImpl(m_mainWindow, layout);
+	m_buttonsPanel = std::make_shared<PanelImpl>(m_mainWindow, layout);
 
 	// Dialogs
 	for(auto dialog : m_dialogs)
@@ -369,7 +71,7 @@ void SimpleGUIImpl::clear()
 
 void SimpleGUIImpl::setDocumentType(const std::string& type)
 {
-	m_settings.setDocumentType(type);
+	m_settings->setDocumentType(type);
 }
 
 simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
@@ -391,7 +93,7 @@ void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
 
 simplegui::Settings& SimpleGUIImpl::settings()
 {
-	return m_settings;
+	return *m_settings;
 }
 
 MainWindow* SimpleGUIImpl::mainWindow()
