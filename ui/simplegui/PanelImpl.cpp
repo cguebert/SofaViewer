@@ -1,4 +1,3 @@
-#include <ui/MainWindow.h>
 #include <ui/simplegui/PanelImpl.h>
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
@@ -7,8 +6,8 @@
 
 #include <iostream>
 
-PanelImpl::PanelImpl(MainWindow* mainWindow, QGridLayout* layout)
-	: m_mainWindow(mainWindow)
+PanelImpl::PanelImpl(QWidget* parent, QGridLayout* layout)
+	: m_parent(parent)
 	, m_layout(layout)
 {
 
@@ -22,13 +21,7 @@ void PanelImpl::addButton(const std::string& name, const std::string& help,
 	auto button = new QPushButton(name.c_str());
 	button->setStatusTip(help.c_str());
 
-	int id = m_mainWindow->addCallback(callback);
-	auto action = new QAction(name.c_str(), m_mainWindow);
-	action->setData(QVariant(id));
-
-	QObject::connect(button, SIGNAL(clicked(bool)), action, SLOT(trigger()));
-	m_mainWindow->connect(action, SIGNAL(triggered(bool)), m_mainWindow, SLOT(executeCallback()));
-
+	QObject::connect(button, &QPushButton::clicked, callback);
 	if(row < 0)
 		row = m_layout->count() ? m_layout->rowCount() : 0;
 
@@ -39,7 +32,7 @@ void PanelImpl::addProperty(Property::SPtr property,
 							int row, int column,
 							int rowSpan, int columnSpan)
 {
-	std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(property, m_mainWindow);
+	std::shared_ptr<BasePropertyWidget> propWidget = PropertyWidgetFactory::instance().create(property, m_parent);
 	if(!propWidget)
 	{
 		std::cerr << "Could not create a property widget for " << property->name() << std::endl;

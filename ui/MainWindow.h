@@ -2,7 +2,6 @@
 
 #include <QMainWindow>
 
-#include <functional>
 #include <memory>
 #include <vector>
 
@@ -22,9 +21,6 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = nullptr);
 
-	using CallbackFunc = std::function<void()>;
-	int addCallback(CallbackFunc func);
-
 	QMenu* menu(unsigned char menuId);
 	QGridLayout* buttonsLayout();
 	OpenGLView* view() const;
@@ -40,7 +36,6 @@ private slots:
 	void about();
 	void openRecentFile();
 	void showStatusBarMessage(QString);
-	void executeCallback();
 
 private:
 	void createActions();
@@ -63,8 +58,6 @@ private:
 	GraphView* m_graphView;
 	std::shared_ptr<BaseDocument> m_document;
 	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
-
-	std::vector<CallbackFunc> m_callbacks;
 
 	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
 	std::vector<PropertiesDialogPair> m_propertiesDialogs;

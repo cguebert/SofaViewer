@@ -1,18 +1,16 @@
-#include <ui/MainWindow.h>
 #include <ui/simplegui/DialogImpl.h>
 #include <ui/simplegui/PanelImpl.h>
 #include <ui/widget/PropertyWidget.h>
 
 #include <QtWidgets>
 
-DialogImpl::DialogImpl(MainWindow* mainWindow, const std::string& title)
+DialogImpl::DialogImpl(QWidget* parent, const std::string& title)
+	: m_dialog(new QDialog(parent))
+	, m_panelLayout(new QGridLayout)
+	, m_dialogPanel(std::make_shared<PanelImpl>(parent, m_panelLayout))
 {
-	m_dialog = new QDialog(mainWindow);
 	m_dialog->setWindowFlags(m_dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
 	m_dialog->setWindowTitle(title.c_str());
-
-	m_panelLayout = new QGridLayout;
-	m_dialogPanel = std::make_shared<PanelImpl>(mainWindow, m_panelLayout);
 }
 
 simplegui::Panel& DialogImpl::content()
@@ -34,7 +32,8 @@ bool DialogImpl::exec()
 
 void DialogImpl::show()
 {
-	completeLayout();
+	if (!m_created)
+		completeLayout();
 	m_dialog->show();
 }
 
@@ -48,8 +47,8 @@ void DialogImpl::completeLayout()
 	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
 										  QDialogButtonBox::Cancel);
 
-	QObject::connect(buttonBox, SIGNAL(accepted()), m_dialog, SLOT(accept()));
-	QObject::connect(buttonBox, SIGNAL(rejected()), m_dialog, SLOT(reject()));
+	QObject::connect(buttonBox, &QDialogButtonBox::accepted, m_dialog, &QDialog::accepted);
+	QObject::connect(buttonBox, &QDialogButtonBox::rejected, m_dialog, &QDialog::rejected);
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(m_panelLayout);
@@ -61,4 +60,5 @@ void DialogImpl::completeLayout()
 		delete layout;
 
 	m_dialog->setLayout(mainLayout);
+	m_created = true;
 }

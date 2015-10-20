@@ -9,8 +9,6 @@
 
 #include <QtWidgets>
 
-#include <iostream>
-
 SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
 	: m_mainWindow(mainWindow)
 	, m_buttonsPanel(std::make_shared<PanelImpl>(mainWindow, mainWindow->buttonsLayout()))
@@ -53,7 +51,7 @@ void SimpleGUIImpl::clear()
 	// Menus
 	m_mainMenus.clear();
 	for (unsigned char i = 0; i < 4; ++i)
-		m_mainMenus.push_back(std::make_shared<MenuImpl>(this, m_mainWindow->menu(i)));
+		m_mainMenus.push_back(std::make_shared<MenuImpl>(m_mainWindow->menu(i)));
 
 	// Buttons box
 	auto layout = m_mainWindow->buttonsLayout();

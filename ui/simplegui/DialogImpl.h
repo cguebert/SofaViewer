@@ -4,7 +4,6 @@
 
 #include <memory>
 
-class MainWindow;
 class PanelImpl;
 
 class QDialog;
@@ -14,7 +13,7 @@ class QWidget;
 class DialogImpl : public simplegui::Dialog
 {
 public:
-	DialogImpl(MainWindow* mainWindow, const std::string& title);
+	DialogImpl(QWidget* parent, const std::string& title);
 
 	simplegui::Panel& content() override;
 	bool exec() override;
@@ -25,6 +24,7 @@ public:
 protected:
 	void completeLayout();
 
+	bool m_created = false;
 	QDialog* m_dialog;
 	QGridLayout* m_panelLayout;
 	std::shared_ptr<PanelImpl> m_dialogPanel;

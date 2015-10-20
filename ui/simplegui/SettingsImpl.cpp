@@ -1,6 +1,6 @@
 #include <ui/simplegui/SettingsImpl.h>
 
-#include <QtWidgets>
+#include <QSettings>
 
 SettingsImpl::SettingsImpl(QObject* parent)
 	: m_settings(new QSettings(parent))

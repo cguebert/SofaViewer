@@ -351,25 +351,6 @@ void MainWindow::about()
 			   "<p>Using Sofa and Sofa Front End"));
 }
 
-int MainWindow::addCallback(CallbackFunc func)
-{
-	auto id = m_callbacks.size();
-	m_callbacks.push_back(func);
-	return id;
-}
-
-void MainWindow::executeCallback()
-{
-	QAction* action = qobject_cast<QAction*>(sender());
-	if(action)
-	{
-		bool ok = false;
-		int id = action->data().toInt(&ok);
-		if(ok)
-			m_callbacks[id]();
-	}
-}
-
 QMenu* MainWindow::menu(unsigned char idVal)
 {
 	using Type = simplegui::SimpleGUI::MenuType;

@@ -5,14 +5,14 @@
 #include <memory>
 
 class BasePropertyWidget;
-class MainWindow;
 
 class QGridLayout;
+class QWidget;
 
 class PanelImpl : public simplegui::Panel
 {
 public:
-	PanelImpl(MainWindow* mainWindow, QGridLayout* layout);
+	PanelImpl(QWidget* parent, QGridLayout* layout);
 
 	void addButton(const std::string& name, const std::string& help,
 				   simplegui::CallbackFunc callback,
@@ -27,7 +27,7 @@ public:
 	const PropertyWidgets& propertyWidgets() { return m_propertyWidgets; }
 
 protected:
-	MainWindow* m_mainWindow;
+	QWidget* m_parent;
 	QGridLayout* m_layout;
 	PropertyWidgets m_propertyWidgets;
 };
