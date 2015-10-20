@@ -26,6 +26,7 @@ private:
 	void openItem(const QModelIndex&);
 	void expandItem(const QModelIndex&);
 	void collapseItem(const QModelIndex&);
+	void showContextMenu(const QPoint& pos);
 
 	void graphCallback(uint8_t reason);
 	void setGraphItemExpandedState(size_t id, bool expanded);

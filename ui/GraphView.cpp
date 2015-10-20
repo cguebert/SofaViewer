@@ -1,5 +1,6 @@
 #include <ui/GraphModel.h>
 #include <ui/GraphView.h>
+#include <ui/simplegui/MenuImpl.h>
 
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
@@ -13,10 +14,12 @@ GraphView::GraphView(QWidget* parent)
 	m_graph->setUniformRowHeights(true);
 	m_graph->header()->hide();
 	m_graph->setExpandsOnDoubleClick(false);
+	m_graph->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	connect(m_graph, &QTreeView::doubleClicked, this, &GraphView::openItem);
 	connect(m_graph, &QTreeView::expanded, this, &GraphView::expandItem);
 	connect(m_graph, &QTreeView::collapsed, this, &GraphView::collapseItem);
+	connect(m_graph, &QTreeView::customContextMenuRequested, this, &GraphView::showContextMenu);
 }
 
 QWidget* GraphView::view()
@@ -65,6 +68,23 @@ void GraphView::collapseItem(const QModelIndex& index)
 		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if (item)
 			setGraphItemExpandedState(item->uniqueId, false);
+	}
+}
+
+void GraphView::showContextMenu(const QPoint& pos)
+{
+	auto index = m_graph->indexAt(pos);
+	if (index.isValid())
+	{
+		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
+		if (item)
+		{
+			QMenu menu;
+			MenuImpl menuImpl(&menu);
+			m_document->graphContextMenu(item, menuImpl);
+			if (!menu.actions().isEmpty())
+				menu.exec(m_graph->mapToGlobal(pos));
+		}
 	}
 }
 

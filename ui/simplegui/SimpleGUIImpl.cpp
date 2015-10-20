@@ -57,7 +57,7 @@ void SimpleGUIImpl::clear()
 	// Menus
 	m_menus.clear();
 	for (auto menu : m_mainMenus)
-		m_menus.push_back(std::make_shared<MenuImpl>(menu));
+		m_menus.push_back(std::make_shared<MenuImpl>(menu, true));
 
 	// Buttons box
 	createButtonsPanel();
