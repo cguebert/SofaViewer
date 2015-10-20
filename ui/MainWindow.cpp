@@ -40,10 +40,8 @@ MainWindow::MainWindow(QWidget *parent)
 	buttonsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, buttonsDock);
 
-	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this);
-
 	// Graph tree
-	m_graphView = new GraphView(this, m_simpleGUI.get());
+	m_graphView = new GraphView(this);
 	auto graphDock = new QDockWidget(tr("Graph"), this);
 	graphDock->setObjectName("GraphDock");
 	graphDock->setWidget(m_graphView->view());
@@ -57,6 +55,13 @@ MainWindow::MainWindow(QWidget *parent)
 	createMenus();
 
 	statusBar();
+	
+	std::vector<QMenu*> menus = { m_fileMenu, m_toolsMenu, m_viewMenu, m_helpMenu };
+	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this, m_openGLView, m_buttonsDockWidget, menus);
+
+	connect(m_graphView, &GraphView::itemOpened, [this](void* item) {
+		m_simpleGUI->openPropertiesDialog(static_cast<GraphNode*>(item));
+	});
 
 	setWindowIcon(QIcon(":/share/icons/icon.png"));
 	setCurrentFile("");
@@ -336,44 +341,12 @@ void MainWindow::openRecentFile()
 	}
 }
 
-void MainWindow::showStatusBarMessage(QString text)
-{
-	statusBar()->showMessage(text, 2000);
-}
-
 void MainWindow::about()
 {
 	QMessageBox::about(this, tr("About SFE Viewer"),
 			tr("<h2>Sofa Front End Viewer</h2>"
 			   "<p>Copyright &copy; 2015 Christophe Guébert"
 			   "<p>Using Sofa and Sofa Front End"));
-}
-
-QMenu* MainWindow::menu(unsigned char idVal)
-{
-	using Type = simplegui::SimpleGUI::MenuType;
-	auto menuId = static_cast<Type>(idVal);
-	switch(menuId)
-	{
-	case Type::File:
-		return m_fileMenu;
-	case Type::Tools:
-		return m_toolsMenu;
-	case Type::View:
-		return m_viewMenu;
-	case Type::Help:
-		return m_helpMenu;
-	default:
-		return nullptr;
-	}
-}
-
-QGridLayout* MainWindow::buttonsLayout()
-{
-	QGridLayout* layout = dynamic_cast<QGridLayout*>(m_buttonsDockWidget->layout());
-	if(!layout)
-		return new QGridLayout(m_buttonsDockWidget);
-	return layout;
 }
 
 void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)

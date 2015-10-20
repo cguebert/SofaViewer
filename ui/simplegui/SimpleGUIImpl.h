@@ -3,10 +3,10 @@
 #include <core/SimpleGUI.h>
 
 #include <memory>
+#include <vector>
 
 class BaseDocument;
 class BasePropertyWidget;
-class GraphNode;
 class MainWindow;
 class ObjectProperties;
 class PropertiesDialog;
@@ -18,11 +18,14 @@ class SettingsImpl;
 class SimpleGUIImpl;
 
 class QLabel;
+class QMainWindow;
+class QMenu;
+class QWidget;
 
 class SimpleGUIImpl : public simplegui::SimpleGUI
 {
 public:
-	SimpleGUIImpl(MainWindow* mainWindow);
+	SimpleGUIImpl(QMainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus);
 
 	simplegui::Menu& getMenu(MenuType menuType) override;
 	simplegui::Panel& buttonsPanel() override;
@@ -40,17 +43,23 @@ public:
 	void dialogFinished(PropertiesDialog* dialog, int result);
 
 protected:
+	void createButtonsPanel();
+
 	using DialogImplPtr = std::shared_ptr<DialogImpl>;
 	using MenuImplPtr = std::shared_ptr<MenuImpl>;
 	using PanelImplPtr = std::shared_ptr<PanelImpl>;
 	using SettingsImplPtr = std::shared_ptr<SettingsImpl>;
 	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
 
-	MainWindow* m_mainWindow;
+	QMainWindow* m_mainWindow;
+	QWidget* m_mainView;
+	QWidget* m_buttonsPanelContainer;
+	std::vector<QMenu*> m_mainMenus;
+
 	PanelImplPtr m_buttonsPanel;
 	SettingsImplPtr m_settings;
 	std::vector<QLabel*> m_statusBarLabels;
-	std::vector<MenuImplPtr> m_mainMenus;
+	std::vector<MenuImplPtr> m_menus;
 	std::vector<DialogImplPtr> m_dialogs;
 	std::vector<PropertiesDialogPair> m_propertiesDialogs;
 	std::shared_ptr<BaseDocument> m_document;

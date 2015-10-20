@@ -19,13 +19,12 @@ public:
 	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent = nullptr);
 	std::shared_ptr<ObjectProperties> objectProperties() const;
 
-public slots:
+protected:
 	void apply();
 	void applyAndClose();
 	void resetWidgets();
 	void stateChanged(BasePropertyWidget*, int);
 
-protected:
 	struct PropertyStruct
 	{
 		std::shared_ptr<Property> property;

@@ -1,8 +1,6 @@
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
 
-#include <ui/MainWindow.h>
-#include <ui/OpenGLView.h>
 #include <ui/PropertiesDialog.h>
 
 #include <ui/simplegui/SimpleGUIImpl.h>
@@ -13,15 +11,19 @@
 
 #include <QtWidgets>
 
-SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow)
+SimpleGUIImpl::SimpleGUIImpl(QMainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus)
 	: m_mainWindow(mainWindow)
-	, m_buttonsPanel(std::make_shared<PanelImpl>(mainWindow, mainWindow->buttonsLayout()))
+	, m_mainView(view)
+	, m_buttonsPanelContainer(buttonsPanelContainer)
+	, m_mainMenus(menus)
 	, m_settings(std::make_shared<SettingsImpl>(mainWindow))
-{}
+{
+	createButtonsPanel();
+}
 
 simplegui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
 {
-	return *m_mainMenus[static_cast<unsigned char>(menuType)];
+	return *m_menus[static_cast<unsigned char>(menuType)];
 }
 
 simplegui::Panel& SimpleGUIImpl::buttonsPanel()
@@ -53,17 +55,12 @@ void SimpleGUIImpl::clear()
 	m_statusBarLabels.clear();
 
 	// Menus
-	m_mainMenus.clear();
-	for (unsigned char i = 0; i < 4; ++i)
-		m_mainMenus.push_back(std::make_shared<MenuImpl>(m_mainWindow->menu(i)));
+	m_menus.clear();
+	for (auto menu : m_mainMenus)
+		m_menus.push_back(std::make_shared<MenuImpl>(menu));
 
 	// Buttons box
-	auto layout = m_mainWindow->buttonsLayout();
-	auto buttonsWidget = layout->parentWidget();
-	if(layout)
-		QWidget().setLayout(layout); // delete Layout doesn't remove the widgets
-	layout = new QGridLayout(buttonsWidget);
-	m_buttonsPanel = std::make_shared<PanelImpl>(m_mainWindow, layout);
+	createButtonsPanel();
 
 	// Dialogs
 	for(auto dialog : m_dialogs)
@@ -99,7 +96,8 @@ simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
 
 void SimpleGUIImpl::updateView()
 {
-	m_mainWindow->view()->update();
+	if (m_mainView)
+		m_mainView->update();
 }
 
 void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
@@ -150,4 +148,13 @@ void SimpleGUIImpl::dialogFinished(PropertiesDialog* dialog, int result)
 simplegui::Settings& SimpleGUIImpl::settings()
 {
 	return *m_settings;
+}
+
+void SimpleGUIImpl::createButtonsPanel()
+{
+	auto prevLayout = m_buttonsPanelContainer->layout();
+	if (prevLayout)
+		QWidget().setLayout(prevLayout); // deleting Layout will not remove the widgets
+	auto layout = new QGridLayout(m_buttonsPanelContainer);
+	m_buttonsPanel = std::make_shared<PanelImpl>(m_mainWindow, layout);
 }

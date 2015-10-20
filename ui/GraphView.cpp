@@ -1,24 +1,22 @@
 #include <ui/GraphModel.h>
 #include <ui/GraphView.h>
-#include <ui/simplegui/SimpleGUIImpl.h>
 
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
 
 #include <QtWidgets>
 
-GraphView::GraphView(QWidget* parent, SimpleGUIImpl* gui)
+GraphView::GraphView(QWidget* parent)
 	: QWidget(parent)
-	, m_simpleGUI(gui)
 {
 	m_graph = new QTreeView(this);
 	m_graph->setUniformRowHeights(true);
 	m_graph->header()->hide();
 	m_graph->setExpandsOnDoubleClick(false);
 
-	connect(m_graph, &QTreeView::doubleClicked, this, &GraphView::graphItemDoubleClicked);
-	connect(m_graph, &QTreeView::expanded, this, &GraphView::graphItemExpanded);
-	connect(m_graph, &QTreeView::collapsed, this, &GraphView::graphItemCollapsed);
+	connect(m_graph, &QTreeView::doubleClicked, this, &GraphView::openItem);
+	connect(m_graph, &QTreeView::expanded, this, &GraphView::expandItem);
+	connect(m_graph, &QTreeView::collapsed, this, &GraphView::collapseItem);
 }
 
 QWidget* GraphView::view()
@@ -40,17 +38,17 @@ void GraphView::setDocument(std::shared_ptr<BaseDocument> doc)
 	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });
 }
 
-void GraphView::graphItemDoubleClicked(const QModelIndex& index)
+void GraphView::openItem(const QModelIndex& index)
 {
 	if (index.isValid())
 	{
 		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
 		if (item)
-			m_simpleGUI->openPropertiesDialog(item);
+			emit itemOpened(item);
 	}
 }
 
-void GraphView::graphItemExpanded(const QModelIndex& index)
+void GraphView::expandItem(const QModelIndex& index)
 {
 	if (!m_updatingGraph && index.isValid())
 	{
@@ -60,7 +58,7 @@ void GraphView::graphItemExpanded(const QModelIndex& index)
 	}
 }
 
-void GraphView::graphItemCollapsed(const QModelIndex& index)
+void GraphView::collapseItem(const QModelIndex& index)
 {
 	if (!m_updatingGraph && index.isValid())
 	{

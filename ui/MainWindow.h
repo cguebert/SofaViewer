@@ -20,24 +20,19 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = nullptr);
 
-	QMenu* menu(unsigned char menuId);
-	QGridLayout* buttonsLayout();
-	OpenGLView* view() const;
-
-private slots:
+private:
 	void newDoc();
 	void open();
 	bool save();
 	bool saveAs();
 	void about();
 	void openRecentFile();
-	void showStatusBarMessage(QString);
 
-private:
 	void createActions();
 	void createMenus();
 	void loadModules();
 
+	QString strippedName(const QString &fullFileName);
 	bool loadFile(const QString &fileName);
 	bool saveFile(const QString &fileName);
 
@@ -54,8 +49,6 @@ private:
 	GraphView* m_graphView;
 	std::shared_ptr<BaseDocument> m_document;
 	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
-
-	QString strippedName(const QString &fullFileName);
 
 	QString m_curFile;
 	QString m_saveFilter;
@@ -81,6 +74,3 @@ private:
 
 	QWidget* m_buttonsDockWidget;
 };
-
-inline OpenGLView* MainWindow::view() const
-{ return m_openGLView; }
