@@ -15,7 +15,7 @@ set(HEADER_FILES
 	MainWindow.h
 	OpenGLView.h
 	PropertiesDialog.h
-	SimpleGUIImpl.h
+	simplegui/SimpleGUIImpl.h
 	widget/PropertyWidget.h
 	widget/PropertyWidgetFactory.h
 	widget/SimplePropertyWidget.h
@@ -28,7 +28,7 @@ set(SOURCE_FILES
 	MainWindow.cpp
 	OpenGLView.cpp
 	PropertiesDialog.cpp
-	SimpleGUIImpl.cpp
+	simplegui/SimpleGUIImpl.cpp
 	widget/NumericalPropertyWidget.cpp
 	widget/PropertyWidget.cpp
 	widget/PropertyWidgetFactory.cpp

@@ -1,6 +1,6 @@
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
-#include <ui/SimpleGUIImpl.h>
+#include <ui/simplegui/SimpleGUIImpl.h>
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
 

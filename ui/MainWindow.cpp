@@ -2,7 +2,7 @@
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
 #include <ui/PropertiesDialog.h>
-#include <ui/SimpleGUIImpl.h>
+#include <ui/simplegui/SimpleGUIImpl.h>
 
 #include <core/DocumentFactory.h>
 #include <core/Graph.h>
