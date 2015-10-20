@@ -7,9 +7,9 @@
 #include <vector>
 
 class QGridLayout;
-class QTreeView;
 
 class BaseDocument;
+class GraphView;
 class ObjectProperties;
 class OpenGLView;
 class PropertiesDialog;
@@ -40,9 +40,6 @@ private slots:
 	void about();
 	void openRecentFile();
 	void showStatusBarMessage(QString);
-	void graphItemDoubleClicked(const QModelIndex&);
-	void graphItemExpanded(const QModelIndex&);
-	void graphItemCollapsed(const QModelIndex&);
 	void executeCallback();
 
 private:
@@ -61,11 +58,9 @@ private:
 	void updateRecentFileActions();
 
 	void setDocument(std::shared_ptr<BaseDocument> doc);
-	void graphCallback(uint16_t reason);
-	void setGraphItemExpandedState(size_t id, bool expanded);
 
-	OpenGLView* m_view;
-	QTreeView* m_graph;
+	OpenGLView* m_openGLView;
+	GraphView* m_graphView;
 	std::shared_ptr<BaseDocument> m_document;
 	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
 
@@ -73,9 +68,6 @@ private:
 
 	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
 	std::vector<PropertiesDialogPair> m_propertiesDialogs;
-
-	std::vector<std::pair<size_t, bool>> m_graphItemsExpandedState; // Used when updating the graph
-	bool m_updatingGraph = false;
 
 	QString strippedName(const QString &fullFileName);
 
@@ -105,4 +97,4 @@ private:
 };
 
 inline OpenGLView* MainWindow::view() const
-{ return m_view; }
+{ return m_openGLView; }

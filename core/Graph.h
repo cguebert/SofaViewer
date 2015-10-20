@@ -38,10 +38,10 @@ public:
 	const ImagesList& images() const;
 	int addImage(const GraphImage& image); // Return the id of this image
 
-	enum class CallbackReason : uint16_t
+	enum class CallbackReason : uint8_t
 	{ BeginSetNode, EndSetNode };
 
-	using CallbackFunc = std::function<void(uint16_t)>;
+	using CallbackFunc = std::function<void(uint8_t)>;
 	void setUpdateCallback(CallbackFunc func); // For the GUI to respond to modifications in the graph (for now, only when setRoot is called)
 
 protected:

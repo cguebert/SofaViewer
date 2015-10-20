@@ -19,7 +19,7 @@ void Graph::executeCallback(CallbackReason reason)
 {
 	if(m_updateCallback)
 	{
-		auto val = static_cast<uint16_t>(reason);
+		auto val = static_cast<uint8_t>(reason);
 		m_updateCallback(val);
 	}
 }

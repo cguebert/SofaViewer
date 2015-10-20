@@ -12,6 +12,7 @@ set(CMAKE_AUTORCC ON)
 
 set(HEADER_FILES
 	GraphModel.h
+	GraphView.h
 	MainWindow.h
 	OpenGLView.h
 	PropertiesDialog.h
@@ -25,6 +26,7 @@ set(HEADER_FILES
 set(SOURCE_FILES
 	main.cpp
 	GraphModel.cpp
+	GraphView.cpp
 	MainWindow.cpp
 	OpenGLView.cpp
 	PropertiesDialog.cpp
