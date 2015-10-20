@@ -1,5 +1,9 @@
+#include <core/BaseDocument.h>
+#include <core/Graph.h>
+
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
+#include <ui/PropertiesDialog.h>
 
 #include <ui/simplegui/SimpleGUIImpl.h>
 #include <ui/simplegui/DialogImpl.h>
@@ -65,11 +69,16 @@ void SimpleGUIImpl::clear()
 	for(auto dialog : m_dialogs)
 		dialog->close();
 	m_dialogs.clear();
+
+	for (auto dialog : m_propertiesDialogs)
+		dialog.second->deleteLater();
+	m_propertiesDialogs.clear();
 }
 
-void SimpleGUIImpl::setDocumentType(const std::string& type)
+void SimpleGUIImpl::setDocument(std::shared_ptr<BaseDocument> doc)
 {
-	m_settings->setDocumentType(type);
+	m_document = doc;
+	m_settings->setDocumentType(doc ? doc->documentType() : "");
 }
 
 simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
@@ -84,17 +93,52 @@ void SimpleGUIImpl::updateView()
 	m_mainWindow->view()->update();
 }
 
+void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
+{
+	size_t uniqueId = item->uniqueId;
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialogPair& p){
+		return p.first == uniqueId;
+	});
+	if (it != m_propertiesDialogs.end()) // Show existing dialog
+	{
+		it->second->activateWindow();
+		it->second->raise();
+		return;
+	}
+
+	// Else create a new one
+	auto properties = m_document->objectProperties(item);
+	if (properties)
+	{
+		PropertiesDialog* dlg = new PropertiesDialog(properties, m_mainWindow);
+		QObject::connect(dlg, &QDialog::finished, [this, dlg](int result) { dialogFinished(dlg, result); });
+		m_propertiesDialogs.emplace_back(uniqueId, dlg);
+		dlg->show();
+	}
+}
+
 void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
 {
-	m_mainWindow->closeDialog(objProp);
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [objProp](const PropertiesDialogPair& p){
+		return p.second->objectProperties().get() == objProp;
+	});
+
+	if (it != m_propertiesDialogs.end())
+		it->second->reject();
+}
+
+void SimpleGUIImpl::dialogFinished(PropertiesDialog* dialog, int result)
+{
+	m_document->closeObjectProperties(dialog->objectProperties(), result == QDialog::Accepted);
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dialog](const PropertiesDialogPair& p){
+		return p.second == dialog;
+	});
+	if (it != m_propertiesDialogs.end())
+		m_propertiesDialogs.erase(it);
+	dialog->deleteLater();
 }
 
 simplegui::Settings& SimpleGUIImpl::settings()
 {
 	return *m_settings;
-}
-
-MainWindow* SimpleGUIImpl::mainWindow()
-{
-	return m_mainWindow;
 }

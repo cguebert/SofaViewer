@@ -3,7 +3,6 @@
 #include <QMainWindow>
 
 #include <memory>
-#include <vector>
 
 class QGridLayout;
 
@@ -24,9 +23,6 @@ public:
 	QMenu* menu(unsigned char menuId);
 	QGridLayout* buttonsLayout();
 	OpenGLView* view() const;
-
-	void closeDialog(ObjectProperties* objProp);
-	void removeDialog(PropertiesDialog* dialog, bool accepted);
 
 private slots:
 	void newDoc();
@@ -58,9 +54,6 @@ private:
 	GraphView* m_graphView;
 	std::shared_ptr<BaseDocument> m_document;
 	std::shared_ptr<SimpleGUIImpl> m_simpleGUI;
-
-	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
-	std::vector<PropertiesDialogPair> m_propertiesDialogs;
 
 	QString strippedName(const QString &fullFileName);
 

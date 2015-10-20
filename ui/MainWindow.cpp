@@ -1,7 +1,6 @@
 #include <ui/GraphView.h>
 #include <ui/MainWindow.h>
 #include <ui/OpenGLView.h>
-#include <ui/PropertiesDialog.h>
 #include <ui/simplegui/SimpleGUIImpl.h>
 
 #include <core/DocumentFactory.h>
@@ -41,15 +40,15 @@ MainWindow::MainWindow(QWidget *parent)
 	buttonsDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, buttonsDock);
 
+	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this);
+
 	// Graph tree
-	m_graphView = new GraphView(this);
+	m_graphView = new GraphView(this, m_simpleGUI.get());
 	auto graphDock = new QDockWidget(tr("Graph"), this);
 	graphDock->setObjectName("GraphDock");
 	graphDock->setWidget(m_graphView->view());
 	graphDock->setAllowedAreas(Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea);
 	addDockWidget(Qt::LeftDockWidgetArea, graphDock);
-
-	m_simpleGUI = std::make_shared<SimpleGUIImpl>(this);
 
 	m_openGLView = new OpenGLView(this);
 	setCentralWidget(m_openGLView);
@@ -242,7 +241,7 @@ void MainWindow::newDoc()
 		return;
 	}
 
-	m_simpleGUI->setDocumentType(document->documentType());
+	m_simpleGUI->setDocument(document);
 	setDocument(document);
 
 	setCurrentFile("");
@@ -285,11 +284,11 @@ bool MainWindow::loadFile(const QString& fileName)
 	}
 
 	ChangeDir cd(cpath);
-	m_simpleGUI->setDocumentType(document->documentType());
+	m_simpleGUI->setDocument(document);
 
 	if (!document->loadFile(cpath))
 	{
-		m_simpleGUI->setDocumentType(m_document ? m_document->documentType() : "");
+		m_simpleGUI->setDocument(m_document ? m_document : nullptr);
 		statusBar()->showMessage(tr("Loading failed"), 2000);
 		return false;
 	}
@@ -376,27 +375,6 @@ QGridLayout* MainWindow::buttonsLayout()
 	if(!layout)
 		return new QGridLayout(m_buttonsDockWidget);
 	return layout;
-}
-
-void MainWindow::closeDialog(ObjectProperties* objProp)
-{
-	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [objProp](const PropertiesDialogPair& p){
-		return p.second->objectProperties().get() == objProp;
-	});
-
-	if(it != m_propertiesDialogs.end())
-		it->second->reject();
-}
-
-void MainWindow::removeDialog(PropertiesDialog* dlg, bool accepted)
-{
-	m_document->closeObjectProperties(dlg->objectProperties(), accepted);
-	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dlg](const PropertiesDialogPair& p){
-		return p.second == dlg;
-	});
-	if(it != m_propertiesDialogs.end())
-		m_propertiesDialogs.erase(it);
-	dlg->deleteLater();
 }
 
 void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)

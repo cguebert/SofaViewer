@@ -4,10 +4,13 @@
 
 #include <memory>
 
+class BaseDocument;
 class BasePropertyWidget;
+class GraphNode;
 class MainWindow;
+class ObjectProperties;
+class PropertiesDialog;
 
-class DialogImpl;
 class DialogImpl;
 class MenuImpl;
 class PanelImpl;
@@ -19,7 +22,6 @@ class QLabel;
 class SimpleGUIImpl : public simplegui::SimpleGUI
 {
 public:
-
 	SimpleGUIImpl(MainWindow* mainWindow);
 
 	simplegui::Menu& getMenu(MenuType menuType) override;
@@ -28,13 +30,14 @@ public:
 	void setStatusBarText(int id, const std::string& text) override;
 	simplegui::Dialog::SPtr createDialog(const std::string& title) override;
 	void updateView() override;
-	void closePropertiesDialog(ObjectProperties* objProp) override;
 	simplegui::Settings& settings() override;
 
 	void clear();
-	void setDocumentType(const std::string& type);
+	void setDocument(std::shared_ptr<BaseDocument> doc);
 
-	MainWindow* mainWindow();
+	void openPropertiesDialog(GraphNode* item);
+	void closePropertiesDialog(ObjectProperties* objProp) override;
+	void dialogFinished(PropertiesDialog* dialog, int result);
 
 protected:
 	using DialogImplPtr = std::shared_ptr<DialogImpl>;
@@ -48,4 +51,8 @@ protected:
 	std::vector<QLabel*> m_statusBarLabels;
 	std::vector<MenuImplPtr> m_mainMenus;
 	std::vector<DialogImplPtr> m_dialogs;
+	std::shared_ptr<BaseDocument> m_document;
+
+	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
+	std::vector<PropertiesDialogPair> m_propertiesDialogs;
 };

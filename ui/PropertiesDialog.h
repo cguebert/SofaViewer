@@ -5,7 +5,6 @@
 #include <memory>
 
 class BasePropertyWidget;
-class MainWindow;
 class ObjectProperties;
 class Property;
 
@@ -17,14 +16,13 @@ class PropertiesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow);
+	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent = nullptr);
 	std::shared_ptr<ObjectProperties> objectProperties() const;
 
 public slots:
 	void apply();
 	void applyAndClose();
 	void resetWidgets();
-	void removeSelf(int);
 	void stateChanged(BasePropertyWidget*, int);
 
 protected:
@@ -44,7 +42,6 @@ protected:
 	void readFromProperties();
 	bool doApply(); // Returns false if there is a conflict, and the user cancelled
 
-	MainWindow* m_mainWindow;
 	std::shared_ptr<ObjectProperties> m_objectProperties;
 	PropertyList m_propertyWidgets;
 };

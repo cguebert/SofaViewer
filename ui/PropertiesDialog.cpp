@@ -1,5 +1,4 @@
 #include <ui/PropertiesDialog.h>
-#include <ui/MainWindow.h>
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
 
@@ -19,9 +18,8 @@ QWidget* createPropWidget(const Property::SPtr& prop, QWidget* parent)
 	return propWidget->createWidgets(prop->readOnly());
 }
 
-PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, MainWindow* mainWindow)
-	: QDialog(mainWindow)
-	, m_mainWindow(mainWindow)
+PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent)
+	: QDialog(parent)
 	, m_objectProperties(objectProperties)
 {
 	setMinimumSize(300, 200);
@@ -42,8 +40,6 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	connect(resetButton, SIGNAL(clicked(bool)), this, SLOT(resetWidgets()));
 	connect(OkButton, SIGNAL(clicked(bool)), this, SLOT(applyAndClose()));
 	connect(buttonBox, SIGNAL(rejected()), this, SLOT(reject()));
-
-	connect(this, SIGNAL(finished(int)), this, SLOT(removeSelf(int)));
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addWidget(tabWidget);
@@ -189,11 +185,6 @@ void PropertiesDialog::resetWidgets()
 		widget.widget->resetWidget();
 		widget.widget->setWidgetDirty();
 	}
-}
-
-void PropertiesDialog::removeSelf(int result)
-{
-	m_mainWindow->removeDialog(this, result == QDialog::Accepted);
 }
 
 void PropertiesDialog::writeToProperties()

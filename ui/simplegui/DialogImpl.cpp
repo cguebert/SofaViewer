@@ -47,8 +47,8 @@ void DialogImpl::completeLayout()
 	auto buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok |
 										  QDialogButtonBox::Cancel);
 
-	QObject::connect(buttonBox, &QDialogButtonBox::accepted, m_dialog, &QDialog::accepted);
-	QObject::connect(buttonBox, &QDialogButtonBox::rejected, m_dialog, &QDialog::rejected);
+	QObject::connect(buttonBox, &QDialogButtonBox::accepted, m_dialog, &QDialog::accept);
+	QObject::connect(buttonBox, &QDialogButtonBox::rejected, m_dialog, &QDialog::reject);
 
 	auto mainLayout = new QVBoxLayout;
 	mainLayout->addLayout(m_panelLayout);
