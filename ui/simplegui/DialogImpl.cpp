@@ -21,6 +21,11 @@ simplegui::Panel& DialogImpl::content()
 bool DialogImpl::exec()
 {
 	completeLayout();
+	QObject::connect(m_dialog, &QDialog::finished, [this](int){
+		if (m_finishedCallback)
+			m_finishedCallback();
+	});
+
 	auto result = m_dialog->exec();
 	if(result)
 	{
@@ -61,4 +66,9 @@ void DialogImpl::completeLayout()
 
 	m_dialog->setLayout(mainLayout);
 	m_created = true;
+}
+
+void DialogImpl::setFinishedCallback(CallbackFunc finishedCallback)
+{
+	m_finishedCallback = finishedCallback;
 }

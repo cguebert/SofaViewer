@@ -84,6 +84,15 @@ void SimpleGUIImpl::setDocument(std::shared_ptr<BaseDocument> doc)
 simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
 {
 	auto dialog = std::make_shared<DialogImpl>(m_mainWindow, title);
+	DialogImpl* dlgPtr = dialog.get();
+	auto removeDialogFunc = [this, dlgPtr](){
+		auto it = std::find_if(m_dialogs.begin(), m_dialogs.end(), [dlgPtr](const DialogImplPtr ptr) {
+			return dlgPtr == ptr.get();
+		});
+		if (it != m_dialogs.end())
+			m_dialogs.erase(it);
+	};
+	dialog->setFinishedCallback(removeDialogFunc);
 	m_dialogs.push_back(dialog);
 	return dialog;
 }

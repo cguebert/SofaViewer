@@ -44,6 +44,7 @@ protected:
 	using MenuImplPtr = std::shared_ptr<MenuImpl>;
 	using PanelImplPtr = std::shared_ptr<PanelImpl>;
 	using SettingsImplPtr = std::shared_ptr<SettingsImpl>;
+	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
 
 	MainWindow* m_mainWindow;
 	PanelImplPtr m_buttonsPanel;
@@ -51,8 +52,6 @@ protected:
 	std::vector<QLabel*> m_statusBarLabels;
 	std::vector<MenuImplPtr> m_mainMenus;
 	std::vector<DialogImplPtr> m_dialogs;
-	std::shared_ptr<BaseDocument> m_document;
-
-	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
 	std::vector<PropertiesDialogPair> m_propertiesDialogs;
+	std::shared_ptr<BaseDocument> m_document;
 };
