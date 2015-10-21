@@ -19,6 +19,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+	BaseDocument.cpp
 	DocumentFactory.cpp
 	Graph.cpp
 	GraphImage.cpp

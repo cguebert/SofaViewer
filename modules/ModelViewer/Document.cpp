@@ -11,7 +11,7 @@
 
 #include <iostream>
 
-int ModelViewerDoc = RegisterDocument<Document>("ModelViewerDoc").setDescription("Open 3d models or scenes.")
+int ModelViewerDoc = RegisterDocument<Document>("Model Viewer").setDescription("Open 3d models or scenes.")
 	.addLoadFile("Collada (*.dae)")
 	.addLoadFile("Blender 3D (*.blend)")
 	.addLoadFile("3ds Max 3DS (*.3ds)")
@@ -27,7 +27,7 @@ int ModelViewerDoc = RegisterDocument<Document>("ModelViewerDoc").setDescription
 	.addLoadFile("DirectX X (*.x)")
 	.addLoadFile("AC3D (*.ac)")
 	.addLoadFile("Milkshape 3D (*.ms3d)");
-ModuleHandle ModelViewerModule = RegisterModule("ModelViewer").addDocument(ModelViewerDoc);
+ModuleHandle ModelViewerModule = RegisterModule("Model Viewer").addDocument(ModelViewerDoc);
 
 namespace property
 {
@@ -70,16 +70,10 @@ inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
 
 }
 
-Document::Document(simplegui::SimpleGUI& gui)
-	: BaseDocument(gui)
-	, m_gui(gui)
+Document::Document(const std::string& type)
+	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
 {
-}
-
-std::string Document::documentType()
-{
-	return "ModelViewerDoc";
 }
 
 bool Document::loadFile(const std::string& path)
@@ -100,7 +94,7 @@ bool Document::loadFile(const std::string& path)
 	return true;
 }
 
-void Document::initUI()
+void Document::initUI(simplegui::SimpleGUI& /*gui*/)
 {
 	m_graph.setRoot(m_rootNode);
 }

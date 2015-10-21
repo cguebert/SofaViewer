@@ -16,7 +16,7 @@ DocumentFactory::~DocumentFactory()
 	documentFactoryCreated = false;
 }
 
-std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, simplegui::SimpleGUI& gui) const
+std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name) const
 {
 	auto iter = std::find_if(m_documents.begin(), m_documents.end(), [name](const DocumentEntry& entry){
 		return entry.name == name;
@@ -25,14 +25,14 @@ std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name, s
 	{
 		const auto& creator = iter->creator;
 		if(creator)
-			return creator->create(gui);
+			return creator->create(iter->name);
 	}
 
 	std::cerr << "Factory has no entry for " << name << std::endl;
 	return nullptr;
 }
 
-std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& fileName, simplegui::SimpleGUI& gui) const
+std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& fileName) const
 {
 	auto suffixePos = fileName.find_last_of(".");
 	auto suffixe = fileName.substr(suffixePos + 1);
@@ -45,7 +45,7 @@ std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& 
 	if(it == m_loadFilesAssociation.end())
 		return nullptr;
 
-	return create(it->second, gui);
+	return create(it->second);
 }
 
 int DocumentFactory::registerDocument(DocumentEntry&& entry)
@@ -69,7 +69,7 @@ int DocumentFactory::registerDocument(DocumentEntry&& entry)
 	}
 }
 
-void DocumentFactory::registerModule(const ModuleEntry& entry)
+void DocumentFactory::registerModule(ModuleEntry entry)
 {
 	auto iter = std::find_if(m_modules.begin(), m_modules.end(), [entry](const ModuleEntry& rhs){
 		return rhs.name == entry.name;
@@ -77,7 +77,10 @@ void DocumentFactory::registerModule(const ModuleEntry& entry)
 	if(iter != m_modules.end())
 		std::cerr << "Factory already has the module " << entry.name << std::endl;
 	else
-		m_modules.push_back(entry);
+	{
+		entry.dirPath = m_currentModuleDirPath;
+		m_modules.push_back(std::move(entry));
+	}
 }
 
 void DocumentFactory::unregisterModule(const std::string& moduleName)
@@ -193,7 +196,7 @@ std::string DocumentFactory::loadFilesFilter() const
 	return m_loadFilesFilter;
 }
 
-std::string DocumentFactory::saveFilesFilter(BaseDocument* document) const
+std::string DocumentFactory::saveFilesFilter(const BaseDocument* document) const
 {
 	if(!document)
 		return "";
@@ -228,6 +231,22 @@ std::string DocumentFactory::saveFilesFilter(BaseDocument* document) const
 	}
 
 	return saveFilesFilter;
+}
+
+const DocumentFactory::DocumentEntry& DocumentFactory::document(const std::string& name) const
+{
+	auto it = std::find_if(m_documents.begin(), m_documents.end(), [&name](const DocumentEntry& entry){
+		return entry.name == name;
+	});
+	return *it; // Will throw if nothing is found
+}
+
+const DocumentFactory::ModuleEntry& DocumentFactory::module(const std::string& name) const
+{
+	auto it = std::find_if(m_modules.begin(), m_modules.end(), [&name](const ModuleEntry& entry){
+		return entry.name == name;
+	});
+	return *it; // Will throw if nothing is found
 }
 
 //****************************************************************************//

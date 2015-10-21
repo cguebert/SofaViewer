@@ -246,7 +246,7 @@ void MainWindow::newDoc()
 	if (!ok)
 		return;
 
-	auto document = DocumentFactory::instance().create(item.toStdString(), *m_simpleGUI.get());
+	auto document = DocumentFactory::instance().create(item.toStdString());
 	if (!document)
 	{
 		statusBar()->showMessage(tr("Cannot create the document").arg(item), 2000);
@@ -288,7 +288,7 @@ QString MainWindow::strippedName(const QString& fullFileName)
 bool MainWindow::loadFile(const QString& fileName)
 {
 	std::string cpath = fileName.toStdString();
-	auto document = DocumentFactory::instance().createForFile(cpath, *m_simpleGUI.get());
+	auto document = DocumentFactory::instance().createForFile(cpath);
 	if(!document) // TODO: show a dialog so that the user can choose the correct document to use
 	{
 		statusBar()->showMessage(tr("Cannot create a document to load this file"), 2000);
@@ -370,18 +370,18 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 	m_saveAction->setEnabled(canSave);
 	m_saveAsAction->setEnabled(canSave);
 
-	m_document->initUI();
+	m_document->initUI(*m_simpleGUI.get());
 	m_openGLView->setDocument(m_document.get());
 }
 
 void MainWindow::loadModules()
 {
-	DocumentFactory::instance();
 	const QString appDirPath = QApplication::applicationDirPath();
 	const QDir dir(appDirPath + "/modules");
-	auto modules = dir.entryList(QDir::Dirs, QDir::Name);
+	const QDir sharedDir(appDirPath + "/shared");
+	const auto modules = dir.entryList(QDir::Dirs, QDir::Name);
 
-	QDir sharedDir(appDirPath + "/shared");
+	auto& factory = DocumentFactory::instance(); // Just to make sure it is created here and now
 
 #ifdef WIN32
 	SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
@@ -396,9 +396,10 @@ void MainWindow::loadModules()
 
 		QDir moduleDir = dir;
 		moduleDir.cd(module);
-		
-#ifdef WIN32
 		QString dirPath = moduleDir.absolutePath();
+		factory.setModuleDirPath(dirPath.toStdString());
+
+#ifdef WIN32
 		auto moduleDllDir = AddDllDirectory(dirPath.toStdWString().c_str());
 #endif
 

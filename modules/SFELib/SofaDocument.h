@@ -15,9 +15,9 @@
 class SofaDocument : public BaseDocument
 {
 public:
-	SofaDocument(simplegui::SimpleGUI& gui, sfe::Simulation simulation);
+	SofaDocument(const std::string& type, sfe::Simulation simulation);
 
-	void initUI() override;
+	void initUI(simplegui::SimpleGUI& gui) override;
 
 	void initOpenGL() override;
 	void resize(int width, int height) override;
@@ -54,7 +54,7 @@ protected:
 
 	SofaModel createSofaModel(sfe::Object& visualModel);
 
-	simplegui::SimpleGUI& m_gui;
+	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;

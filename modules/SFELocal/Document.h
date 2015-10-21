@@ -6,11 +6,10 @@
 class Document : public SofaDocument
 {
 public:
-	Document(simplegui::SimpleGUI& gui);
-	std::string documentType() override;
+	Document(const std::string& type);
 
 	bool loadFile(const std::string& path) override;
-	void initUI() override;
+	void initUI(simplegui::SimpleGUI& gui) override;
 
 protected:
 	void modifyDataRepository();

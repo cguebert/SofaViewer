@@ -11,8 +11,8 @@
 
 #include <iostream>
 
-int ModelViewerDoc = RegisterDocument<Document>("SofaGraphAbstractionDoc").setDescription("Create Sofa simulations using higher level objects.").canCreateNew(true);
-ModuleHandle ModelViewerModule = RegisterModule("SofaGraphAbstraction").addDocument(ModelViewerDoc);
+int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction").setDescription("Create Sofa simulations using higher level objects.").canCreateNew(true);
+ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction").addDocument(SofaGraphAbstractionDoc);
 
 namespace property
 {
@@ -55,16 +55,11 @@ inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
 
 }
 
-Document::Document(simplegui::SimpleGUI& gui)
-	: BaseDocument(gui)
-	, m_gui(gui)
+Document::Document(const std::string& type)
+	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
+	, m_sgaFactory(modulePath() + "/definitions")
 {
-}
-
-std::string Document::documentType()
-{
-	return "ModelViewerDoc";
 }
 
 bool Document::loadFile(const std::string& path)
@@ -77,7 +72,6 @@ bool Document::loadFile(const std::string& path)
 
 	if (!scene)
 	{
-	//	DoTheErrorLogging(importer.GetErrorString());
 		return false;
 	}
 
@@ -85,7 +79,7 @@ bool Document::loadFile(const std::string& path)
 	return true;
 }
 
-void Document::initUI()
+void Document::initUI(simplegui::SimpleGUI& gui)
 {
 	m_graph.setRoot(m_rootNode);
 }

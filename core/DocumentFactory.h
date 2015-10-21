@@ -2,14 +2,13 @@
 
 #include <core/BaseDocument.h>
 
-#include <map>
 #include <vector>
 
 class BaseDocumentCreator
 {
 public:
 	virtual ~BaseDocumentCreator() {}
-	virtual std::shared_ptr<BaseDocument> create(simplegui::SimpleGUI& /*gui*/) const = 0;
+	virtual std::shared_ptr<BaseDocument> create(const std::string& type) const = 0;
 };
 
 class CORE_API DocumentFactory
@@ -18,12 +17,12 @@ public:
 	static DocumentFactory& instance();
 	~DocumentFactory();
 
-	std::shared_ptr<BaseDocument> create(const std::string& name, simplegui::SimpleGUI& gui) const;
-	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName, simplegui::SimpleGUI& gui) const;
+	std::shared_ptr<BaseDocument> create(const std::string& name) const;
+	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName) const;
 
 	std::vector<std::string> creatableDocuments() const;
 	std::string loadFilesFilter() const; // For all documents
-	std::string saveFilesFilter(BaseDocument* document) const; // Only for current document
+	std::string saveFilesFilter(const BaseDocument* document) const; // Only for current document
 
 	struct DocumentEntry
 	{
@@ -42,6 +41,7 @@ public:
 		std::string description;
 		std::string license;
 		std::string version;
+		std::string dirPath;
 		std::vector<std::string> documents;
 	};
 
@@ -49,9 +49,16 @@ public:
 	const DocumentsList& documents() const
 	{ return m_documents; }
 
+	const DocumentEntry& document(const std::string& name) const;
+
 	typedef std::vector<ModuleEntry> ModulesList;
 	const ModulesList& modules() const
 	{ return m_modules; }
+
+	const ModuleEntry& module(const std::string& name) const;
+
+	void setModuleDirPath(const std::string& path)
+	{ m_currentModuleDirPath = path; }
 
 protected:
 	template<class T> friend class RegisterDocument;
@@ -59,7 +66,7 @@ protected:
 	void recomputeLoadFiles();
 
 	friend class ModuleHandle;
-	void registerModule(const ModuleEntry& entry);
+	void registerModule(ModuleEntry entry);
 	void unregisterModule(const std::string& module);
 
 	friend class RegisterModule;
@@ -67,6 +74,7 @@ protected:
 
 	DocumentsList m_documents;
 	ModulesList m_modules;
+	std::string m_currentModuleDirPath; // For the module we are currently adding
 	std::string m_loadFilesFilter;
 	std::vector<std::pair<std::string, std::string>> m_loadFilesAssociation;
 
@@ -80,8 +88,8 @@ template <class T>
 class DocumentCreator : public BaseDocumentCreator
 {
 public:
-	std::shared_ptr<BaseDocument> create(simplegui::SimpleGUI& gui) const override
-	{ return std::make_shared<T>(gui); }
+	std::shared_ptr<BaseDocument> create(const std::string& type) const override
+	{ return std::make_shared<T>(type); }
 };
 
 template <class T>

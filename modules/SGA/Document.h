@@ -6,6 +6,7 @@
 
 #include <render/Scene.h>
 #include <sfe/Simulation.h>
+#include <sga/ObjectFactory.h>
 #include <glm/glm.hpp>
 
 struct aiScene;
@@ -33,11 +34,10 @@ public:
 class Document : public BaseDocument
 {
 public:
-	Document(simplegui::SimpleGUI& gui);
-	std::string documentType() override;
+	Document(const std::string& type);
 
 	bool loadFile(const std::string& path) override;
-	void initUI() override;
+	void initUI(simplegui::SimpleGUI& gui) override;
 
 	void initOpenGL() override;
 	void resize(int width, int height) override;
@@ -58,10 +58,10 @@ protected:
 	std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh);
 	int modelIndex(int meshId);
 
-	simplegui::SimpleGUI& m_gui;
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
+	sga::ObjectFactory m_sgaFactory;
 
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;

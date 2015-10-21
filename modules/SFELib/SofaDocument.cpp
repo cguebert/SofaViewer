@@ -20,37 +20,38 @@ template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
-SofaDocument::SofaDocument(simplegui::SimpleGUI& gui, sfe::Simulation simulation)
-	: BaseDocument(gui)
-	, m_gui(gui)
+SofaDocument::SofaDocument(const std::string& type, sfe::Simulation simulation)
+	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
 	, m_graphImages(m_graph)
 	, m_simulation(simulation)
 {
 }
 
-void SofaDocument::initUI()
+void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 {
+	m_gui = &gui;
+
 	// Update the scene graph
 	createGraph();
 
 	// Buttons box
-	m_gui.buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
+	m_gui->buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
 		m_simulation.setAnimate(!animating);
 	});
-	m_gui.buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
+	m_gui->buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
 
-	m_gui.buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
+	m_gui->buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
 	auto prop = property::createCopyProperty("Dt", 0.02f);
-	m_gui.buttonsPanel().addProperty(prop, 1, 1);
+	m_gui->buttonsPanel().addProperty(prop, 1, 1);
 
-	m_gui.buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
+	m_gui->buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
 
 	// Status bar
-	m_statusFPS = m_gui.addStatusBarZone("FPS: 9999.9"); // Reasonable width for the fps counter
-	m_gui.setStatusBarText(m_statusFPS, ""); // Set it to empty because we do not have the fps information yet
+	m_statusFPS = m_gui->addStatusBarZone("FPS: 9999.9"); // Reasonable width for the fps counter
+	m_gui->setStatusBarText(m_statusFPS, ""); // Set it to empty because we do not have the fps information yet
 }
 
 void SofaDocument::initOpenGL()
@@ -276,7 +277,7 @@ void SofaDocument::postStep()
 			ss << "FPS: ";
 			ss.precision(1);
 			ss << std::fixed << nbFPS;
-			m_gui.setStatusBarText(m_statusFPS, ss.str());
+			m_gui->setStatusBarText(m_statusFPS, ss.str());
 		}
 		++m_fpsCount;
 	}
@@ -286,7 +287,7 @@ void SofaDocument::postStep()
 
 	updateObjects();
 	m_updateObjects = true; // We have to modify the buffers in the correct thread
-	m_gui.updateView();
+	m_gui->updateView();
 }
 
 ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)
@@ -330,7 +331,7 @@ void SofaDocument::singleStep()
 	ss << "FPS: ";
 	ss.precision(1);
 	ss << std::fixed << fps;
-	m_gui.setStatusBarText(m_statusFPS, ss.str());
+	m_gui->setStatusBarText(m_statusFPS, ss.str());
 }
 
 void SofaDocument::resetSimulation()
@@ -340,7 +341,7 @@ void SofaDocument::resetSimulation()
 		m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
 	auto objProps = m_openedObjectProperties;
 	for(auto objProp : objProps)
-		m_gui.closePropertiesDialog(objProp.get());
+		m_gui->closePropertiesDialog(objProp.get());
 	m_simulation.reset();
 	createGraph();
 	m_fpsCount = 1;

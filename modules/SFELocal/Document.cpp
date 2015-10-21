@@ -11,7 +11,7 @@
 #include <iostream>
 #include <future>
 
-int SFELocalDoc = RegisterDocument<Document>("SFELocalDoc").setDescription("Run Sofa scenes using Sofa Front End Local")
+int SFELocalDoc = RegisterDocument<Document>("Sofa Local").setDescription("Run Sofa scenes using Sofa Front End Local")
 	.addLoadFile("Sofa scenes (*.scn)");
 ModuleHandle SFELocalModule = RegisterModule("SFELocal").addDocument(SFELocalDoc);
 
@@ -22,21 +22,16 @@ template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
-Document::Document(simplegui::SimpleGUI& gui)
-	: SofaDocument(gui, sfe::getLocalSimulation())
+Document::Document(const std::string& type)
+	: SofaDocument(type, sfe::getLocalSimulation())
 {
-}
-
-std::string Document::documentType()
-{
-	return "SFELocalDoc";
 }
 
 bool Document::loadFile(const std::string& path)
 {
 	// Read settings
 	std::vector<std::string> sofaPaths;
-	if(m_gui.settings().get("dataRepositoryPaths", sofaPaths))
+	if(m_gui->settings().get("dataRepositoryPaths", sofaPaths))
 		m_simulation.getHelper()->setDataRepositoryPaths(sofaPaths);
 
 	m_simulation.setAnimate(false, true);
@@ -59,12 +54,12 @@ bool Document::loadFile(const std::string& path)
 	}
 }
 
-void Document::initUI()
+void Document::initUI(simplegui::SimpleGUI& gui)
 {
-	SofaDocument::initUI();
+	SofaDocument::initUI(gui);
 
 	// Menu actions
-	auto& menu = m_gui.getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	auto& menu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
 	menu.addItem("Sofa paths", "", [this](){ modifyDataRepository(); } );
 	menu.addItem("Launch Server", "", [this](){ launchServer(); } );
 	menu.addItem("Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
@@ -72,7 +67,7 @@ void Document::initUI()
 
 void Document::modifyDataRepository()
 {
-	auto dialog = m_gui.createDialog("Sofa Data Repository");
+	auto dialog = m_gui->createDialog("Sofa Data Repository");
 	auto& panel = dialog->content();
 
 	auto helper = m_simulation.getHelper();
@@ -82,7 +77,7 @@ void Document::modifyDataRepository()
 	if(dialog->exec())
 	{
 		helper->setDataRepositoryPaths(paths);
-		m_gui.settings().set("dataRepositoryPaths", paths);
+		m_gui->settings().set("dataRepositoryPaths", paths);
 	}
 }
 
@@ -114,7 +109,7 @@ void Document::launchServer()
 	if (m_serverRunning)
 		return;
 
-	auto dialog = m_gui.createDialog("Launch SFE Server");
+	auto dialog = m_gui->createDialog("Launch SFE Server");
 	auto& panel = dialog->content();
 
 	int port = 5074;

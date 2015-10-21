@@ -9,22 +9,17 @@
 #include <iostream>
 #include <future>
 
-int SFEClientDoc = RegisterDocument<Document>("SFEClientDoc").setDescription("Run Sofa scenes using Sofa Front End Client").canCreateNew(true);
+int SFEClientDoc = RegisterDocument<Document>("Sofa Client").setDescription("Run Sofa scenes using Sofa Front End Client").canCreateNew(true);
 ModuleHandle SFEClientModule = RegisterModule("SFEClient").addDocument(SFEClientDoc);
 
-Document::Document(simplegui::SimpleGUI& gui)
-	: SofaDocument(gui, sfe::Simulation())
+Document::Document(const std::string& type)
+	: SofaDocument(type, sfe::Simulation())
 {
 }
 
-std::string Document::documentType()
+void Document::initUI(simplegui::SimpleGUI& gui)
 {
-	return "SFEClientDoc";
-}
-
-void Document::initUI()
-{
-	auto dialog = m_gui.createDialog("Connect to SFE Server");
+	auto dialog = gui.createDialog("Connect to SFE Server");
 	auto& panel = dialog->content();
 
 	std::string serverAddress = "localhost";
@@ -39,7 +34,7 @@ void Document::initUI()
 		if (!m_simulation)
 			return;
 
-		SofaDocument::initUI();
+		SofaDocument::initUI(gui);
 		parseScene();
 		setupCallbacks();
 	}
