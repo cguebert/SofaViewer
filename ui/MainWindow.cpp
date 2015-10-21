@@ -12,11 +12,10 @@
 class ChangeDir
 {
 public:
-	ChangeDir(const std::string& path)
+	ChangeDir(const QString& path)
 	{
 		prevDir = QDir::current();
-		QString qtPath = path.c_str();
-		QDir::setCurrent(QFileInfo(qtPath).absolutePath());
+		QDir::setCurrent(QFileInfo(path).absolutePath());
 	}
 
 	~ChangeDir() { QDir::setCurrent(prevDir.absolutePath()); }
@@ -287,7 +286,7 @@ bool MainWindow::loadFile(const QString& fileName)
 		return false;
 	}
 
-	ChangeDir cd(cpath);
+	ChangeDir cd(fileName);
 	m_simpleGUI->setDocument(document);
 
 	if (!document->loadFile(cpath))
@@ -369,8 +368,17 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 void MainWindow::loadModules()
 {
 	DocumentFactory::instance();
-	QDir dir(QApplication::applicationDirPath() + "/modules");
+	const QString appDirPath = QApplication::applicationDirPath();
+	const QDir dir(appDirPath + "/modules");
 	auto modules = dir.entryList(QDir::Dirs, QDir::Name);
+
+	QDir sharedDir(appDirPath + "/shared");
+
+#ifdef WIN32
+	SetDefaultDllDirectories(LOAD_LIBRARY_SEARCH_DEFAULT_DIRS);
+	QString sharedDirPath = sharedDir.absolutePath();
+	auto sharedDllDir = AddDllDirectory(sharedDirPath.toStdWString().c_str());
+#endif
 
 	for (const auto& module : modules)
 	{
@@ -379,21 +387,23 @@ void MainWindow::loadModules()
 
 		QDir moduleDir = dir;
 		moduleDir.cd(module);
-		QString dirPath = moduleDir.absolutePath();
-
+		
 #ifdef WIN32
-		SetDllDirectory(dirPath.toStdString().c_str());
+		QString dirPath = moduleDir.absolutePath();
+		auto moduleDllDir = AddDllDirectory(dirPath.toStdWString().c_str());
 #endif
+
 		QFileInfo file(moduleDir, module);
 		QString path = file.absoluteFilePath();
 		QLibrary lib(path);
 		lib.load();
-		std::cout << path.toStdString() << " " << lib.isLoaded() << std::endl;
 
 #ifdef WIN32
-		SetDllDirectory(NULL);
+		RemoveDllDirectory(moduleDllDir);
 #endif
 	}
 
-	std::cout << "modules : " << DocumentFactory::instance().modules().size() << std::endl;
+#ifdef WIN32
+	RemoveDllDirectory(sharedDllDir);
+#endif
 }

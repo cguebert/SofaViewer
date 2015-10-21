@@ -14,7 +14,8 @@ set(LIBRARIES_LIB_DIRS ${LIBRARIES_BASE_DIR}/lib)
 include_directories(".")
 include_directories(${LIBRARIES_INCLUDE_DIRS})
 
-set(TARGET_DIR ${CMAKE_INSTALL_PREFIX}/\${BUILD_TYPE})
+set(TARGET_DIR "${CMAKE_INSTALL_PREFIX}/\${BUILD_TYPE}")
+set(SHARED_DIR "${TARGET_DIR}/shared")
 
 # Multiprocessor build on Visual C++
 if(MSVC)
@@ -32,6 +33,7 @@ include_directories("modules")
 add_subdirectory("modules/ModelViewer")
 add_subdirectory("modules/SFELocal")
 add_subdirectory("modules/SFEClient")
+add_subdirectory("modules/SGA")
 
 # Application
 add_subdirectory("ui")

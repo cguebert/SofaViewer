@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-set(PROJECT_NAME "ModelViewer")
+set(PROJECT_NAME "SGA")
 project(${PROJECT_NAME})
 
 set(HEADER_FILES
@@ -26,5 +26,7 @@ target_link_libraries(${PROJECT_NAME} "SimpleRender")
 add_library("Assimp" SHARED IMPORTED)
 set_target_properties("Assimp" PROPERTIES IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/assimp.lib)
 target_link_libraries(${PROJECT_NAME} "Assimp")
+
+INSTALL(DIRECTORY ${LIBRARIES_BASE_DIR}/sga/definitions DESTINATION ${MODULE_DIR})
 
 install(FILES ${LIBRARIES_BASE_DIR}/lib/assimp.dll DESTINATION ${SHARED_DIR})
