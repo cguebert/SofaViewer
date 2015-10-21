@@ -94,6 +94,16 @@ simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
 	return dialog;
 }
 
+std::string SimpleGUIImpl::getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters)
+{
+	return QFileDialog::getOpenFileName(m_mainWindow, caption.c_str(), path.c_str(), filters.c_str()).toStdString();
+}
+
+std::string SimpleGUIImpl::getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters)
+{
+	return QFileDialog::getSaveFileName(m_mainWindow, caption.c_str(), path.c_str(), filters.c_str()).toStdString();
+}
+
 void SimpleGUIImpl::updateView()
 {
 	if (m_mainView)

@@ -32,6 +32,8 @@ public:
 	int addStatusBarZone(const std::string& text) override;
 	void setStatusBarText(int id, const std::string& text) override;
 	simplegui::Dialog::SPtr createDialog(const std::string& title) override;
+	std::string getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
+	std::string getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
 	void updateView() override;
 	simplegui::Settings& settings() override;
 

@@ -64,23 +64,16 @@ Document::Document(const std::string& type)
 
 bool Document::loadFile(const std::string& path)
 {
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path,
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType);
-
-	if (!scene)
-	{
-		return false;
-	}
-
-	parseScene(scene);
-	return true;
+	return false;
 }
 
 void Document::initUI(simplegui::SimpleGUI& gui)
 {
+	m_gui = &gui;
+	m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools).addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
+
+	auto root = createNode("SGA scene", "Root", ModelNode::Type::Root, nullptr);
+	m_rootNode = root;
 	m_graph.setRoot(m_rootNode);
 }
 
@@ -96,6 +89,13 @@ void Document::resize(int width, int height)
 
 void Document::render()
 {
+	if (m_reinitScene)
+	{
+		m_reinitScene = false;
+		for (auto model : m_scene.models())
+			model->init();
+	}
+
 	m_scene.render();
 }
 
@@ -156,10 +156,6 @@ void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const gl
 
 void Document::parseScene(const aiScene* scene)
 {
-	// Root
-	auto root = createNode("ModelViewer", "Root", ModelNode::Type::Root, nullptr);
-	m_rootNode = root;
-
 	// Adding meshes
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
@@ -262,4 +258,24 @@ int Document::modelIndex(int meshId)
 	}
 
 	return -1;
+}
+
+void Document::importMesh()
+{
+	auto path = m_gui->getOpenFileName("Import mesh", "", "Supported files (*.3ds *.ac *.ase *.blend *.dae *.ifc *.lwo *.lws *.lxo *.ms3d *.obj *.ply *.stl *.x *.xgl *.zgl");
+	if (path.empty())
+		return;
+
+	Assimp::Importer importer;
+	const aiScene* scene = importer.ReadFile(path,
+		aiProcess_Triangulate |
+		aiProcess_JoinIdenticalVertices |
+		aiProcess_SortByPType);
+
+	if (scene)
+	{
+		parseScene(scene);
+		m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
+		m_reinitScene = true;
+	}
 }

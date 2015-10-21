@@ -93,6 +93,8 @@ public:
 	virtual void setStatusBarText(int id, const std::string& text) = 0;
 
 	virtual Dialog::SPtr createDialog(const std::string& title) = 0;
+	virtual std::string getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters) = 0; // Returns an empty string if the user cancels
+	virtual std::string getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters) = 0;
 
 	virtual void updateView() = 0; // Update the OpenGL view
 
