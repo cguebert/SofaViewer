@@ -37,5 +37,6 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 		SofaDocument::initUI(gui);
 		parseScene();
 		setupCallbacks();
+		createGraph();
 	}
 }

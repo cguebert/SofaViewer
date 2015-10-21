@@ -96,7 +96,6 @@ bool Document::loadFile(const std::string& path)
 
 void Document::initUI(simplegui::SimpleGUI& /*gui*/)
 {
-	m_graph.setRoot(m_rootNode);
 }
 
 void Document::initOpenGL()
@@ -193,6 +192,8 @@ void Document::parseScene(const aiScene* scene)
 	// Adding graph
 	glm::mat4 transformation;
 	parseNode(scene, scene->mRootNode, transformation, m_rootNode);
+
+	m_graph.setRoot(m_rootNode);
 }
 
 inline glm::vec3 convert(aiVector3D v)

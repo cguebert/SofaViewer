@@ -37,6 +37,9 @@ void GraphView::setDocument(std::shared_ptr<BaseDocument> doc)
 	if (oldModel)
 		delete oldModel;
 
+	if (!m_document)
+		return;
+
 	auto& graph = m_document->graph();
 	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });
 }

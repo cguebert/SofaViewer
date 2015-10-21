@@ -50,7 +50,7 @@ void Scene::resize(int width, int height)
 	glViewport(0, 0, width, height);
 
 	// Compute zFar
-	const float zFar = std::max( {m_size[0], m_size[1], m_size[2]} ) * 4.f;
+	const float zFar = std::max( {m_size[0], m_size[1], m_size[2]} ) * 10.f;
 
 	// Change to the projection matrix and set our viewing volume
 	m_projection = glm::perspective( 45.f, ratio, 0.1f, zFar );

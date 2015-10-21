@@ -50,6 +50,8 @@ bool Document::loadFile(const std::string& path)
 
 		setupCallbacks();
 
+		createGraph();
+
 		return true;
 	}
 }

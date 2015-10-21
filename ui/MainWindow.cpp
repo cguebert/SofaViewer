@@ -253,7 +253,6 @@ void MainWindow::newDoc()
 		return;
 	}
 
-	m_simpleGUI->setDocument(document);
 	setDocument(document);
 
 	setCurrentFile("");
@@ -296,16 +295,14 @@ bool MainWindow::loadFile(const QString& fileName)
 	}
 
 	ChangeDir cd(fileName);
-	m_simpleGUI->setDocument(document);
+	setDocument(document);
 
 	if (!document->loadFile(cpath))
 	{
-		m_simpleGUI->setDocument(m_document ? m_document : nullptr);
+		setDocument(nullptr);
 		statusBar()->showMessage(tr("Loading failed"), 2000);
 		return false;
 	}
-
-	setDocument(document);
 
 	setCurrentFile(fileName);
 	statusBar()->showMessage(tr("File loaded"), 2000);
@@ -359,18 +356,22 @@ void MainWindow::about()
 
 void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 {
+	m_document = document;
 	m_simpleGUI->clear();
 
-	m_graphView->setDocument(document);
+	m_simpleGUI->setDocument(m_document);
+	m_graphView->setDocument(m_document);
 
-	m_document = document;
+	if (m_document)
+	{
+		m_saveFilter = DocumentFactory::instance().saveFilesFilter(m_document.get()).c_str();
+		bool canSave = !m_saveFilter.isEmpty();
+		m_saveAction->setEnabled(canSave);
+		m_saveAsAction->setEnabled(canSave);
 
-	m_saveFilter = DocumentFactory::instance().saveFilesFilter(m_document.get()).c_str();
-	bool canSave = !m_saveFilter.isEmpty();
-	m_saveAction->setEnabled(canSave);
-	m_saveAsAction->setEnabled(canSave);
+		m_document->initUI(*m_simpleGUI.get());
+	}
 
-	m_document->initUI(*m_simpleGUI.get());
 	m_openGLView->setDocument(m_document.get());
 }
 

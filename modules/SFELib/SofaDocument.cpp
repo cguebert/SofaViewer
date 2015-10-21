@@ -32,9 +32,6 @@ void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 {
 	m_gui = &gui;
 
-	// Update the scene graph
-	createGraph();
-
 	// Buttons box
 	m_gui->buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
