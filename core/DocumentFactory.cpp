@@ -140,7 +140,7 @@ void DocumentFactory::recomputeLoadFiles()
 {
 	m_loadFilesFilter.clear();
 	m_loadFilesAssociation.clear();
-	std::vector<std::string> filters;
+	std::vector<std::string> filters, suffixes;
 
 	for(const auto& doc : m_documents)
 	{
@@ -150,22 +150,30 @@ void DocumentFactory::recomputeLoadFiles()
 			if(!result.first.empty() && !result.second.empty())
 			{
 				filters.push_back(filter);
-				for(const auto& suffixe : result.second)
+				for (const auto& suffixe : result.second)
+				{
 					m_loadFilesAssociation.emplace_back(suffixe, doc.name);
+					suffixes.push_back(suffixe);
+				}
 			}
 		}
 	}
 
+	if (suffixes.empty())
+		return;
+
 	std::sort(filters.begin(), filters.end());
-	bool first = true;
+	std::sort(suffixes.begin(), suffixes.end());
+	auto last = std::unique(suffixes.begin(), suffixes.end());
+	suffixes.erase(last, suffixes.end());
+
+	m_loadFilesFilter = "Supported files (";
+	for (const auto& suffixe : suffixes)
+		m_loadFilesFilter += "*." + suffixe + " ";
+	m_loadFilesFilter.back() = ')'; // Replace the last space
+
 	for(const auto& filter : filters)
-	{
-		if(!first)
-			m_loadFilesFilter += ";;";
-		else
-			first = false;
-		m_loadFilesFilter += filter;
-	}
+		m_loadFilesFilter += ";;" + filter;
 }
 
 std::vector<std::string> DocumentFactory::creatableDocuments() const

@@ -68,6 +68,12 @@ MainWindow::MainWindow(QWidget *parent)
 	readSettings();
 
 	loadModules();
+
+	auto& factory = DocumentFactory::instance();
+	if (factory.creatableDocuments().empty())
+		m_newAction->setEnabled(false);
+	if (factory.loadFilesFilter().empty())
+		m_openAction->setEnabled(false);
 }
 
 void MainWindow::createActions()
@@ -235,7 +241,10 @@ void MainWindow::newDoc()
 	for (const auto& c : creatable)
 		items.push_back(QString::fromStdString(c));
 
-	QString item = QInputDialog::getItem(this, tr("New document"), tr("Document type:"), items);
+	bool ok = false;
+	QString item = QInputDialog::getItem(this, tr("New document"), tr("Document type:"), items, 0, false, &ok);
+	if (!ok)
+		return;
 
 	auto document = DocumentFactory::instance().create(item.toStdString(), *m_simpleGUI.get());
 	if (!document)
