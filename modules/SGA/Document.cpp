@@ -271,6 +271,12 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 
 	switch (item->nodeType)
 	{
+	case SGANode::Type::Root:
+	{
+		menu.addItem("Change root node", "Change the type of Sofa simulation", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::RootObject); });
+		return;
+	}
+
 	case SGANode::Type::Instance:
 	{
 		menu.addItem("Add physics", "Add physics to this object", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::PhysicsObject); });
@@ -314,9 +320,17 @@ void Document::importMesh()
 void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
 {
 	auto dlg = m_gui->createDialog("Add " + sgaObjectTypeName(type));
+	auto& panel = dlg->content();
+
+	auto available = m_sgaFactory.availableObjects(type);
+	std::vector<std::string> labels;
+	for (const auto& id : available)
+		labels.push_back(m_sgaFactory.definition(id).label());
+	auto objectType = property::createCopyProperty("Object type", 0, meta::Enum(labels));
+	panel.addProperty(objectType);
 
 	auto intProp = property::createCopyProperty("toto", 10, meta::Range(0, 100));
-	dlg->content().addProperty(intProp);
+	panel.addProperty(intProp);
 	
 	if (dlg->exec())
 	{

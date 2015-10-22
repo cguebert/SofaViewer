@@ -8,16 +8,6 @@
 
 #include <iostream>
 
-template <class T>
-QWidget* createPropWidget(const Property::SPtr& prop, QWidget* parent)
-{
-	auto propValue = prop->value<T>();
-	if(!propValue)
-		return nullptr;
-	auto propWidget = new PropertyWidget<T>(prop, propValue, parent);
-	return propWidget->createWidgets(prop->readOnly());
-}
-
 PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent)
 	: QDialog(parent)
 	, m_objectProperties(objectProperties)

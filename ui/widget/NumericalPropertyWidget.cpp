@@ -4,11 +4,10 @@
 
 #include <QtWidgets>
 
-template <class T>
+template <class value_type>
 class SpinBoxPropertyWidgetContainer
 {
 protected:
-	typedef T value_type;
 	QSpinBox* m_spinBox = nullptr;
 
 public:
@@ -40,11 +39,10 @@ template<> class PropretyWidgetContainer<unsigned int> : public SpinBoxPropertyW
 
 //****************************************************************************//
 
-template <class T>
-class CheckboxPropertyWidget : public PropretyWidgetContainer<T>
+template <class value_type>
+class CheckboxPropertyWidget : public PropretyWidgetContainer<value_type>
 {
 protected:
-	typedef T value_type;
 	QCheckBox* m_checkBox = nullptr;
 
 public:
@@ -69,11 +67,50 @@ public:
 
 //****************************************************************************//
 
+template <class value_type>
+class EnumIntPropertyWidget : public PropretyWidgetContainer<value_type>
+{
+protected:
+	QComboBox* m_comboBox = nullptr;
+
+public:
+	QWidget* createWidgets(BasePropertyWidget* parent)
+	{
+		m_comboBox = new QComboBox(parent);
+		m_comboBox->setEnabled(!parent->readOnly());
+		auto enumMeta = parent->property()->value()->meta().get<meta::Enum>();
+		if (enumMeta)
+		{
+			for (const auto& v : enumMeta->values)
+				m_enumValues.push_back(v.c_str());
+		}
+		m_comboBox->addItems(m_enumValues);
+
+		QObject::connect(m_comboBox, &QComboBox::setCurrentIndex, parent, &BasePropertyWidget::setWidgetDirty);
+		return m_comboBox;
+	}
+	void readFromProperty(const value_type& v)
+	{
+		if (m_comboBox->currentIndex() != v)
+			m_comboBox->setCurrentIndex(v);
+	}
+	void writeToProperty(value_type& v)
+	{
+		v = m_comboBox->currentIndex();
+	}
+
+protected:
+	QStringList m_enumValues;
+};
+
+
+//****************************************************************************//
+
 template <>
 class PropretyWidgetContainer<float>
 {
 protected:
-	typedef float value_type;
+	using value_type = float;
 	QLineEdit* m_lineEdit = nullptr;
 
 public:
@@ -108,7 +145,7 @@ template <>
 class PropretyWidgetContainer<double>
 {
 protected:
-	typedef double value_type;
+	using value_type = double;
 	QLineEdit* m_lineEdit = nullptr;
 
 public:
@@ -141,7 +178,9 @@ public:
 
 RegisterWidget<SimplePropertyWidget<int>> PW_int("default");
 RegisterWidget<SimplePropertyWidget<int, CheckboxPropertyWidget<int>> > PW_checkbox("checkbox");
+RegisterWidget<SimplePropertyWidget<int, EnumIntPropertyWidget<int>> > PW_int_enum("enum");
 RegisterWidget<SimplePropertyWidget<unsigned int>> PW_unsigned_int("default");
 RegisterWidget<SimplePropertyWidget<unsigned int, CheckboxPropertyWidget<unsigned int>> > PW_unsigned_checkbox("checkbox");
+RegisterWidget<SimplePropertyWidget<unsigned int, EnumIntPropertyWidget<unsigned int>> > PW_unsigned_enum("enum");
 RegisterWidget<SimplePropertyWidget<float>> PW_float("default");
 RegisterWidget<SimplePropertyWidget<double>> PW_double("default");

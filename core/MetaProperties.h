@@ -11,17 +11,15 @@
 namespace meta
 {
 
-class CORE_API MetaProperty
+struct CORE_API MetaProperty
 {
-public:
 	using SPtr = std::shared_ptr<MetaProperty>;
 
 	virtual ~MetaProperty() {}
 };
 
-class CORE_API Widget : public MetaProperty
+struct CORE_API Widget : public MetaProperty
 {
-public:
 	Widget(const std::string& type)
 		: m_type(type) {}
 
@@ -32,9 +30,8 @@ protected:
 	std::string m_type;
 };
 
-class CORE_API Validator : public MetaProperty
+struct CORE_API Validator : public MetaProperty
 {
-public:
 	bool validate() const // Returns true if the value has been changed
 	{
 		if (m_validateFunc) 
@@ -131,10 +128,11 @@ private:
 
 //****************************************************************************//
 
-class CORE_API Range : public Validator
+struct CORE_API Range : public Validator
 {
-public:
 	Range(float min, float max) : m_min(min), m_max(max) {}
+	void setRange(float min, float max)
+	{ m_min = min;  m_max = max; }
 
 	template <class T>
 	void init(T& val)
@@ -168,6 +166,15 @@ public:
 
 private:
 	float m_min, m_max;
+};
+
+//****************************************************************************//
+
+struct CORE_API Enum : public Widget
+{
+	Enum(const std::vector<std::string>& values) : Widget("enum"), values(values) {}
+
+	std::vector<std::string> values;
 };
 
 } // namespace meta
