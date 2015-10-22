@@ -41,6 +41,8 @@ public:
 	{ return std::dynamic_pointer_cast<PropertyValue<T>>(m_value); }
 	void setValue(ValuePtr value);
 
+	meta::BaseMetaContainer* meta() const;
+
 protected:
 	std::string m_name, m_help, m_group;
 	bool m_readOnly = false;
@@ -165,3 +167,6 @@ inline std::type_index Property::type() const
 
 inline std::shared_ptr<BasePropertyValue> Property::value() const
 { return m_value; }
+
+inline meta::BaseMetaContainer* Property::meta() const
+{ return &m_value->meta(); }

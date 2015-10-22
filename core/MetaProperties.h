@@ -20,13 +20,13 @@ struct CORE_API MetaProperty
 
 struct CORE_API Widget : public MetaProperty
 {
-	Widget(const std::string& type)
-		: m_type(type) {}
-
 	const std::string& type()
 	{ return m_type; }
 
 protected:
+	Widget(const std::string& type)
+		: m_type(type) {}
+
 	std::string m_type;
 };
 
@@ -50,7 +50,19 @@ class CORE_API BaseMetaContainer
 public:
 	virtual ~BaseMetaContainer() {}
 
-	template <class T> T* get()
+	template <class T>
+	void add(T&& prop)
+	{
+		using prop_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
+
+		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
+		static_assert(isValidator == false, "Validators can only be added during the construction of the property");
+
+		m_properties.push_back(ptr);
+	}
+
+	template <class T> T* get() const
 	{
 		for (auto& prop : m_properties)
 		{
@@ -169,6 +181,11 @@ private:
 };
 
 //****************************************************************************//
+
+struct CORE_API Checkbox : public Widget
+{
+	Checkbox() : Widget("checkbox") {}
+};
 
 struct CORE_API Enum : public Widget
 {

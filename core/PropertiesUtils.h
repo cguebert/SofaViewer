@@ -230,10 +230,7 @@ namespace property
 	struct CopyValueCreator;
 
 	template <class T, bool fixed>
-	struct CopyValueCreator<T, false, false, fixed> : SingleValueCreator<T>{};
-
-//	template <class T, bool extend0, bool extend1, bool fixed>
-//	struct CopyValueCreator<VectorWrapper<T>, extend0, extend1, fixed> : SingleValueCreator<VectorWrapper<T>>{}; // If it already is a VectorWrapper, use it
+	struct CopyValueCreator<T, false, false, fixed> : SingleValueCreator<T>{}; // Single values and VectorWrapper
 
 	template <class T>
 	struct CopyValueCreator<T, true, false, false> : SingleValueCreator<T>{}; // Vector of single values

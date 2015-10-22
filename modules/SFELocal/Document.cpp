@@ -118,7 +118,7 @@ void Document::launchServer()
 	panel.addProperty(property::createRefProperty("Server port", port));
 
 	int readOnly = 0;
-	auto readOnlyProp = property::createRefProperty("Read only", readOnly, meta::Widget("checkbox"));
+	auto readOnlyProp = property::createRefProperty("Read only", readOnly, meta::Checkbox());
 	panel.addProperty(readOnlyProp);
 
 	if (dialog->exec())

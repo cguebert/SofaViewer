@@ -25,22 +25,19 @@ ObjectProperties::SPtr createSofaObjectProperties(sfe::Object object)
 }
 
 template <class T>
-BaseValueWrapper::SPtr createProp(sfe::Data data, const std::string& widget)
+BaseValueWrapper::SPtr createProp(sfe::Data data)
 {
 	auto prop = std::make_shared<Property>(data.name(), data.readOnly(), data.help(), data.group());
 
 	T val;
 	data.get(val);
-	if (widget.empty())
-		prop->setValue(property::createCopyValue(std::move(val)));
-	else
-		prop->setValue(property::createCopyValue(std::move(val), meta::Widget(widget)));
+	prop->setValue(property::createCopyValue(std::move(val)));
 
 	return std::make_shared<DataWrapper<T>>(data, prop);
 }
 
 template <class T>
-BaseValueWrapper::SPtr createVectorProp(sfe::Data data, const std::string& widget, bool fixedSize, int columnCount)
+BaseValueWrapper::SPtr createVectorProp(sfe::Data data, bool fixedSize, int columnCount)
 {
 	auto prop = std::make_shared<Property>(data.name(), data.readOnly(), data.help(), data.group());
 
@@ -75,22 +72,22 @@ void addData(ObjectProperties::SPtr properties, sfe::Data data)
 		fixedSize = typeTrait->FixedSize();
 	}
 
-	std::string widget;
-	if(valueType == "bool")
-		widget = "checkbox";
-
 	BaseValueWrapper::SPtr wrapper;
 	switch(storageType)
 	{
-	case sfe::Data::DataType::Int:		wrapper = createProp<int>(data, widget);			break;
-	case sfe::Data::DataType::Float:	wrapper = createProp<float>(data, widget);			break;
-	case sfe::Data::DataType::Double:	wrapper = createProp<double>(data, widget);			break;
-	case sfe::Data::DataType::String:	wrapper = createProp<std::string>(data, widget);	break;
-	case sfe::Data::DataType::Vector_Int:		wrapper = createVectorProp<int>(data, widget, fixedSize, columnCount);			break;
-	case sfe::Data::DataType::Vector_Float:		wrapper = createVectorProp<float>(data, widget, fixedSize, columnCount);		break;
-	case sfe::Data::DataType::Vector_Double:	wrapper = createVectorProp<double>(data, widget, fixedSize, columnCount);		break;
-	case sfe::Data::DataType::Vector_String:	wrapper = createVectorProp<std::string>(data, widget, fixedSize, columnCount);	break;
+	case sfe::Data::DataType::Int:		wrapper = createProp<int>(data);			break;
+	case sfe::Data::DataType::Float:	wrapper = createProp<float>(data);			break;
+	case sfe::Data::DataType::Double:	wrapper = createProp<double>(data);			break;
+	case sfe::Data::DataType::String:	wrapper = createProp<std::string>(data);	break;
+	case sfe::Data::DataType::Vector_Int:		wrapper = createVectorProp<int>(data, fixedSize, columnCount);			break;
+	case sfe::Data::DataType::Vector_Float:		wrapper = createVectorProp<float>(data, fixedSize, columnCount);		break;
+	case sfe::Data::DataType::Vector_Double:	wrapper = createVectorProp<double>(data, fixedSize, columnCount);		break;
+	case sfe::Data::DataType::Vector_String:	wrapper = createVectorProp<std::string>(data, fixedSize, columnCount);	break;
 	}
+
+	auto prop = wrapper->property();
+	if (valueType == "bool")
+		prop->meta()->add(meta::Checkbox());
 
 	properties->addProperty(wrapper->property());
 	properties->addValueWrapper(wrapper);
