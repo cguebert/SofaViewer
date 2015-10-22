@@ -9,6 +9,7 @@ set(HEADER_FILES
 	DocumentFactory.h
 	Graph.h
 	GraphImage.h
+	MetaProperties.h
 	MouseEvent.h
 	MouseManipulator.h
 	ObjectProperties.h

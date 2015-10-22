@@ -12,15 +12,14 @@
 struct aiScene;
 struct aiNode;
 struct aiMesh;
-class ModelNode;
 
-class ModelNode : public GraphNode
+class SGANode : public GraphNode
 {
 public:
-	using SPtr = std::shared_ptr<ModelNode>;
+	using SPtr = std::shared_ptr<SGANode>;
 	enum class Type { Root, Node, Mesh, Instance };
 
-	static SPtr create() { return std::make_shared<ModelNode>(); }
+	static SPtr create() { return std::make_shared<SGANode>(); }
 
 	Type nodeType;
 
@@ -48,9 +47,10 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
+	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
 protected:
-	ModelNode::SPtr createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent);
+	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode::SPtr parent);
 	void parseScene(const aiScene* scene);
 	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent);
 	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent);
@@ -59,6 +59,8 @@ protected:
 	int modelIndex(int meshId);
 
 	void importMesh();
+
+	void addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
 
 	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;

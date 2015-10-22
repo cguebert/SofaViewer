@@ -1,6 +1,8 @@
 #pragma once
 
 #include <core/core.h>
+#include <core/MetaProperties.h>
+
 #include <memory>
 #include <string>
 #include <typeindex>
@@ -18,7 +20,6 @@ public:
 	Property();
 	Property(const std::string& name, ValuePtr value);
 	Property(const std::string& name,
-			 const std::string& widget = "default",
 			 bool readOnly = false,
 			 const std::string& help = "",
 			 const std::string& group = "");
@@ -34,16 +35,14 @@ public:
 	void setReadOnly(bool readOnly);
 
 	std::type_index type() const;
-	const std::string& widget() const; // Used to choose the widget (for example, storage is int but type was originally bool)
-	void setWidget(const std::string& widget);
-
+	
 	ValuePtr value() const;
 	template <class T> ValueTPtr<T> value() const
 	{ return std::dynamic_pointer_cast<PropertyValue<T>>(m_value); }
 	void setValue(ValuePtr value);
 
 protected:
-	std::string m_name, m_help, m_group, m_widget;
+	std::string m_name, m_help, m_group;
 	bool m_readOnly = false;
 	std::type_index m_type;
 	std::shared_ptr<BasePropertyValue> m_value;
@@ -57,6 +56,7 @@ class BasePropertyValue
 public:
 	virtual ~BasePropertyValue() {}
 	virtual std::type_index type() const = 0;
+	virtual meta::BaseMetaContainer& meta() = 0;
 };
 
 template <class T>
@@ -70,21 +70,24 @@ public:
 	virtual void setValue(const T& value) = 0;
 	virtual void setValue(T&& value) = 0;
 
-	std::type_index type() const
+	std::type_index type() const override
 	{ return std::type_index(typeid(T)); }
 
+	meta::BaseMetaContainer& meta() override
+	{ return m_metaProperties; }
+
 protected:
-	T m_value;
+	meta::MetaContainer<T> m_metaProperties;
 };
 
 //****************************************************************************//
 
 template <class T>
-class PropertyValueCopy : public PropertyValue<T>
+class PropertyCopyValue : public PropertyValue<T>
 {
 public:
-	PropertyValueCopy(const T& val) : m_value(val) {}
-	PropertyValueCopy(T&& val) : m_value(std::move(val)) {}
+	PropertyCopyValue(const T& val) : m_value(val) {}
+	PropertyCopyValue(T&& val) : m_value(std::move(val)) {}
 
 	const T& value() const override { return m_value; }
 	T& value() override { return m_value; }
@@ -96,10 +99,10 @@ protected:
 };
 
 template <class T>
-class PropertyValueRef : public PropertyValue<T>
+class PropertyRefValue : public PropertyValue<T>
 {
 public:
-	PropertyValueRef(T& val) : m_value(val) {}
+	PropertyRefValue(T& val) : m_value(val) {}
 
 	const T& value() const override { return m_value; }
 	T& value() override { return m_value; }
@@ -159,12 +162,6 @@ inline void Property::setReadOnly(bool readOnly)
 
 inline std::type_index Property::type() const
 { return m_type; }
-
-inline const std::string& Property::widget() const
-{ return m_widget; }
-
-inline void Property::setWidget(const std::string& widget)
-{ m_widget = widget; }
 
 inline std::shared_ptr<BasePropertyValue> Property::value() const
 { return m_value; }

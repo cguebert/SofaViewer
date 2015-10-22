@@ -13,14 +13,12 @@ Property::Property(const std::string& name, ValuePtr value)
 }
 
 Property::Property(const std::string& name,
-				   const std::string& widget,
 				   bool readOnly,
 				   const std::string& help,
 				   const std::string& group)
 	: m_name(name)
 	, m_help(help)
 	, m_group(group)
-	, m_widget(widget)
 	, m_readOnly(readOnly)
 	, m_type(std::type_index(typeid(std::string)))
 {

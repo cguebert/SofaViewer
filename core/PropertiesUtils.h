@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Property.h"
+#include "MetaProperties.h"
 #include "VectorWrapper.h"
 
 #include <array>
@@ -147,7 +148,7 @@ namespace property
 		template <class U>
 		static Property::ValuePtr create(U&& val)
 		{
-			return std::make_shared<PropertyValueCopy<T>>(std::forward<U>(val));
+			return std::make_shared<PropertyCopyValue<T>>(std::forward<U>(val));
 		}
 	};
 
@@ -169,7 +170,7 @@ namespace property
 			wrapper.setColumnCount(size);
 			wrapper.setFixedSize(true);
 
-			return std::make_shared<PropertyValueCopy<WrapperType>>(std::move(wrapper));
+			return std::make_shared<PropertyCopyValue<WrapperType>>(std::move(wrapper));
 		}
 	};
 
@@ -196,7 +197,7 @@ namespace property
 			wrapper.setColumnCount(size1);
 			wrapper.setFixedSize(true);
 
-			return std::make_shared<PropertyValueCopy<WrapperType>>(std::move(wrapper));
+			return std::make_shared<PropertyCopyValue<WrapperType>>(std::move(wrapper));
 		}
 	};
 
@@ -221,27 +222,30 @@ namespace property
 			WrapperType wrapper(std::move(copyVal));
 			wrapper.setColumnCount(size);
 
-			return std::make_shared<PropertyValueCopy<WrapperType>>(std::move(wrapper));
+			return std::make_shared<PropertyCopyValue<WrapperType>>(std::move(wrapper));
 		}
 	};
 
 	template <class T, bool extend0, bool extend1, bool fixed>
-	struct ValueCopyCreator;
+	struct CopyValueCreator;
 
 	template <class T, bool fixed>
-	struct ValueCopyCreator<T, false, false, fixed> : SingleValueCreator<T>{};
+	struct CopyValueCreator<T, false, false, fixed> : SingleValueCreator<T>{};
+
+//	template <class T, bool extend0, bool extend1, bool fixed>
+//	struct CopyValueCreator<VectorWrapper<T>, extend0, extend1, fixed> : SingleValueCreator<VectorWrapper<T>>{}; // If it already is a VectorWrapper, use it
 
 	template <class T>
-	struct ValueCopyCreator<T, true, false, false> : SingleValueCreator<T>{}; // Vector of single values
+	struct CopyValueCreator<T, true, false, false> : SingleValueCreator<T>{}; // Vector of single values
 
 	template <class T>
-	struct ValueCopyCreator<T, true, false, true> : SingleArrayCreator<T>{};
+	struct CopyValueCreator<T, true, false, true> : SingleArrayCreator<T>{};
 
 	template <class T>
-	struct ValueCopyCreator<T, true, true, false> : ArraysVectorCreator<T>{};
+	struct CopyValueCreator<T, true, true, false> : ArraysVectorCreator<T>{};
 
 	template <class T>
-	struct ValueCopyCreator<T, true, true, true> : DoubleArrayCreator<T>{};
+	struct CopyValueCreator<T, true, true, true> : DoubleArrayCreator<T>{};
 
 	//****************************************************************************//
 
@@ -286,7 +290,7 @@ namespace property
 		static const bool extend1 = ArrayTraits<base_type>::isArray;
 		
 	public:
-		using property_type = typename ValueCopyCreator<value_type, extend0, extend1, fixed>::PropertyValueType;
+		using property_type = typename CopyValueCreator<value_type, extend0, extend1, fixed>::PropertyValueType;
 	};
 
 	template <class T>
@@ -297,7 +301,7 @@ namespace property
 		const bool fixed = ArrayTraits<value_type>::fixed;
 		using base_type = ArrayBaseType<value_type>;
 		const bool extend1 = ArrayTraits<base_type>::isArray;
-		return ValueCopyCreator<value_type, extend0, extend1, fixed>::create(std::forward<T>(val));
+		return CopyValueCreator<value_type, extend0, extend1, fixed>::create(std::forward<T>(val));
 	}
 
 	} // namespace details
@@ -305,16 +309,66 @@ namespace property
 	//****************************************************************************//
 
 	template <class T>
+	Property::ValuePtr createCopyValue(T&& val)
+	{
+		return details::createValueCopy(std::forward<T>(val));
+	}
+
+	template <class T, class... MetaArgs>
+	Property::ValuePtr createCopyValue(T&& val, MetaArgs&&... meta)
+	{
+		auto valuePtr = details::createValueCopy(std::forward<T>(val));
+		using value_type = details::PropertyValueType<T>::property_type;
+		auto& valueRef = std::dynamic_pointer_cast<PropertyValue<T>>(valuePtr)->value();
+		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->meta());
+		metaContainer.add(valueRef, std::forward<MetaArgs>(meta)...);
+		return valuePtr;
+	}
+
+	template <class T>
+	Property::ValuePtr createRefValue(T& val)
+	{
+		return std::make_shared<PropertyRefValue<T>>(val);
+	}
+
+	template <class T, class... MetaArgs>
+	Property::ValuePtr createRefValue(T& val, MetaArgs&&... meta)
+	{
+		auto valuePtr = std::make_shared<PropertyRefValue<T>>(val);
+		using value_type = details::PropertyValueType<T>::property_type;
+		auto& valueRef = std::dynamic_pointer_cast<PropertyValue<T>>(valuePtr)->value();
+		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->meta());
+		metaContainer.add(valueRef, std::forward<MetaArgs>(meta)...);
+		return valuePtr;
+	}
+
+	//****************************************************************************//
+
+	template <class T>
 	Property::SPtr createCopyProperty(const std::string& name, T&& val)
 	{
-		auto value = details::createValueCopy(std::forward<T>(val));
+		auto value = createCopyValue(std::forward<T>(val));
+		return std::make_shared<Property>(name, value);
+	}
+
+	template <class T, class... MetaArgs>
+	Property::SPtr createCopyProperty(const std::string& name, T&& val, MetaArgs&&... meta)
+	{
+		auto value = createCopyValue(std::forward<T>(val), std::forward<MetaArgs>(meta)...);
 		return std::make_shared<Property>(name, value);
 	}
 
 	template <class T>
 	Property::SPtr createRefProperty(const std::string& name, T& val)
 	{
-		auto value = std::make_shared<PropertyValueRef<T>>(val);
+		auto value = createRefValue(val);
+		return std::make_shared<Property>(name, value);
+	}
+
+	template <class T, class... MetaArgs>
+	Property::SPtr createRefProperty(const std::string& name, T& val, MetaArgs&&... meta)
+	{
+		auto value = createRefValue(val, std::forward<MetaArgs>(meta)...);
 		return std::make_shared<Property>(name, value);
 	}
 

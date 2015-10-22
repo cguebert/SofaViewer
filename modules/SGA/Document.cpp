@@ -55,6 +55,20 @@ inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
 
 }
 
+namespace
+{
+
+std::string sgaObjectTypeName(sga::ObjectDefinition::ObjectType type)
+{
+	static std::vector<std::string> names;
+	if (names.empty())
+		names = { "Root object", "Physics object", "Collision object", "Visual object", "Modifier object" };
+	
+	return names[static_cast<int>(type)];
+}
+
+}
+
 Document::Document(const std::string& type)
 	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
@@ -72,7 +86,7 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	m_gui = &gui;
 	m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools).addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
 
-	auto root = createNode("SGA scene", "Root", ModelNode::Type::Root, nullptr);
+	auto root = createNode("SGA scene", "Root", SGANode::Type::Root, nullptr);
 	m_rootNode = root;
 	m_graph.setRoot(m_rootNode);
 }
@@ -104,9 +118,9 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
-ModelNode::SPtr Document::createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent)
+SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode::SPtr parent)
 {
-	auto node = ModelNode::create();
+	auto node = SGANode::create();
 	node->name = name;
 	node->type = type;
 	node->nodeType = nodeType;
@@ -129,7 +143,7 @@ inline glm::mat4 convert(const aiMatrix4x4& in)
 
 void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent)
 {
-	auto n = createNode(aNode->mName.C_Str(), "Node", ModelNode::Type::Node, parent);
+	auto n = createNode(aNode->mName.C_Str(), "Node", SGANode::Type::Node, parent);
 	auto nodeTransformation = convert(aNode->mTransformation);
 	n->transformation = nodeTransformation;
 	auto accTrans = nodeTransformation * transformation;
@@ -148,7 +162,7 @@ void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const gl
 	if (modelId < 0)
 		return;
 
-	auto n = createNode(mesh->mName.C_Str(), "Instance", ModelNode::Type::Instance, parent);
+	auto n = createNode(mesh->mName.C_Str(), "Instance", SGANode::Type::Instance, parent);
 	n->meshId = modelId;
 	n->transformation = transformation;
 	m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[modelId] });
@@ -163,7 +177,7 @@ void Document::parseScene(const aiScene* scene)
 		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
 			continue;
 
-		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", ModelNode::Type::Mesh, m_rootNode);
+		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", SGANode::Type::Mesh, m_rootNode);
 
 		auto model = createModel(mesh);
 		node->model = model;
@@ -201,13 +215,13 @@ std::shared_ptr<simplerender::Model> Document::createModel(const aiMesh* mesh)
 
 Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 {
-	auto item = dynamic_cast<ModelNode*>(baseItem);
+	auto item = dynamic_cast<SGANode*>(baseItem);
 	if(!item)
 		return nullptr;
 
 	switch (item->nodeType)
 	{
-	case ModelNode::Type::Root:
+	case SGANode::Type::Root:
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->createPropertyAndWrapper("transformation", item->transformation);
@@ -217,14 +231,14 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 		return properties;
 	}
 
-	case ModelNode::Type::Node:
+	case SGANode::Type::Node:
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->createPropertyAndWrapper("transformation", item->transformation);
 		return properties;
 	}
 
-	case ModelNode::Type::Mesh:
+	case SGANode::Type::Mesh:
 	{
 		auto model = item->model;
 		if (!model)
@@ -237,7 +251,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 		return properties;
 	}
 
-	case ModelNode::Type::Instance:
+	case SGANode::Type::Instance:
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
@@ -247,6 +261,23 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	}
 
 	return nullptr;
+}
+
+void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
+{
+	auto item = dynamic_cast<SGANode*>(baseItem);
+	if (!item)
+		return;
+
+	switch (item->nodeType)
+	{
+	case SGANode::Type::Instance:
+	{
+		menu.addItem("Add physics", "Add physics to this object", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::PhysicsObject); });
+		menu.addItem("Add collision", "Add collision to this object", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::CollisionObject); });
+		return;
+	}
+	}
 }
 
 int Document::modelIndex(int meshId)
@@ -277,5 +308,18 @@ void Document::importMesh()
 		parseScene(scene);
 		m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 		m_reinitScene = true;
+	}
+}
+
+void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+{
+	auto dlg = m_gui->createDialog("Add " + sgaObjectTypeName(type));
+
+	auto intProp = property::createCopyProperty("toto", 10, meta::Range(0, 100));
+	dlg->content().addProperty(intProp);
+	
+	if (dlg->exec())
+	{
+
 	}
 }

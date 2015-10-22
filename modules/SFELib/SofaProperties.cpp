@@ -1,5 +1,6 @@
 #include "SofaProperties.h"
-#include <core/VectorWrapper.h>
+
+#include <core/PropertiesUtils.h>
 
 #include <iostream>
 
@@ -26,11 +27,14 @@ ObjectProperties::SPtr createSofaObjectProperties(sfe::Object object)
 template <class T>
 BaseValueWrapper::SPtr createProp(sfe::Data data, const std::string& widget)
 {
-	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
+	auto prop = std::make_shared<Property>(data.name(), data.readOnly(), data.help(), data.group());
 
 	T val;
 	data.get(val);
-	prop->setValue(std::make_shared<PropertyValueCopy<T>>(std::move(val)));
+	if (widget.empty())
+		prop->setValue(property::createCopyValue(std::move(val)));
+	else
+		prop->setValue(property::createCopyValue(std::move(val), meta::Widget(widget)));
 
 	return std::make_shared<DataWrapper<T>>(data, prop);
 }
@@ -38,7 +42,7 @@ BaseValueWrapper::SPtr createProp(sfe::Data data, const std::string& widget)
 template <class T>
 BaseValueWrapper::SPtr createVectorProp(sfe::Data data, const std::string& widget, bool fixedSize, int columnCount)
 {
-	auto prop = std::make_shared<Property>(data.name(), widget, data.readOnly(), data.help(), data.group());
+	auto prop = std::make_shared<Property>(data.name(), data.readOnly(), data.help(), data.group());
 
 	using value_type = std::vector<T>;
 	value_type val;
@@ -48,7 +52,7 @@ BaseValueWrapper::SPtr createVectorProp(sfe::Data data, const std::string& widge
 	WrapperType wrapper(std::move(val));
 	wrapper.setFixedSize(fixedSize);
 	wrapper.setColumnCount(columnCount);
-	prop->setValue(std::make_shared<PropertyValueCopy<WrapperType>>(std::move(wrapper)));
+	prop->setValue(property::createCopyValue(std::move(wrapper)));
 
 	return std::make_shared<VectorDataWrapper<WrapperType>>(data, prop);
 }
