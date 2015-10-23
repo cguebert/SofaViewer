@@ -64,6 +64,8 @@ protected:
 	virtual void writeToProperty() = 0;
 	/// Test if the value of the widget is different than the one in the property.
 	virtual bool isModified() = 0;
+	/// Can apply validators here
+	virtual void validate() { }
 
 	void setState(State state);
 
@@ -97,6 +99,9 @@ public:
 
 	const_reference resetValue() const
 	{ return m_resetValue; }
+
+	PropertyValue<T>* propertyValue() const
+	{ return m_propertyValue.get(); }
 
 protected:
 	std::shared_ptr<PropertyValue<T>> m_propertyValue;

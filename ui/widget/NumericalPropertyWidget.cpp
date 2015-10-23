@@ -19,12 +19,14 @@ public:
 		m_spinBox->setSingleStep(1);
 		m_spinBox->setEnabled(!parent->readOnly());
 
-		QObject::connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
+		void(QSpinBox::*valueChanged)(int) = &QSpinBox::valueChanged; // Get the right overload
+		QObject::connect(m_spinBox, valueChanged, parent, &BasePropertyWidget::setWidgetDirty);
 
 		return m_spinBox;
 	}
 	void readFromProperty(const value_type& v)
 	{
+		QSignalBlocker block(m_spinBox);
 		if(v != m_spinBox->value())
 			m_spinBox->setValue(v);
 	}
@@ -78,7 +80,7 @@ public:
 	{
 		m_comboBox = new QComboBox(parent);
 		m_comboBox->setEnabled(!parent->readOnly());
-		auto enumMeta = parent->property()->meta()->get<meta::Enum>();
+		auto enumMeta = parent->property()->getMeta<meta::Enum>();
 		if (enumMeta)
 		{
 			for (const auto& v : enumMeta->values)

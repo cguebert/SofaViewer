@@ -32,15 +32,8 @@ protected:
 
 struct CORE_API Validator : public MetaProperty
 {
-	bool validate() const // Returns true if the value has been changed
-	{
-		if (m_validateFunc) 
-			return m_validateFunc();
-		return false;
-	}
-
-protected:
-	std::function<bool()> m_validateFunc;
+	// Must have a template function setting a validator functor
+	// template <class T> void init(std::function<bool(T&)>& func) {...}
 };
 
 //****************************************************************************//
@@ -57,7 +50,7 @@ public:
 		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
 
 		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
-		static_assert(isValidator == false, "Validators can only be added during the construction of the property");
+		static_assert(isValidator == false, "Validators can not be added through BaseMetaContainer");
 
 		m_properties.push_back(ptr);
 	}
@@ -74,18 +67,6 @@ public:
 		return nullptr;
 	}
 
-	bool validate() const
-	{
-		bool changed = false;
-		for (auto& prop : m_properties)
-		{
-			auto validator = dynamic_cast<Validator*>(prop.get());
-			if (validator)
-				changed |= validator->validate();
-		}
-		return changed;
-	}
-
 protected:
 	std::vector<MetaProperty::SPtr> m_properties;
 };
@@ -100,9 +81,7 @@ template <class prop_type, class value_type>
 struct PropertyInit<prop_type, value_type, true>
 {
 	static void init(prop_type& prop, value_type& value)
-	{
-		prop.init(value);
-	}
+	{ prop.init(value); }
 };
 
 
@@ -110,48 +89,63 @@ template <class value_type>
 class MetaContainer : public BaseMetaContainer
 {
 public:
+	using validateFunc = std::function<bool(value_type&)>;
+
 	template <class... Args>
-	void add(value_type& value, Args&&... args)
+	void add(Args&&... args)
 	{
-		doAdd(value, std::forward<Args>(args)...);
+		doAdd(std::forward<Args>(args)...);
+	}
+
+	bool validate(value_type& value) const
+	{
+		bool changed = false;
+		for (auto& func : m_validateFunctions)
+			changed |= func(value);
+		return changed;
 	}
 
 private:
 	template <class T, class... Args>
-	void doAdd(value_type& value, T&& prop, Args&&... args)
+	void doAdd(T&& prop, Args&&... args)
 	{
-		doAdd(value, std::forward<T>(prop));
-		doAdd(value, std::forward<Args>(args)...);
+		doAdd(std::forward<T>(prop));
+		doAdd(std::forward<Args>(args)...);
 	}
 
 	template <class T>
-	void doAdd(value_type& value, T&& prop)
+	void doAdd(T&& prop)
 	{
 		using prop_type = std::remove_cv_t<std::remove_reference_t<T>>;
 		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
+		m_properties.push_back(ptr);
 
 		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
-		prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
-		PropertyInit<prop_type, value_type, isValidator>::init(propRef, value);
-
-		m_properties.push_back(ptr);
+		if (isValidator)
+		{
+			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
+			validateFunc func;
+			PropertyInit<prop_type, validateFunc, isValidator>::init(propRef, func);
+			if (func)
+				m_validateFunctions.push_back(func);
+		}
 	}
+
+	std::vector<validateFunc> m_validateFunctions;
 };
 
 //****************************************************************************//
 
 struct CORE_API Range : public Validator
 {
-	Range(float min, float max) : m_min(min), m_max(max) {}
-	void setRange(float min, float max)
-	{ m_min = min;  m_max = max; }
+	Range(float min, float max) : min(min), max(max) {}
 
 	template <class T>
-	void init(T& val)
+	void init(std::function<bool(T&)>& func)
 	{
-		m_validateFunc = [&val, this]()
+		func = [this](T& val)
 		{
-			T tmin = static_cast<T>(m_min), tmax = static_cast<T>(m_max);
+			T tmin = static_cast<T>(min), tmax = static_cast<T>(max);
 			if (val < tmin) { val = tmin; return true; }
 			if (val > tmax) { val = tmax; return true; }
 
@@ -160,14 +154,14 @@ struct CORE_API Range : public Validator
 	}
 
 	template <class T>
-	void init(std::vector<T>& val)
+	void init(std::function<bool(std::vector<T>&)>& func)
 	{
-		m_validateFunc = [&val, this]()
+		func = [this](std::vector<T>& val)
 		{
 			bool changed = false;
 			for (auto& v : val)
 			{
-				T tmin = static_cast<T>(m_min), tmax = static_cast<T>(m_max);
+				T tmin = static_cast<T>(min), tmax = static_cast<T>(max);
 				if (v < tmin) { v = tmin; changed = true; }
 				if (v > tmax) { v = tmax; changed = true; }
 			}
@@ -176,8 +170,7 @@ struct CORE_API Range : public Validator
 		};
 	}
 
-private:
-	float m_min, m_max;
+	float min, max;
 };
 
 //****************************************************************************//

@@ -43,6 +43,7 @@ void BasePropertyWidget::updateWidgetValue()
 
 void BasePropertyWidget::setWidgetDirty()
 {
+	validate();
 	if(isModified())
 	{
 		setState(State::modified);

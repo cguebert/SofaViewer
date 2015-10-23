@@ -329,8 +329,12 @@ void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType typ
 	auto objectType = property::createCopyProperty("Object type", 0, meta::Enum(labels));
 	panel.addProperty(objectType);
 
-	auto intProp = property::createCopyProperty("toto", 10, meta::Range(0, 100));
+	auto intProp = property::createCopyProperty("toto", 10, meta::Range(0, 10));
 	panel.addProperty(intProp);
+
+	int tata = 0;
+	auto intProp2 = property::createRefProperty("tata", tata, meta::Range(-10, 0));
+	panel.addProperty(intProp2);
 	
 	if (dlg->exec())
 	{

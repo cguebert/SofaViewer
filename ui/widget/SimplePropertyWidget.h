@@ -66,4 +66,12 @@ public:
 	{
 		container.readFromProperty(m_resetValue);
 	}
+
+	void validate() override
+	{
+		value_type tempValue = m_resetValue;
+		container.writeToProperty(tempValue);
+		if (propertyValue()->validate(tempValue))
+			container.readFromProperty(tempValue);
+	}
 };

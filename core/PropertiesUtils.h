@@ -316,9 +316,8 @@ namespace property
 	{
 		auto valuePtr = details::createValueCopy(std::forward<T>(val));
 		using value_type = details::PropertyValueType<T>::property_type;
-		auto& valueRef = std::dynamic_pointer_cast<PropertyValue<T>>(valuePtr)->value();
-		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->meta());
-		metaContainer.add(valueRef, std::forward<MetaArgs>(meta)...);
+		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->baseMetaContainer());
+		metaContainer.add(std::forward<MetaArgs>(meta)...);
 		return valuePtr;
 	}
 
@@ -332,10 +331,7 @@ namespace property
 	Property::ValuePtr createRefValue(T& val, MetaArgs&&... meta)
 	{
 		auto valuePtr = std::make_shared<PropertyRefValue<T>>(val);
-		using value_type = details::PropertyValueType<T>::property_type;
-		auto& valueRef = std::dynamic_pointer_cast<PropertyValue<T>>(valuePtr)->value();
-		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->meta());
-		metaContainer.add(valueRef, std::forward<MetaArgs>(meta)...);
+		valuePtr->metaContainer().add(std::forward<MetaArgs>(meta)...);
 		return valuePtr;
 	}
 

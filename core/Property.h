@@ -41,7 +41,11 @@ public:
 	{ return std::dynamic_pointer_cast<PropertyValue<T>>(m_value); }
 	void setValue(ValuePtr value);
 
-	meta::BaseMetaContainer* meta() const;
+	template <class T> T* getMeta() const
+	{
+		if (!m_value) return nullptr;
+		return m_value->baseMetaContainer().get<T>();
+	}
 
 protected:
 	std::string m_name, m_help, m_group;
@@ -58,7 +62,8 @@ class BasePropertyValue
 public:
 	virtual ~BasePropertyValue() {}
 	virtual std::type_index type() const = 0;
-	virtual meta::BaseMetaContainer& meta() = 0;
+	virtual bool validate() = 0; // Applies meta::Validators, returns true if the value has been modified
+	virtual meta::BaseMetaContainer& baseMetaContainer() = 0;
 };
 
 template <class T>
@@ -75,7 +80,16 @@ public:
 	std::type_index type() const override
 	{ return std::type_index(typeid(T)); }
 
-	meta::BaseMetaContainer& meta() override
+	bool validate() override
+	{ return m_metaProperties.validate(value()); }
+
+	bool validate(T& val)
+	{ return m_metaProperties.validate(val); }
+
+	meta::BaseMetaContainer& baseMetaContainer() override
+	{ return m_metaProperties; }
+
+	meta::MetaContainer<T>& metaContainer()
 	{ return m_metaProperties; }
 
 protected:
@@ -167,6 +181,3 @@ inline std::type_index Property::type() const
 
 inline std::shared_ptr<BasePropertyValue> Property::value() const
 { return m_value; }
-
-inline meta::BaseMetaContainer* Property::meta() const
-{ return &m_value->meta(); }

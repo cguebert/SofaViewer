@@ -14,7 +14,7 @@ std::unique_ptr<BasePropertyWidget> PropertyWidgetFactory::create(std::shared_pt
 	const std::type_index type = property->type();
 
 	std::string widget;
-	auto meta = property->value()->meta().get<meta::Widget>();
+	auto meta = property->getMeta<meta::Widget>();
 	if (meta)
 		widget = meta->type();
 	const auto* ctr = creator(type, widget);

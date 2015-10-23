@@ -87,7 +87,7 @@ void addData(ObjectProperties::SPtr properties, sfe::Data data)
 
 	auto prop = wrapper->property();
 	if (valueType == "bool")
-		prop->meta()->add(meta::Checkbox());
+		prop->value()->baseMetaContainer().add(meta::Checkbox());
 
 	properties->addProperty(wrapper->property());
 	properties->addValueWrapper(wrapper);

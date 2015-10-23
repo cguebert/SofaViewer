@@ -44,7 +44,7 @@ public:
 	{
 		m_comboBox = new QComboBox(parent);
 		m_comboBox->setEnabled(!parent->readOnly());
-		auto enumMeta = parent->property()->meta()->get<meta::Enum>();
+		auto enumMeta = parent->property()->getMeta<meta::Enum>();
 		if (enumMeta)
 		{
 			for (const auto& v : enumMeta->values)
