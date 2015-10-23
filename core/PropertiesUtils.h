@@ -247,6 +247,9 @@ namespace property
 	//****************************************************************************//
 
 	template <class T>
+	void copyToVector(const T& from, T& to) { to = from; }
+
+	template <class T>
 	void copyToVector(const T& val, details::CopyVectorType<T>& vec)
 	{
 		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
@@ -262,6 +265,9 @@ namespace property
 
 	template <class T>
 	T& value(VectorWrapper<T>& val) { return val.value(); }
+
+	template <class T>
+	void copyFromVector(const T& from, T& to) { to = from; }
 
 	template <class T>
 	void copyFromVector(const details::CopyVectorType<T>& vec, T& val)

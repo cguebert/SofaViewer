@@ -93,6 +93,7 @@ public:
 	}
 	void readFromProperty(const value_type& v)
 	{
+		QSignalBlocker block(m_comboBox);
 		if (m_comboBox->currentIndex() != v)
 			m_comboBox->setCurrentIndex(v);
 	}

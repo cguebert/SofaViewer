@@ -57,6 +57,7 @@ public:
 	}
 	void readFromProperty(const value_type& v)
 	{
+		QSignalBlocker block(m_comboBox);
 		QString text = v.c_str();
 		if (m_comboBox->currentText() != text)
 			m_comboBox->setCurrentText(text);
