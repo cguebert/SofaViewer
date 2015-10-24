@@ -37,26 +37,6 @@ void Graph::removeChild(GraphNode* parent, GraphNode* child)
 	executeCallback(CallbackReason::EndSetNode);
 }
 
-void Graph::addObject(GraphNode* parent, GraphNode::SPtr object)
-{
-	executeCallback(CallbackReason::BeginSetNode);
-	parent->objects.push_back(object);
-	executeCallback(CallbackReason::EndSetNode);
-}
-
-void Graph::removeObject(GraphNode* parent, GraphNode* object)
-{
-	executeCallback(CallbackReason::BeginSetNode);
-	auto& objects = parent->objects;
-	auto it = std::find_if(objects.begin(), objects.end(), [object](const GraphNode::SPtr node){
-		return node.get() == object;
-	});
-
-	if (it != objects.end())
-		objects.erase(it);
-	executeCallback(CallbackReason::EndSetNode);
-}
-
 void Graph::executeCallback(CallbackReason reason)
 {
 	if(m_updateCallback)

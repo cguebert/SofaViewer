@@ -197,16 +197,12 @@ void SofaDocument::updateObjects()
 void SofaDocument::parseNode(GraphNode::SPtr parent, sfe::Node node)
 {
 	for(auto& object : node.objects())
-	{
-		auto n = createNode(object, parent);
-		parent->objects.push_back(n);
-	}
+		createNode(object, parent);
 
 	for(auto& child : node.children())
 	{
 		auto n = createNode(child, parent);
 		parseNode(n, child);
-		parent->children.push_back(n);
 	}
 }
 
@@ -221,12 +217,14 @@ GraphNode::SPtr SofaDocument::createNode(sfe::Object object, GraphNode::SPtr par
 	n->object = object;
 	n->expanded = false;
 	m_graphImages.setImage(*n.get());
+	if (parent)
+		parent->children.push_back(n);
 
 	// Parse slaves
 	for(auto& slave : object.slaves())
 	{
 		auto s = createNode(slave, n);
-		n->objects.push_back(s);
+		n->children.push_back(s);
 	}
 
 	return n;
@@ -241,6 +239,8 @@ GraphNode::SPtr SofaDocument::createNode(sfe::Node node, GraphNode::SPtr parent)
 	n->isObject = false;
 	n->node = node;
 	m_graphImages.setImage(*n.get());
+	if (parent)
+		parent->children.push_back(n);
 
 	return n;
 }

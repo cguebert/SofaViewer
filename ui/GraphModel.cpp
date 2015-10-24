@@ -37,11 +37,9 @@ QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) co
 	else
 		item = static_cast<GraphNode*>(parent.internalPointer());
 
-	int nbObjects = item->objects.size(), nbChildren = item->children.size();
-	if(row < nbObjects)
-		return createIndex(row, column, item->objects[row].get());
-	else if (row < nbObjects + nbChildren)
-		return createIndex(row, column, item->children[row - nbObjects].get());
+	int nbChildren = item->children.size();
+	if (row < nbChildren)
+		return createIndex(row, column, item->children[row].get());
 	else
 		return QModelIndex();
 }
@@ -82,7 +80,7 @@ int GraphModel::rowCount(const QModelIndex& parent) const
 	else
 	{
 		auto item = static_cast<GraphNode*>(parent.internalPointer());
-		return item->objects.size() + item->children.size();
+		return item->children.size();
 	}
 }
 

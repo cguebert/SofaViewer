@@ -16,7 +16,7 @@ public:
 	std::string name, type;
 
 	using SPtr = std::shared_ptr<GraphNode>;
-	std::vector<SPtr> children, objects;
+	std::vector<SPtr> children;
 	GraphNode* parent = nullptr; // Only null for the root
 
 	int imageId = -1; // Id of the image to draw for this node (-1 if no image)
@@ -47,8 +47,6 @@ public:
 	// The following methods execute the corresponding callbacks
 	void addChild(GraphNode* parent, GraphNode::SPtr child);
 	void removeChild(GraphNode* parent, GraphNode* child);
-	void addObject(GraphNode* parent, GraphNode::SPtr object);
-	void removeObject(GraphNode* parent, GraphNode* object);
 
 protected:
 	void executeCallback(CallbackReason reason);
