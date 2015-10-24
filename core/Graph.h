@@ -44,6 +44,12 @@ public:
 	using CallbackFunc = std::function<void(uint8_t)>;
 	void setUpdateCallback(CallbackFunc func); // For the GUI to respond to modifications in the graph (for now, only when setRoot is called)
 
+	// The following methods execute the corresponding callbacks
+	void addChild(GraphNode* parent, GraphNode::SPtr child);
+	void removeChild(GraphNode* parent, GraphNode* child);
+	void addObject(GraphNode* parent, GraphNode::SPtr object);
+	void removeObject(GraphNode* parent, GraphNode* object);
+
 protected:
 	void executeCallback(CallbackReason reason);
 

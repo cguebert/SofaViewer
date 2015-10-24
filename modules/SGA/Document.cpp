@@ -55,25 +55,14 @@ inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
 
 }
 
-namespace
-{
-
-std::string sgaObjectTypeName(sga::ObjectDefinition::ObjectType type)
-{
-	static std::vector<std::string> names;
-	if (names.empty())
-		names = { "Root object", "Physics object", "Collision object", "Visual object", "Modifier object" };
-	
-	return names[static_cast<int>(type)];
-}
-
-}
-
 Document::Document(const std::string& type)
 	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
 	, m_sgaFactory(modulePath() + "/definitions")
 {
+	m_sgaTypesNames = { "root", "physics", "collision", "visual", "modifier" };
+	m_sgaToNodeTypes = { SGANode::Type::SGA_Root, SGANode::Type::SGA_Physics, SGANode::Type::SGA_Collision, SGANode::Type::SGA_Visual, SGANode::Type::SGA_Modifier };
+	prepareSGAObjectsLists();
 }
 
 bool Document::loadFile(const std::string& path)
@@ -118,16 +107,16 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
-SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode::SPtr parent)
+SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent)
 {
 	auto node = SGANode::create();
 	node->name = name;
 	node->type = type;
 	node->nodeType = nodeType;
-	node->parent = parent.get();
+	node->parent = parent;
 	node->uniqueId = m_nextNodeId++;
 	if (parent)
-		parent->children.push_back(node);
+		m_graph.addChild(parent, node);
 
 	return node;
 }
@@ -141,7 +130,7 @@ inline glm::mat4 convert(const aiMatrix4x4& in)
 	return out;
 }
 
-void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode::SPtr parent)
+void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode* parent)
 {
 	auto n = createNode(aNode->mName.C_Str(), "Node", SGANode::Type::Node, parent);
 	auto nodeTransformation = convert(aNode->mTransformation);
@@ -149,13 +138,13 @@ void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::m
 	auto accTrans = nodeTransformation * transformation;
 
 	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
-		parseNode(scene, aNode->mChildren[i], accTrans, n);
+		parseNode(scene, aNode->mChildren[i], accTrans, n.get());
 
 	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
-		parseMeshInstance(scene, aNode->mMeshes[i], accTrans, n);
+		parseMeshInstance(scene, aNode->mMeshes[i], accTrans, n.get());
 }
 
-void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent)
+void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode* parent)
 {
 	const auto mesh = scene->mMeshes[id];
 	const auto modelId = modelIndex(id);
@@ -177,7 +166,7 @@ void Document::parseScene(const aiScene* scene)
 		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
 			continue;
 
-		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", SGANode::Type::Mesh, m_rootNode);
+		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", SGANode::Type::Mesh, m_rootNode.get());
 
 		auto model = createModel(mesh);
 		node->model = model;
@@ -187,7 +176,7 @@ void Document::parseScene(const aiScene* scene)
 
 	// Adding graph
 	glm::mat4 transformation;
-	parseNode(scene, scene->mRootNode, transformation, m_rootNode);
+	parseNode(scene, scene->mRootNode, transformation, m_rootNode.get());
 }
 
 inline glm::vec3 convert(aiVector3D v)
@@ -273,14 +262,18 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	{
 	case SGANode::Type::Root:
 	{
-		menu.addItem("Change root node", "Change the type of Sofa simulation", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::RootObject); });
+		menu.addItem("Set SGA root node", "Change the type of the Sofa simulation", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::RootObject); });
 		return;
 	}
 
 	case SGANode::Type::Instance:
 	{
-		menu.addItem("Add physics", "Add physics to this object", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::PhysicsObject); });
-		menu.addItem("Add collision", "Add collision to this object", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::CollisionObject); });
+		for (auto type : { sga::ObjectDefinition::ObjectType::PhysicsObject, sga::ObjectDefinition::ObjectType::CollisionObject, sga::ObjectDefinition::ObjectType::VisualObject })
+		{
+			bool present = (childSGANode(item, type) != nullptr);
+			auto label = (present ? "Modify " : "Add " ) + SGATypeName(type);
+			menu.addItem(label, label + (present ? " for" : " to" ) + " this object", [this, item, type](){ addSGANode(item, type); });
+		}
 		return;
 	}
 	}
@@ -319,18 +312,49 @@ void Document::importMesh()
 
 void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
 {
-	auto dlg = m_gui->createDialog("Add " + sgaObjectTypeName(type));
+	auto dlg = m_gui->createDialog("Add SGA " + SGATypeName(type) + " object");
 	auto& panel = dlg->content();
 
-	auto available = m_sgaFactory.availableObjects(type);
-	std::vector<std::string> labels;
-	for (const auto& id : available)
-		labels.push_back(m_sgaFactory.definition(id).label());
-	auto objectType = property::createCopyProperty("Object type", 0, meta::Enum(labels));
-	panel.addProperty(objectType);
+	int objectTypeId = 0;
+	auto objectTypeProp = property::createRefProperty("Object type", objectTypeId, meta::Enum(SGAObjectsLabels(type)));
+	panel.addProperty(objectTypeProp);
 	
 	if (dlg->exec())
 	{
+		auto prev = childSGANode(parent, type);
+		if (prev)
+			m_graph.removeChild(parent, prev);
 
+		auto objectType = SGAObjectId(type, objectTypeId);
+		auto node = createNode(objectType, "SGA " + SGATypeName(type), SGAToNodeType(type), parent);
+	}
+}
+
+SGANode* Document::childSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+{
+	auto nodeType = SGAToNodeType(type);
+	for (auto& child : parent->children)
+	{
+		auto sgaNode = dynamic_cast<SGANode*>(child.get());
+		if (sgaNode->nodeType == nodeType)
+			return sgaNode;
+	}
+	return nullptr;
+}
+
+void Document::prepareSGAObjectsLists()
+{
+	const int nbSGATypes = 5;
+	m_sgaObjectsLabels.resize(nbSGATypes);
+	m_sgaObjectsIds.resize(nbSGATypes);
+	for (int i = 0; i < nbSGATypes; ++i)
+	{
+		auto type = static_cast<sga::ObjectDefinition::ObjectType>(i);
+		auto objects = m_sgaFactory.availableObjects(type);
+		for (const auto& id : objects)
+		{
+			m_sgaObjectsIds[i].push_back(id);
+			m_sgaObjectsLabels[i].push_back(m_sgaFactory.definition(id).label());
+		}
 	}
 }

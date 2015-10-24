@@ -125,7 +125,7 @@ private:
 		{
 			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
 			validateFunc func;
-			PropertyInit<prop_type, validateFunc, isValidator>::init(propRef, func);
+			PropertyInit<prop_type, validateFunc, isValidator>::init(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
 			if (func)
 				m_validateFunctions.push_back(func);
 		}

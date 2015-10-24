@@ -52,7 +52,8 @@ public:
 		}
 		m_comboBox->addItems(m_enumValues);
 
-		QObject::connect(m_comboBox, &QComboBox::setCurrentIndex, parent, &BasePropertyWidget::setWidgetDirty);
+		void(QComboBox::*currentIndexChanged)(int) = &QComboBox::currentIndexChanged; // Get the right overload
+		QObject::connect(m_comboBox, currentIndexChanged, parent, &BasePropertyWidget::setWidgetDirty);
 		return m_comboBox;
 	}
 	void readFromProperty(const value_type& v)
