@@ -78,6 +78,8 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	auto root = createNode("SGA scene", "Root", SGANode::Type::Root, nullptr);
 	m_rootNode = root;
 	m_graph.setRoot(m_rootNode);
+
+	addSGANode(root.get(), sga::ObjectDefinition::ObjectType::RootObject);
 }
 
 void Document::initOpenGL()
@@ -107,7 +109,7 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
-SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent)
+SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position)
 {
 	auto node = SGANode::create();
 	node->name = name;
@@ -116,7 +118,7 @@ SGANode::SPtr Document::createNode(const std::string& name, const std::string& t
 	node->parent = parent;
 	node->uniqueId = m_nextNodeId++;
 	if (parent)
-		m_graph.addChild(parent, node);
+		m_graph.insertChild(parent, node, position);
 
 	return node;
 }
@@ -258,6 +260,10 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	if (!item)
 		return;
 
+	SGANode* parent = nullptr;
+	if (item->parent)
+		parent = dynamic_cast<SGANode*>(item->parent);
+
 	switch (item->nodeType)
 	{
 	case SGANode::Type::Root:
@@ -274,6 +280,40 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 			auto label = (present ? "Modify " : "Add " ) + SGATypeName(type);
 			menu.addItem(label, label + (present ? " for" : " to" ) + " this object", [this, item, type](){ addSGANode(item, type); });
 		}
+		return;
+	}
+
+	case SGANode::Type::SGA_Root:
+	{
+		menu.addItem("Modify SGA root", "Change the type of the Sofa simulation", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::RootObject); });
+		return;
+	}
+
+	case SGANode::Type::SGA_Physics:
+	{
+		menu.addItem("Modify physics", "Modify physics for this object", [parent, this](){ addSGANode(parent, sga::ObjectDefinition::ObjectType::PhysicsObject); });
+		menu.addItem("Remove physics", "Remove physics for this object", [item, this](){ m_graph.removeChild(item->parent, item); });
+		return;
+	}
+
+	case SGANode::Type::SGA_Collision:
+	{
+		menu.addItem("Modify collision", "Modify collision for this object", [parent, this](){ addSGANode(parent, sga::ObjectDefinition::ObjectType::CollisionObject); });
+		menu.addItem("Remove collision", "Remove collision for this object", [item, this](){ m_graph.removeChild(item->parent, item); });
+		return;
+	}
+
+	case SGANode::Type::SGA_Visual:
+	{
+		menu.addItem("Modify visual", "Modify visual for this object", [parent, this](){ addSGANode(parent, sga::ObjectDefinition::ObjectType::VisualObject); });
+		menu.addItem("Remove visual", "Remove visual for this object", [item, this](){ m_graph.removeChild(item->parent, item); });
+		return;
+	}
+
+	case SGANode::Type::SGA_Modifier:
+	{
+		menu.addItem("Modify modifier", "Modify modifier for this object", [parent, this](){ addSGANode(parent, sga::ObjectDefinition::ObjectType::ModifierObject); });
+		menu.addItem("Remove modifier", "Remove modifier for this object", [item, this](){ m_graph.removeChild(item->parent, item); });
 		return;
 	}
 	}
@@ -322,11 +362,16 @@ void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType typ
 	if (dlg->exec())
 	{
 		auto prev = childSGANode(parent, type);
+		int index = -1;
 		if (prev)
-			m_graph.removeChild(parent, prev);
+			index = indexOfChild(parent, prev);
 
 		auto objectType = SGAObjectId(type, objectTypeId);
-		auto node = createNode(objectType, "SGA " + SGATypeName(type), SGAToNodeType(type), parent);
+		auto node = createNode(objectType, "SGA " + SGATypeName(type), SGAToNodeType(type), parent, index);
+		node->sgaDefinition = m_sgaFactory.definition(objectType);
+
+		if (prev)
+			m_graph.removeChild(parent, prev);
 	}
 }
 

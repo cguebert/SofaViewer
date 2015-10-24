@@ -51,7 +51,7 @@ public:
 	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
 protected:
-	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent);
+	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position = -1);
 	void parseScene(const aiScene* scene);
 	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode* parent);
 	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode* parent);

@@ -26,6 +26,8 @@ public:
 	static SPtr create() { return std::make_shared<GraphNode>(); }
 };
 
+int CORE_API indexOfChild(GraphNode* parent, GraphNode* child);
+
 //****************************************************************************//
 
 class CORE_API Graph
@@ -46,6 +48,7 @@ public:
 
 	// The following methods execute the corresponding callbacks
 	void addChild(GraphNode* parent, GraphNode::SPtr child);
+	void insertChild(GraphNode* parent, GraphNode::SPtr child, int position);
 	void removeChild(GraphNode* parent, GraphNode* child);
 
 protected:

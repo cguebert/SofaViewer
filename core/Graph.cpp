@@ -2,6 +2,20 @@
 
 #include <algorithm>
 
+int indexOfChild(GraphNode* parent, GraphNode* child)
+{
+	auto it = std::find_if(parent->children.begin(), parent->children.end(), [child](const GraphNode::SPtr& node){
+		return node.get() == child;
+	});
+
+	if (it == parent->children.end())
+		return -1;
+
+	return std::distance(parent->children.begin(), it);
+}
+
+//****************************************************************************//
+
 void Graph::setRoot(GraphNode::SPtr root)
 {
 	executeCallback(CallbackReason::BeginSetNode);
@@ -21,6 +35,16 @@ void Graph::addChild(GraphNode* parent, GraphNode::SPtr child)
 {
 	executeCallback(CallbackReason::BeginSetNode);
 	parent->children.push_back(child);
+	executeCallback(CallbackReason::EndSetNode);
+}
+
+void Graph::insertChild(GraphNode* parent, GraphNode::SPtr child, int position)
+{
+	executeCallback(CallbackReason::BeginSetNode);
+	if (position < 0)
+		parent->children.push_back(child);
+	else
+		parent->children.insert(parent->children.begin() + position, child);
 	executeCallback(CallbackReason::EndSetNode);
 }
 
