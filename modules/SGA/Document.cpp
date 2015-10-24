@@ -1,4 +1,5 @@
 #include "Document.h"
+#include "SGAProperties.h"
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
@@ -250,6 +251,15 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
 		properties->createPropertyAndWrapper("transformation", item->transformation);
 		return properties;
+	}
+
+	case SGANode::Type::SGA_Root:
+	case SGANode::Type::SGA_Physics:
+	case SGANode::Type::SGA_Collision:
+	case SGANode::Type::SGA_Visual:
+	case SGANode::Type::SGA_Modifier:
+	{
+		return createSGAObjectProperties(item->sgaDefinition);
 	}
 	}
 

@@ -5,10 +5,12 @@ project(${PROJECT_NAME})
 
 set(HEADER_FILES
 	Document.h
+	SGAProperties.h
 )
 
 set(SOURCE_FILES
 	Document.cpp
+	SGAProperties.cpp
 )
 
 set(MODULE_DIR "${TARGET_DIR}/modules/${PROJECT_NAME}")
