@@ -35,10 +35,15 @@ bool DialogImpl::exec()
 	return result != 0;
 }
 
-void DialogImpl::show()
+void DialogImpl::show(simplegui::BoolCallbackFunc finishedCallback)
 {
 	if (!m_created)
 		completeLayout();
+
+	QObject::connect(m_dialog, &QDialog::finished, [this, finishedCallback](int result){
+		if (finishedCallback)
+			finishedCallback(result == QDialog::Accepted);
+	});
 	m_dialog->show();
 }
 
@@ -68,7 +73,7 @@ void DialogImpl::completeLayout()
 	m_created = true;
 }
 
-void DialogImpl::setFinishedCallback(CallbackFunc finishedCallback)
+void DialogImpl::setFinishedCallback(simplegui::CallbackFunc finishedCallback)
 {
 	m_finishedCallback = finishedCallback;
 }

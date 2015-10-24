@@ -12,6 +12,7 @@ namespace simplegui
 {
 
 using CallbackFunc = std::function<void()>;
+using BoolCallbackFunc = std::function<void(bool)>;
 
 class CORE_API Panel
 {
@@ -38,7 +39,7 @@ public:
 
 	virtual Panel& content() = 0; // Add buttons and property widgets
 	virtual bool exec() = 0; // Modal dialog (blocks, then returns true if "Ok" was pressed)
-	virtual void show() = 0; // Modeless dialog (doesn't block)
+	virtual void show(BoolCallbackFunc finishedCallback) = 0; // Modeless dialog (doesn't block). The callback is triggered when the user closes the dialog (true if clicked on Ok)
 };
 
 /******************************************************************************/
