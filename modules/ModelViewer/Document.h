@@ -56,6 +56,8 @@ protected:
 	std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh);
 	int modelIndex(int meshId);
 
+	void createGraphImages();
+
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
@@ -63,6 +65,8 @@ protected:
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
 	std::vector<int> m_modelsIndices; // Mesh id in Assimp scene -> Model id
+
+	std::vector<int> m_graphImages;
 };
 
 inline Graph& Document::graph()

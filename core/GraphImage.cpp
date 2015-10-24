@@ -63,7 +63,7 @@ void GraphImage::disk(Color color)
 	const float cx = (m_width - 1) / 2.0f, cy = (m_height - 1) / 2.0f;
 	const float d2 = std::min(cx, cy);
 	const float d1 = d2 - 0.5f;
-	const float d0 = std::max(0.f, d1 - 1.5f);
+	const float d0 = std::max(0.f, d1 - 1.2f);
 	const auto black = rgba(0, 0, 0, 255);
 	const auto transparent = rgba(0, 0, 0, 0);
 

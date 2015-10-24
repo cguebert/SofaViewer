@@ -70,6 +70,8 @@ protected:
 	const std::string& SGAObjectId(sga::ObjectDefinition::ObjectType type, int index);
 	SGANode::Type SGAToNodeType(sga::ObjectDefinition::ObjectType type);
 
+	void createGraphImages();
+
 	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;
 	Graph m_graph;
@@ -85,6 +87,7 @@ protected:
 	size_t m_nextNodeId = 1;
 	std::vector<int> m_modelsIndices; // Mesh id in Assimp scene -> Model id
 	bool m_reinitScene = false;
+	std::vector<int> m_graphImages;
 };
 
 inline Graph& Document::graph()

@@ -63,6 +63,7 @@ Document::Document(const std::string& type)
 	m_sgaTypesNames = { "root", "physics", "collision", "visual", "modifier" };
 	m_sgaToNodeTypes = { SGANode::Type::SGA_Root, SGANode::Type::SGA_Physics, SGANode::Type::SGA_Collision, SGANode::Type::SGA_Visual, SGANode::Type::SGA_Modifier };
 	prepareSGAObjectsLists();
+	createGraphImages();
 }
 
 bool Document::loadFile(const std::string& path)
@@ -117,6 +118,7 @@ SGANode::SPtr Document::createNode(const std::string& name, const std::string& t
 	node->nodeType = nodeType;
 	node->parent = parent;
 	node->uniqueId = m_nextNodeId++;
+	node->imageId = m_graphImages[static_cast<int>(nodeType)];
 	if (parent)
 		m_graph.insertChild(parent, node, position);
 
@@ -402,4 +404,17 @@ void Document::prepareSGAObjectsLists()
 			m_sgaObjectsLabels[i].push_back(m_sgaFactory.definition(id).label());
 		}
 	}
+}
+
+void Document::createGraphImages()
+{
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createDiskImage(0xffdedede))); // Root
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createDiskImage(0xffdedede))); // Node
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff00daff }))); // Mesh
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffdedea4 }))); // SGA_Root
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffbebada }))); // SGA_Physics
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffccde5 }))); // SGA_Collision
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffccebc5 }))); // SGA_Visual
+	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffdb462 }))); // SGA_Modifier
 }
