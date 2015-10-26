@@ -29,14 +29,13 @@ QWidget* GraphView::view()
 
 void GraphView::setDocument(std::shared_ptr<BaseDocument> doc)
 {
-	m_document = doc;
-
 	// Cleanly remove the previous model of the graph view
 	auto oldModel = m_graph->model();
 	m_graph->setModel(nullptr);
 	if (oldModel)
 		delete oldModel;
 
+	m_document = doc;
 	if (!m_document)
 		return;
 

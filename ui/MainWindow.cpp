@@ -356,11 +356,13 @@ void MainWindow::about()
 
 void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 {
-	m_document = document;
 	m_simpleGUI->clear();
 
-	m_simpleGUI->setDocument(m_document);
-	m_graphView->setDocument(m_document);
+	m_simpleGUI->setDocument(document);
+	m_graphView->setDocument(document);
+	m_openGLView->setDocument(document.get());
+
+	m_document = document;
 
 	if (m_document)
 	{
@@ -371,8 +373,6 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 
 		m_document->initUI(*m_simpleGUI.get());
 	}
-
-	m_openGLView->setDocument(m_document.get());
 }
 
 void MainWindow::loadModules()
