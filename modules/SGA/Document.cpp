@@ -1,5 +1,7 @@
 #include "Document.h"
 #include "SGAProperties.h"
+#include "SGAExecution.h"
+#include "MeshImport.h"
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
@@ -14,47 +16,6 @@
 
 int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction").setDescription("Create Sofa simulations using higher level objects.").canCreateNew(true);
 ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction").addDocument(SofaGraphAbstractionDoc);
-
-namespace property
-{
-	namespace details
-	{
-		template <>
-		struct ArrayTraits<glm::vec3>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 3;
-			using value_type = glm::vec3::value_type;
-		};
-
-		template <>
-		struct ArrayTraits<glm::vec4>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 4;
-			using value_type = glm::vec4::value_type;
-		};
-
-		template <>
-		struct ArrayTraits<glm::mat4>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 4;
-			using value_type = glm::mat4::col_type;
-		};
-	}
-}
-
-namespace std
-{
-
-inline glm::vec3::value_type* begin(glm::vec3& v) { return &v.x; }
-inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
-
-}
 
 Document::Document(const std::string& type)
 	: BaseDocument(type)
@@ -76,6 +37,9 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 {
 	m_gui = &gui;
 	m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools).addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
+
+	auto& panel = m_gui->buttonsPanel();
+	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ convertAndRun(); });
 
 	auto root = createNode("SGA scene", "Root", SGANode::Type::Root, nullptr);
 	m_rootNode = root;
@@ -126,87 +90,6 @@ SGANode::SPtr Document::createNode(const std::string& name, const std::string& t
 	return node;
 }
 
-inline glm::mat4 convert(const aiMatrix4x4& in)
-{
-	glm::mat4 out(glm::uninitialize);
-	for (int i = 0; i < 4; ++i)
-		for (int j = 0; j < 4; ++j)
-			out[i][j] = in[i][j];
-	return out;
-}
-
-void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode* parent)
-{
-	auto n = createNode(aNode->mName.C_Str(), "Node", SGANode::Type::Node, parent);
-	auto nodeTransformation = convert(aNode->mTransformation);
-	n->transformation = nodeTransformation;
-	auto accTrans = nodeTransformation * transformation;
-
-	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
-		parseNode(scene, aNode->mChildren[i], accTrans, n.get());
-
-	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
-		parseMeshInstance(scene, aNode->mMeshes[i], accTrans, n.get());
-}
-
-void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode* parent)
-{
-	const auto mesh = scene->mMeshes[id];
-	const auto modelId = modelIndex(id);
-	if (modelId < 0)
-		return;
-
-	auto n = createNode(mesh->mName.C_Str(), "Instance", SGANode::Type::Instance, parent);
-	n->meshId = modelId;
-	n->transformation = transformation;
-	m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[modelId] });
-}
-
-void Document::parseScene(const aiScene* scene)
-{
-	// Adding meshes
-	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
-	{
-		const auto& mesh = scene->mMeshes[i];
-		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
-			continue;
-
-		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", SGANode::Type::Mesh, m_rootNode.get());
-
-		auto model = createModel(mesh);
-		node->model = model;
-		m_scene.addModel(model);
-		m_modelsIndices.push_back(i);
-	}
-
-	// Adding graph
-	glm::mat4 transformation;
-	parseNode(scene, scene->mRootNode, transformation, m_rootNode.get());
-}
-
-inline glm::vec3 convert(aiVector3D v)
-{
-	return glm::vec3{ v.x, v.y, v.z };
-}
-
-std::shared_ptr<simplerender::Model> Document::createModel(const aiMesh* mesh)
-{
-	auto model = std::make_shared<simplerender::Model>();
-	model->m_vertices.reserve(mesh->mNumVertices);
-	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-		model->m_vertices.push_back(convert(mesh->mVertices[j]));
-
-	model->m_triangles.reserve(mesh->mNumFaces);
-	for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-		model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
-
-	model->m_normals.reserve(mesh->mNumVertices);
-	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-		model->m_normals.push_back(convert(mesh->mNormals[j]));
-
-	return model;
-}
-
 Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 {
 	auto item = dynamic_cast<SGANode*>(baseItem);
@@ -216,40 +99,12 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	switch (item->nodeType)
 	{
 	case SGANode::Type::Root:
-	{
-		auto properties = std::make_shared<ObjectProperties>(item->name);
-		properties->createPropertyAndWrapper("transformation", item->transformation);
-		auto bb = simplerender::boundingBox(m_scene);
-		auto sceneSize = bb.second - bb.first;
-		properties->addProperty(property::createCopyProperty("Scene size", sceneSize));
-		return properties;
-	}
-
 	case SGANode::Type::Node:
-	{
-		auto properties = std::make_shared<ObjectProperties>(item->name);
-		properties->createPropertyAndWrapper("transformation", item->transformation);
-		return properties;
-	}
-
 	case SGANode::Type::Mesh:
-	{
-		auto model = item->model;
-		if (!model)
-			return nullptr;
-
-		auto properties = std::make_shared<ObjectProperties>(item->name);
-		properties->createPropertyAndWrapper("vertices", model->m_vertices);
-		properties->createPropertyAndWrapper("triangles", model->m_triangles);
-		properties->createPropertyAndWrapper("normals", model->m_normals);
-		return properties;
-	}
-
 	case SGANode::Type::Instance:
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
-		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
-		properties->createPropertyAndWrapper("transformation", item->transformation);
+		populateProperties(item, m_scene, properties.get());
 		return properties;
 	}
 
@@ -331,35 +186,18 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	}
 }
 
-int Document::modelIndex(int meshId)
-{
-	for (int i = 0, nb = m_modelsIndices.size(); i < nb; ++i)
-	{
-		if (m_modelsIndices[i] == meshId)
-			return i;
-	}
-
-	return -1;
-}
-
 void Document::importMesh()
 {
 	auto path = m_gui->getOpenFileName("Import mesh", "", "Supported files (*.3ds *.ac *.ase *.blend *.dae *.ifc *.lwo *.lws *.lxo *.ms3d *.obj *.ply *.stl *.x *.xgl *.zgl");
 	if (path.empty())
 		return;
 
-	Assimp::Importer importer;
-	const aiScene* scene = importer.ReadFile(path,
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType);
+	MeshImport importer(this, m_scene, m_graph);
+	auto newModels = importer.importMeshes(path);
+	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 
-	if (scene)
-	{
-		parseScene(scene);
-		m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
+	if (!newModels.empty())
 		m_reinitScene = true;
-	}
 }
 
 void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
@@ -427,4 +265,10 @@ void Document::createGraphImages()
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffccde5 }))); // SGA_Collision
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffccebc5 }))); // SGA_Visual
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffdb462 }))); // SGA_Modifier
+}
+
+void Document::convertAndRun()
+{
+	m_execution = std::make_shared<SGAExecution>(m_sgaFactory);
+	m_execution->convert(m_rootNode.get());
 }

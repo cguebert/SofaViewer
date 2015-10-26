@@ -5,11 +5,15 @@ project(${PROJECT_NAME})
 
 set(HEADER_FILES
 	Document.h
+	MeshImport.h
+	SGAExecution.h
 	SGAProperties.h
 )
 
 set(SOURCE_FILES
 	Document.cpp
+	MeshImport.cpp
+	SGAExecution.cpp
 	SGAProperties.cpp
 )
 

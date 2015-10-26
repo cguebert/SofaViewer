@@ -7,11 +7,8 @@
 #include <render/Scene.h>
 #include <sfe/Simulation.h>
 #include <sga/ObjectFactory.h>
-#include <glm/glm.hpp>
 
-struct aiScene;
-struct aiNode;
-struct aiMesh;
+class SGAExecution;
 
 class SGANode : public GraphNode
 {
@@ -50,16 +47,12 @@ public:
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
 	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
-protected:
 	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position = -1);
-	void parseScene(const aiScene* scene);
-	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, GraphNode* parent);
-	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode* parent);
 
-	std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh);
-	int modelIndex(int meshId);
-
+protected:
 	void importMesh();
+
+	void convertAndRun();
 
 	void addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
 	SGANode* childSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
@@ -83,11 +76,12 @@ protected:
 	std::vector<std::vector<std::string>> m_sgaObjectsLabels;
 	std::vector<std::vector<std::string>> m_sgaObjectsIds;
 
-	GraphNode::SPtr m_rootNode;
+	SGANode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
-	std::vector<int> m_modelsIndices; // Mesh id in Assimp scene -> Model id
 	bool m_reinitScene = false;
 	std::vector<int> m_graphImages;
+
+	std::shared_ptr<SGAExecution> m_execution;
 };
 
 inline Graph& Document::graph()
