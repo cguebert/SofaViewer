@@ -22,7 +22,7 @@ public:
 
 	glm::mat4 transformation; // Root & Node
 	simplerender::Scene::ModelPtr model; // Mesh
-	unsigned int meshId; // Instance
+	int meshId = -1; // Instance
 	sga::ObjectDefinition sgaDefinition; // SGA nodes
 };
 

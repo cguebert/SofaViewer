@@ -152,7 +152,7 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 
 	case SGANode::Type::SGA_Root:
 	{
-		menu.addItem("Modify SGA root", "Change the type of the Sofa simulation", [item, this](){ addSGANode(item, sga::ObjectDefinition::ObjectType::RootObject); });
+		menu.addItem("Modify SGA root", "Change the type of the Sofa simulation", [parent, this](){ addSGANode(parent, sga::ObjectDefinition::ObjectType::RootObject); });
 		return;
 	}
 
@@ -269,6 +269,7 @@ void Document::createGraphImages()
 
 void Document::convertAndRun()
 {
-	m_execution = std::make_shared<SGAExecution>(m_sgaFactory);
+	std::string dataPath = modulePath();
+	m_execution = std::make_shared<SGAExecution>(m_sgaFactory, dataPath);
 	m_execution->convert(m_rootNode.get());
 }

@@ -10,7 +10,7 @@ namespace
 bool isHidden(const std::string& name)
 {
 	static std::vector<std::string> reserved = { "dataPath", "displayFlags", "edges", "exportedMesh",
-			"extendMax", "extendMin", "groups", "name", "rotation", "scale",
+			"extendMax", "extendMin", /*"groups",*/ "name", "rotation", "scale",
 			"self", "topologyType", "translation", "triangles", "vertices" };
 
 	return reserved.end() != std::find(reserved.begin(), reserved.end(), name);

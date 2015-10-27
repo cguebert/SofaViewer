@@ -132,8 +132,9 @@ void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const 
 
 	auto n = m_document->createNode(mesh->mName.C_Str(), "Instance", SGANode::Type::Instance, parent);
 	n->meshId = modelId;
+	n->model = m_scene.models()[modelId];
 	n->transformation = transformation;
-	m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[modelId] });
+	m_scene.addInstance({ glm::transpose(transformation), n->model });
 }
 
 void MeshImport::parseScene(const aiScene* scene)
@@ -180,11 +181,13 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 		auto bb = simplerender::boundingBox(scene);
 		auto sceneSize = bb.second - bb.first;
 		properties->addProperty(property::createCopyProperty("Scene size", sceneSize));
+		break;
 	}
 
 	case SGANode::Type::Node:
 	{
 		properties->createPropertyAndWrapper("transformation", item->transformation);
+		break;
 	}
 
 	case SGANode::Type::Mesh:
@@ -196,12 +199,14 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 		properties->createPropertyAndWrapper("vertices", model->m_vertices);
 		properties->createPropertyAndWrapper("triangles", model->m_triangles);
 		properties->createPropertyAndWrapper("normals", model->m_normals);
+		break;
 	}
 
 	case SGANode::Type::Instance:
 	{
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
 		properties->createPropertyAndWrapper("transformation", item->transformation);
+		break;
 	}
 	}
 }
