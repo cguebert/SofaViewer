@@ -60,12 +60,9 @@ void Document::resize(int width, int height)
 
 void Document::render()
 {
-	if (m_reinitScene)
-	{
-		m_reinitScene = false;
-		for (auto model : m_scene.models())
-			model->init();
-	}
+	for (auto model : m_newModels)
+		model->init();
+	m_newModels.clear();
 
 	m_scene.render();
 }
@@ -193,11 +190,8 @@ void Document::importMesh()
 		return;
 
 	MeshImport importer(this, m_scene, m_graph);
-	auto newModels = importer.importMeshes(path);
+	m_newModels = importer.importMeshes(path);
 	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
-
-	if (!newModels.empty())
-		m_reinitScene = true;
 }
 
 void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)

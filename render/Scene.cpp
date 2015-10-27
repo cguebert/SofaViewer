@@ -102,7 +102,7 @@ void Scene::render()
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 {
 	if (scene.models().empty())
-		return std::make_pair(glm::vec3(-1, -1, -1), glm::vec3(1, 1, 1));
+		return std::make_pair(glm::vec3(-5, -5, -5), glm::vec3(5, 5, 5));
 
 	glm::vec3 vMin, vMax;
 	for(int i=0; i<3; ++i)

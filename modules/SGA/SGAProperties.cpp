@@ -121,8 +121,11 @@ void addProperty(ObjectProperties::SPtr properties, sga::Property sgaProp)
 	case sgaPropType::None:	std::cerr << "Unknown SGA property type: " << sgaProp.type() << std::endl;
 	}
 
-	properties->addProperty(wrapper->property());
-	properties->addValueWrapper(wrapper);
+	if (wrapper)
+	{
+		properties->addProperty(wrapper->property());
+		properties->addValueWrapper(wrapper);
+	}
 }
 
 }

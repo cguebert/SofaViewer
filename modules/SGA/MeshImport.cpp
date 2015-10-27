@@ -152,6 +152,7 @@ void MeshImport::parseScene(const aiScene* scene)
 		node->model = model;
 		m_scene.addModel(model);
 		m_modelsIndices.push_back(i);
+		m_newModels.push_back(model.get());
 	}
 
 	// Adding graph

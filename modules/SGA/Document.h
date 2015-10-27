@@ -78,8 +78,8 @@ protected:
 
 	SGANode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
-	bool m_reinitScene = false;
 	std::vector<int> m_graphImages;
+	std::vector<simplerender::Model*> m_newModels;
 
 	std::shared_ptr<SGAExecution> m_execution;
 };

@@ -143,7 +143,7 @@ void SGAExecution::convertMesh(SGANode* item, sgaExec::CreationContext& context)
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa
-	auto modelTrans = item->transformation;
+	auto modelTrans = glm::transpose(item->transformation);
 	glm::vec3 scale, translation, skew;
 	glm::vec4 perspective;
 	glm::quat orientation;
@@ -270,6 +270,4 @@ void SGAExecution::postObjectsCreation()
 			createSofaObject(deferred.second[i], context);
 		}
 	}
-
-
 }
