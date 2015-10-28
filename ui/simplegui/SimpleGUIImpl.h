@@ -7,6 +7,7 @@
 
 class BaseDocument;
 class BasePropertyWidget;
+class GraphNode;
 class MainWindow;
 class ObjectProperties;
 class PropertiesDialog;
@@ -51,7 +52,7 @@ protected:
 	using MenuImplPtr = std::shared_ptr<MenuImpl>;
 	using PanelImplPtr = std::shared_ptr<PanelImpl>;
 	using SettingsImplPtr = std::shared_ptr<SettingsImpl>;
-	using PropertiesDialogPair = std::pair<size_t, PropertiesDialog*>;
+	using PropertiesDialogPair = std::pair<GraphNode*, PropertiesDialog*>;
 
 	QMainWindow* m_mainWindow;
 	QWidget* m_mainView;

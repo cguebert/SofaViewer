@@ -45,6 +45,7 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
+	void closeObjectProperties(GraphNode* item, ObjectPropertiesPtr ptr, bool accepted) override;
 	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
 	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position = -1);
@@ -64,6 +65,9 @@ protected:
 	SGANode::Type SGAToNodeType(sga::ObjectDefinition::ObjectType type);
 
 	void createGraphImages();
+
+	void updateInstancesTransformation();
+	void updateTransformation(SGANode* item, const glm::mat4& transformation);
 
 	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;

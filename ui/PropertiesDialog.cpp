@@ -8,8 +8,9 @@
 
 #include <iostream>
 
-PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent)
+PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, GraphNode* node, QWidget* parent)
 	: QDialog(parent)
+	, m_graphNode(node)
 	, m_objectProperties(objectProperties)
 {
 	setMinimumSize(300, 200);
@@ -92,11 +93,6 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	m_objectProperties->addModifiedCallback([this](){
 		readFromProperties();
 	});
-}
-
-std::shared_ptr<ObjectProperties> PropertiesDialog::objectProperties() const
-{
-	return m_objectProperties;
 }
 
 void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter begin, IntListIter end)

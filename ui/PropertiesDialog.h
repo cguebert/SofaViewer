@@ -5,6 +5,7 @@
 #include <memory>
 
 class BasePropertyWidget;
+class GraphNode;
 class ObjectProperties;
 class Property;
 
@@ -16,8 +17,9 @@ class PropertiesDialog : public QDialog
 	Q_OBJECT
 
 public:
-	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, QWidget* parent = nullptr);
+	PropertiesDialog(std::shared_ptr<ObjectProperties> objectProperties, GraphNode* node, QWidget* parent = nullptr);
 	std::shared_ptr<ObjectProperties> objectProperties() const;
+	GraphNode* graphNode() const;
 
 protected:
 	void apply();
@@ -43,4 +45,11 @@ protected:
 
 	std::shared_ptr<ObjectProperties> m_objectProperties;
 	PropertyList m_propertyWidgets;
+	GraphNode* m_graphNode;
 };
+
+inline std::shared_ptr<ObjectProperties> PropertiesDialog::objectProperties() const
+{ return m_objectProperties; }
+
+inline GraphNode* PropertiesDialog::graphNode() const
+{ return m_graphNode; }

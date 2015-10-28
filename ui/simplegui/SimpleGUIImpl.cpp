@@ -112,9 +112,9 @@ void SimpleGUIImpl::updateView()
 
 void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
 {
-	size_t uniqueId = item->uniqueId;
+	auto uniqueId = item->uniqueId;
 	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialogPair& p){
-		return p.first == uniqueId;
+		return p.first->uniqueId == uniqueId;
 	});
 	if (it != m_propertiesDialogs.end()) // Show existing dialog
 	{
@@ -127,9 +127,9 @@ void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
 	auto properties = m_document->objectProperties(item);
 	if (properties)
 	{
-		PropertiesDialog* dlg = new PropertiesDialog(properties, m_mainWindow);
+		PropertiesDialog* dlg = new PropertiesDialog(properties, item, m_mainWindow);
 		QObject::connect(dlg, &QDialog::finished, [this, dlg](int result) { dialogFinished(dlg, result); });
-		m_propertiesDialogs.emplace_back(uniqueId, dlg);
+		m_propertiesDialogs.emplace_back(item, dlg);
 		dlg->show();
 	}
 }
@@ -146,7 +146,7 @@ void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
 
 void SimpleGUIImpl::dialogFinished(PropertiesDialog* dialog, int result)
 {
-	m_document->closeObjectProperties(dialog->objectProperties(), result == QDialog::Accepted);
+	m_document->closeObjectProperties(dialog->graphNode(), dialog->objectProperties(), result == QDialog::Accepted);
 	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dialog](const PropertiesDialogPair& p){
 		return p.second == dialog;
 	});

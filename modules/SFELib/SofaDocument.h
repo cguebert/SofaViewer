@@ -28,7 +28,7 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
-	void closeObjectProperties(ObjectPropertiesPtr ptr, bool accepted) override;
+	void closeObjectProperties(GraphNode* item, ObjectPropertiesPtr ptr, bool accepted) override;
 
 protected:
 	void parseScene();

@@ -118,6 +118,16 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	return nullptr;
 }
 
+void Document::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr ptr, bool accepted)
+{
+	auto item = dynamic_cast<SGANode*>(baseItem);
+	if (!item)
+		return;
+
+	if (item->nodeType == SGANode::Type::Root || item->nodeType == SGANode::Type::Node)
+		updateInstancesTransformation();
+}
+
 void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 {
 	auto item = dynamic_cast<SGANode*>(baseItem);
@@ -266,4 +276,26 @@ void Document::convertAndRun()
 	std::string dataPath = modulePath();
 	m_execution = std::make_shared<SGAExecution>(m_sgaFactory, dataPath);
 	m_execution->convert(m_rootNode.get());
+}
+
+void Document::updateInstancesTransformation()
+{
+	m_scene.instances().clear();
+	glm::mat4 transformation;
+	updateTransformation(dynamic_cast<SGANode*>(m_rootNode.get()), transformation);
+}
+
+void Document::updateTransformation(SGANode* item, const glm::mat4& transformation)
+{
+	if (item->nodeType == SGANode::Type::Root || item->nodeType == SGANode::Type::Node)
+	{
+		auto accTrans = item->transformation * transformation;
+
+		for (auto child : item->children)
+			updateTransformation(dynamic_cast<SGANode*>(child.get()), accTrans);
+	}
+	else if (item->nodeType == SGANode::Type::Instance)
+	{
+		m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[item->meshId] });
+	}
 }

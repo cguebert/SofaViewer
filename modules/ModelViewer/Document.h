@@ -46,6 +46,7 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
+	void closeObjectProperties(GraphNode* item, ObjectPropertiesPtr ptr, bool accepted) override;
 
 protected:
 	ModelNode::SPtr createNode(const std::string& name, const std::string& type, ModelNode::Type nodeType, GraphNode::SPtr parent);
@@ -57,6 +58,9 @@ protected:
 	int modelIndex(int meshId);
 
 	void createGraphImages();
+
+	void updateInstancesTransformation();
+	void updateTransformation(ModelNode* item, const glm::mat4& transformation);
 
 	simplerender::Scene m_scene;
 	Graph m_graph;

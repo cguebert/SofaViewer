@@ -271,6 +271,16 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	return nullptr;
 }
 
+void Document::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr ptr, bool accepted)
+{
+	auto item = dynamic_cast<ModelNode*>(baseItem);
+	if (!item)
+		return;
+
+	if (item->nodeType == ModelNode::Type::Root || item->nodeType == ModelNode::Type::Node)
+		updateInstancesTransformation();
+}
+
 int Document::modelIndex(int meshId)
 {
 	for (int i = 0, nb = m_modelsIndices.size(); i < nb; ++i)
@@ -288,9 +298,26 @@ void Document::createGraphImages()
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createDiskImage(0xffdedede))); // Node
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff00daff }))); // Mesh
 	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
-	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffdedea4 }))); // SGA_Root
-	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffbebada }))); // SGA_Physics
-	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffccde5 }))); // SGA_Collision
-	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffccebc5 }))); // SGA_Visual
-	m_graphImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffdb462 }))); // SGA_Modifier
+}
+
+void Document::updateInstancesTransformation()
+{
+	m_scene.instances().clear();
+	glm::mat4 transformation;
+	updateTransformation(dynamic_cast<ModelNode*>(m_rootNode.get()), transformation);
+}
+
+void Document::updateTransformation(ModelNode* item, const glm::mat4& transformation)
+{
+	if (item->nodeType == ModelNode::Type::Root || item->nodeType == ModelNode::Type::Node)
+	{
+		auto accTrans = item->transformation * transformation;
+
+		for (auto child : item->children)
+			updateTransformation(dynamic_cast<ModelNode*>(child.get()), accTrans);
+	}
+	else if (item->nodeType == ModelNode::Type::Instance)
+	{
+		m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[item->meshId] });
+	}
 }

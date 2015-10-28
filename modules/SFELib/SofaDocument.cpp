@@ -306,7 +306,7 @@ ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)
 	return properties;
 }
 
-void SofaDocument::closeObjectProperties(ObjectPropertiesPtr properties, bool /*accepted*/)
+void SofaDocument::closeObjectProperties(GraphNode* /*item*/, ObjectPropertiesPtr properties, bool /*accepted*/)
 {
 	if(!m_openedObjectProperties.empty())
 	{
