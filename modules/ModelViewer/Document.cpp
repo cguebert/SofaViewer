@@ -150,11 +150,11 @@ void Document::parseNode(const aiScene* scene, const aiNode* aNode, const glm::m
 	n->transformation = nodeTransformation;
 	auto accTrans = nodeTransformation * transformation;
 
-	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
-		parseNode(scene, aNode->mChildren[i], accTrans, n);
-
 	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
 		parseMeshInstance(scene, aNode->mMeshes[i], accTrans, n);
+
+	for (unsigned int i = 0; i < aNode->mNumChildren; ++i)
+		parseNode(scene, aNode->mChildren[i], accTrans, n);
 }
 
 void Document::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, GraphNode::SPtr parent)
