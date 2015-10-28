@@ -17,13 +17,82 @@
 int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction").setDescription("Create Sofa simulations using higher level objects.").canCreateNew(true);
 ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction").addDocument(SofaGraphAbstractionDoc);
 
+namespace
+{
+
+SGANode* getChild(SGANode* parent, SGANode::Type type)
+{
+	for (auto child : parent->children)
+	{
+		auto sgaNode = dynamic_cast<SGANode*>(child.get());
+		if (sgaNode->nodeType == type)
+			return sgaNode;
+	}
+
+	return nullptr;
+}
+
+SGANode::Type SGAToNodeType(sga::ObjectDefinition::ObjectType type)
+{
+	static std::vector<SGANode::Type> sgaToNodeTypes = { SGANode::Type::SGA_Root, SGANode::Type::SGA_Physics, SGANode::Type::SGA_Collision, SGANode::Type::SGA_Visual, SGANode::Type::SGA_Modifier };
+	return sgaToNodeTypes[static_cast<int>(type)];
+}
+
+// Returns the position of the new node, and the node to be removed or null
+// Default order: Physics, Collision, Visual, Modifier, Nodes
+std::pair<int, SGANode*> indexOfNewNode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+{
+	using ObjectType = sga::ObjectDefinition::ObjectType;
+	switch (type)
+	{
+	case ObjectType::RootObject:
+	{
+		auto prev = getChild(parent, SGANode::Type::SGA_Root);
+		return std::make_pair(0, prev);
+	}
+
+	case ObjectType::PhysicsObject:
+	{
+		auto prev = getChild(parent, SGANode::Type::SGA_Physics);
+		return std::make_pair(0, prev);
+	}
+
+	case ObjectType::CollisionObject:
+	{
+		bool hasPhysics = (nullptr != getChild(parent, SGANode::Type::SGA_Physics));
+		auto prev = getChild(parent, SGANode::Type::SGA_Collision);
+		return std::make_pair(hasPhysics ? 1 : 0, prev);
+	}
+
+	case ObjectType::VisualObject:
+	{
+		int index = 0;
+		if (getChild(parent, SGANode::Type::SGA_Physics)) ++index;
+		if (getChild(parent, SGANode::Type::SGA_Collision)) ++index;
+		auto prev = getChild(parent, SGANode::Type::SGA_Visual);
+		return std::make_pair(index, prev);
+	}
+
+	case ObjectType::ModifierObject:
+	{
+		auto firstNode = getChild(parent, SGANode::Type::Node);
+		if (firstNode)
+			return std::make_pair(indexOfChild(parent, firstNode), nullptr); // Add before the first node
+		return std::make_pair(-1, nullptr); // Add at the end
+	}
+	}
+
+	return std::make_pair(-1, nullptr);
+}
+
+}
+
 Document::Document(const std::string& type)
 	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
 	, m_sgaFactory(modulePath() + "/definitions")
 {
 	m_sgaTypesNames = { "root", "physics", "collision", "visual", "modifier" };
-	m_sgaToNodeTypes = { SGANode::Type::SGA_Root, SGANode::Type::SGA_Physics, SGANode::Type::SGA_Collision, SGANode::Type::SGA_Visual, SGANode::Type::SGA_Modifier };
 	prepareSGAObjectsLists();
 	createGraphImages();
 }
@@ -150,7 +219,7 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	{
 		for (auto type : { sga::ObjectDefinition::ObjectType::PhysicsObject, sga::ObjectDefinition::ObjectType::CollisionObject, sga::ObjectDefinition::ObjectType::VisualObject })
 		{
-			bool present = (childSGANode(item, type) != nullptr);
+			bool present = (getChild(item, SGAToNodeType(type)) != nullptr);
 			auto label = (present ? "Modify " : "Add " ) + SGATypeName(type);
 			menu.addItem(label, label + (present ? " for" : " to" ) + " this object", [this, item, type](){ addSGANode(item, type); });
 		}
@@ -215,10 +284,9 @@ void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType typ
 	
 	if (dlg->exec())
 	{
-		auto prev = childSGANode(parent, type);
-		int index = -1;
-		if (prev)
-			index = indexOfChild(parent, prev);
+		int index;
+		SGANode* prev;
+		std::tie(index, prev) = indexOfNewNode(parent, type);
 
 		auto objectType = SGAObjectId(type, objectTypeId);
 		auto node = createNode(objectType, "SGA " + SGATypeName(type), SGAToNodeType(type), parent, index);
@@ -227,18 +295,6 @@ void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType typ
 		if (prev)
 			m_graph.removeChild(parent, prev);
 	}
-}
-
-SGANode* Document::childSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
-{
-	auto nodeType = SGAToNodeType(type);
-	for (auto& child : parent->children)
-	{
-		auto sgaNode = dynamic_cast<SGANode*>(child.get());
-		if (sgaNode->nodeType == nodeType)
-			return sgaNode;
-	}
-	return nullptr;
 }
 
 void Document::prepareSGAObjectsLists()

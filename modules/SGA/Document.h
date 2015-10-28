@@ -56,13 +56,11 @@ protected:
 	void convertAndRun();
 
 	void addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
-	SGANode* childSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
 
 	void prepareSGAObjectsLists();
 	const std::string& SGATypeName(sga::ObjectDefinition::ObjectType type);
 	const std::vector<std::string>& SGAObjectsLabels(sga::ObjectDefinition::ObjectType type);
 	const std::string& SGAObjectId(sga::ObjectDefinition::ObjectType type, int index);
-	SGANode::Type SGAToNodeType(sga::ObjectDefinition::ObjectType type);
 
 	void createGraphImages();
 
@@ -76,7 +74,6 @@ protected:
 	sga::ObjectFactory m_sgaFactory;
 
 	std::vector<std::string> m_sgaTypesNames;
-	std::vector<SGANode::Type> m_sgaToNodeTypes;
 	std::vector<std::vector<std::string>> m_sgaObjectsLabels;
 	std::vector<std::vector<std::string>> m_sgaObjectsIds;
 
@@ -99,6 +96,3 @@ inline const std::vector<std::string>& Document::SGAObjectsLabels(sga::ObjectDef
 
 inline const std::string& Document::SGAObjectId(sga::ObjectDefinition::ObjectType type, int index)
 { return m_sgaObjectsIds[static_cast<int>(type)][index]; }
-
-inline SGANode::Type Document::SGAToNodeType(sga::ObjectDefinition::ObjectType type)
-{ return m_sgaToNodeTypes[static_cast<int>(type)]; }
