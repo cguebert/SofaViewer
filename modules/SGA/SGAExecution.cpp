@@ -41,6 +41,27 @@ std::vector<SGANode*> getModifiers(SGANode* parent)
 	return list;
 }
 
+sga::Transformation convertTransformation(const glm::mat4& matrix)
+{
+	sga::Transformation transformation;
+	auto modelTrans = glm::transpose(matrix);
+	glm::vec3 scale, translation, skew;
+	glm::vec4 perspective;
+	glm::quat orientation;
+	if (glm::decompose(modelTrans, scale, orientation, translation, skew, perspective))
+	{
+		glm::vec3 rotation = glm::degrees(glm::eulerAngles(orientation));
+		for (int i = 0; i < 3; ++i)
+		{
+			transformation.translation[i] = translation[i];
+			transformation.rotation[i] = rotation[i];
+			transformation.scale[i] = scale[i];
+		}
+	}
+
+	return transformation;
+}
+
 }
 
 namespace sgaExec
@@ -49,16 +70,58 @@ namespace sgaExec
 struct CreationContext
 {
 	std::string name;
-	sga::ObjectDefinition::ObjectType objectType = sga::ObjectDefinition::ObjectType::PhysicsObject;
 	sga::ObjectWrapper parent;
+	bool hasSGAParent = false;
 	simplerender::Scene::ModelPtr model;
 	sga::Transformation transformation;
 	sga::Vec3d boundingBox[2]; // min & max
 	int modifierIndex = 0;
 	int objectExportIndex = -1;
+
+	glm::mat4 localTransformationMatrix, globalTransformationMatrix;
+	sga::Transformation localTransformation, globalTransformation, parentTransformation;
+
+	void setParent();
+	void updateTransformation();
 };
 
 }
+
+void sgaExec::CreationContext::setParent()
+{
+	hasSGAParent = true;
+	parentTransformation = globalTransformation;
+	localTransformationMatrix = glm::mat4();
+	localTransformation.translation = { 0, 0, 0 };
+	localTransformation.rotation = { 0, 0, 0 };
+	localTransformation.scale = { 1, 1, 1 };
+}
+
+void sgaExec::CreationContext::updateTransformation()
+{
+	bool local = false;
+	if (parent.constant("template") == "Rigid")
+		local = true; // For rigid objects, the transformation of the parent is applied via the mapping
+
+	transformation = local ? localTransformation : globalTransformation;
+	if (!parent.constant("childIgnoresRotation").empty()) // Grid topologies are an exception concerning rotation
+	{
+		sga::Vec3d rot = sga::Vec3d{ 0, 0, 0 };
+		if (!local)
+		{
+			rot = localTransformation.rotation;
+
+			if (hasSGAParent)
+			{
+				for (int i = 0; i < 3; ++i)
+					transformation.translation[i] = localTransformation.translation[i] + parentTransformation.translation[i];
+			}
+		}
+		transformation.rotation = rot;
+	}
+}
+
+//****************************************************************************//
 
 SGAExecution::SGAExecution(sga::ObjectFactory factory, const std::string& dataPath)
 	: m_objectFactory(factory)
@@ -87,6 +150,11 @@ void SGAExecution::parseNode(SGANode* node, sgaExec::CreationContext& context)
 		convertObject(node, context);
 	else if (node->nodeType == SGANode::Type::Node || node->nodeType == SGANode::Type::Root)
 	{
+		context.globalTransformationMatrix = node->transformation;
+		context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
+		context.localTransformationMatrix = node->transformation * context.localTransformationMatrix;
+		context.localTransformation = convertTransformation(context.localTransformationMatrix);
+
 		sgaExec::CreationContext tmpContext = context;
 		for (auto child : node->children)
 		{
@@ -110,15 +178,20 @@ void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& contex
 	if (physicsNode)
 	{
 		context.parent = createSofaObject(physicsNode, context);
+		context.setParent();
 	}
 
 	if (collisionNode)
 	{
+		context.updateTransformation();
 		if (context.parent && context.parent.sofaNode())
 		{
 			auto wrapper = createSofaObject(collisionNode, context);
 			if (!physicsNode)
+			{
 				context.parent = wrapper;
+				context.setParent();
+			}
 		}
 		else
 			std::cerr << "Node is not valid, collision not created" << std::endl;
@@ -126,6 +199,7 @@ void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& contex
 
 	if (visualNode && context.parent && context.parent.sofaNode())
 	{
+		context.updateTransformation();
 		auto visuMesh = createSofaObject(visualNode, context);
 	}
 
@@ -143,21 +217,8 @@ void SGAExecution::convertMesh(SGANode* item, sgaExec::CreationContext& context)
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa
-	auto modelTrans = glm::transpose(item->transformation);
-	glm::vec3 scale, translation, skew;
-	glm::vec4 perspective;
-	glm::quat orientation;
-	if (glm::decompose(modelTrans, scale, orientation, translation, skew, perspective))
-	{
-		glm::vec3 rotation = glm::degrees(glm::eulerAngles(orientation));
-		for (int i = 0; i < 3; ++i)
-		{
-			context.transformation.translation[i] = translation[i];
-			context.transformation.rotation[i] = rotation[i];
-			context.transformation.scale[i] = scale[i];
-		}
-	}
-
+	context.transformation = convertTransformation(item->transformation);
+	
 	// Update bounding box
 	auto bb = simplerender::boundingBox(*item->model);
 	for (int i = 0; i < 3; ++i)
