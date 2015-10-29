@@ -150,8 +150,9 @@ void MeshImport::parseScene(const aiScene* scene)
 
 		auto model = createModel(mesh);
 		node->model = model;
+		int index = m_scene.models().size();
 		m_scene.addModel(model);
-		m_modelsIndices.push_back(i);
+		m_modelsIndices.emplace_back(i, index);
 		m_newModels.push_back(model.get());
 	}
 
@@ -163,10 +164,10 @@ void MeshImport::parseScene(const aiScene* scene)
 
 int MeshImport::modelIndex(int meshId)
 {
-	for (int i = 0, nb = m_modelsIndices.size(); i < nb; ++i)
+	for (const auto& model : m_modelsIndices)
 	{
-		if (m_modelsIndices[i] == meshId)
-			return i;
+		if (model.first == meshId)
+			return model.second;
 	}
 
 	return -1;

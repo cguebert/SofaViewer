@@ -38,7 +38,7 @@ private:
 	Document* m_document;
 	simplerender::Scene& m_scene;
 	Graph& m_graph;
-	std::vector<int> m_modelsIndices; // Mesh id in Assimp scene -> Model id
+	std::vector<std::pair<int, int>> m_modelsIndices; // Mesh id in Assimp scene -> Model id
 	std::vector<simplerender::Model*> m_newModels;
 };
 
