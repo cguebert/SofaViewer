@@ -270,7 +270,7 @@ void SGAExecution::fillProperties(SGANode* item, sgaExec::CreationContext& conte
 		}
 		else if (prop.id() == "edges")
 		{
-			// prop.set(context.model->m_edges);
+			prop.set(context.model->m_edges);
 		}
 		else if (prop.id() == "triangles")
 		{
@@ -280,7 +280,7 @@ void SGAExecution::fillProperties(SGANode* item, sgaExec::CreationContext& conte
 		{
 			int type = -1;
 			if (!context.model->m_triangles.empty()) type = 2;
-		//	else if (!context.model->m_edges.empty()) type = 1;
+			else if (!context.model->m_edges.empty()) type = 1;
 
 			if (type != -1) prop.set(type);
 		}

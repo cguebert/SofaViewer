@@ -12,6 +12,8 @@ namespace simplerender
 
 using Vertices = std::vector < glm::vec3 >;
 using Normals = std::vector < glm::vec3 >;
+using Edge = std::array < unsigned int, 2 >;
+using Edges = std::vector < Edge >;
 using Triangle = std::array < unsigned int, 3 >;
 using Triangles = std::vector < Triangle >;
 using Quad = std::array < unsigned int, 4 >;
@@ -34,6 +36,7 @@ public:
 	Vertices m_vertices;
 	Normals m_normals;
 
+	Edges m_edges;
 	Triangles m_triangles;
 	Quads m_quads;
 

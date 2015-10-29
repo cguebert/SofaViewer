@@ -17,12 +17,7 @@ void Model::init()
 
 void Model::prepareBuffers()
 {
-	auto	vertSize = m_vertices.size(),
-			triSize = m_mergedTriangles.size(),
-			texSize = m_texCoords.size();
-
-	if(m_normals.empty())
-		m_normals.resize(vertSize);
+	auto vertSize = m_vertices.size();
 
 	glGenVertexArrays(1, &m_VAO);
 	glBindVertexArray(m_VAO);
@@ -36,19 +31,25 @@ void Model::prepareBuffers()
 	glEnableVertexAttribArray(0);
 
 	// Normals
-	glGenBuffers(1, &m_normalsVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
-	glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) * vertSize, nullptr, GL_DYNAMIC_DRAW);
+	if (!m_mergedTriangles.empty())
+	{
+		if (m_normals.empty())
+			m_normals.resize(vertSize);
 
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-	glEnableVertexAttribArray(1);
+		glGenBuffers(1, &m_normalsVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
+		glBufferData(GL_ARRAY_BUFFER, 3 * sizeof(float) * vertSize, nullptr, GL_DYNAMIC_DRAW);
+
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+		glEnableVertexAttribArray(1);
+	}
 
 	// Texture coordinates
 	if(m_hasTexture && !m_texCoords.empty())
 	{
 		glGenBuffers(1, &m_texCoordsVBO);
 		glBindBuffer(GL_ARRAY_BUFFER, m_texCoordsVBO);
-		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float) * texSize, nullptr, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float) * m_texCoords.size(), nullptr, GL_DYNAMIC_DRAW);
 
 		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 		glEnableVertexAttribArray(2);
@@ -57,7 +58,10 @@ void Model::prepareBuffers()
 	// Indices
 	glGenBuffers(1, &m_indicesEBO);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, triSize * 3 * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
+	if (!m_mergedTriangles.empty())
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_mergedTriangles.size() * 3 * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
+	else if (!m_edges.empty())
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_edges.size() * 2 * sizeof(GLuint), nullptr, GL_DYNAMIC_DRAW);
 
 	glBindVertexArray(0); // Unbind the VAO
 }
@@ -81,8 +85,11 @@ void Model::updatePositions()
 	glBindBuffer(GL_ARRAY_BUFFER, m_verticesVBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_vertices.size(), &m_vertices[0]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_normals.size(), &m_normals[0]);
+	if (!m_mergedTriangles.empty())
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_normals.size(), &m_normals[0]);
+	}
 }
 
 void Model::updateIndices()
@@ -91,6 +98,11 @@ void Model::updateIndices()
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesEBO);
 		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_mergedTriangles.size() * 3 * sizeof(GLuint), &m_mergedTriangles[0]);
+	}
+	else if (!m_edges.empty())
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesEBO);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_edges.size() * 2 * sizeof(GLuint), &m_edges[0]);
 	}
 
 	if (!m_texCoords.empty())
@@ -111,6 +123,8 @@ void Model::render()
 
 	if (!m_mergedTriangles.empty())
 		glDrawElements(GL_TRIANGLES, m_mergedTriangles.size() * 3, GL_UNSIGNED_INT, nullptr);
+	else if (!m_edges.empty())
+		glDrawElements(GL_LINES, m_edges.size() * 2, GL_UNSIGNED_INT, nullptr);
 }
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model)

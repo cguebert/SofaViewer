@@ -75,9 +75,18 @@ std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh)
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
 		model->m_vertices.push_back(convert(mesh->mVertices[j]));
 
-	model->m_triangles.reserve(mesh->mNumFaces);
-	for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-		model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+	if (mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE)
+	{
+		model->m_triangles.reserve(mesh->mNumFaces);
+		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+			model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+	}
+	else if (mesh->mPrimitiveTypes == aiPrimitiveType_LINE)
+	{
+		model->m_edges.reserve(mesh->mNumFaces);
+		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+			model->m_edges.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1] });
+	}
 
 	model->m_normals.reserve(mesh->mNumVertices);
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
@@ -143,7 +152,8 @@ void MeshImport::parseScene(const aiScene* scene)
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto& mesh = scene->mMeshes[i];
-		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
+		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || 
+			(mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && mesh->mPrimitiveTypes != aiPrimitiveType_LINE))
 			continue;
 
 		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), SGANode::Type::Mesh, m_graph.root());
@@ -200,6 +210,7 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 			return;
 
 		properties->createPropertyAndWrapper("vertices", model->m_vertices);
+		properties->createPropertyAndWrapper("edges", model->m_edges);
 		properties->createPropertyAndWrapper("triangles", model->m_triangles);
 		properties->createPropertyAndWrapper("normals", model->m_normals);
 		break;

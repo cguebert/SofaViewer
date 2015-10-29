@@ -180,7 +180,10 @@ void Document::parseScene(const aiScene* scene)
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto& mesh = scene->mMeshes[i];
-		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
+		if (!mesh->HasPositions() || !mesh->HasFaces() ||
+			(mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && mesh->mPrimitiveTypes != aiPrimitiveType_LINE))
+			continue;
+		if (mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE && !mesh->HasNormals())
 			continue;
 
 		auto node = createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", ModelNode::Type::Mesh, m_rootNode);
@@ -210,13 +213,22 @@ std::shared_ptr<simplerender::Model> Document::createModel(const aiMesh* mesh)
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
 		model->m_vertices.push_back(convert(mesh->mVertices[j]));
 
-	model->m_triangles.reserve(mesh->mNumFaces);
-	for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-		model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+	if (mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE)
+	{
+		model->m_triangles.reserve(mesh->mNumFaces);
+		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+			model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
 
-	model->m_normals.reserve(mesh->mNumVertices);
-	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-		model->m_normals.push_back(convert(mesh->mNormals[j]));
+		model->m_normals.reserve(mesh->mNumVertices);
+		for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
+			model->m_normals.push_back(convert(mesh->mNormals[j]));
+	}
+	else if (mesh->mPrimitiveTypes == aiPrimitiveType_LINE)
+	{
+		model->m_edges.reserve(mesh->mNumFaces);
+		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
+			model->m_edges.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1] });
+	}
 
 	return model;
 }
@@ -256,6 +268,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->createPropertyAndWrapper("vertices", model->m_vertices);
+		properties->createPropertyAndWrapper("edges", model->m_edges);
 		properties->createPropertyAndWrapper("triangles", model->m_triangles);
 		properties->createPropertyAndWrapper("normals", model->m_normals);
 		return properties;
