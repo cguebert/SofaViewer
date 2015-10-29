@@ -181,7 +181,8 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 		properties->createPropertyAndWrapper("transformation", item->transformation);
 		auto bb = simplerender::boundingBox(scene);
 		auto sceneSize = bb.second - bb.first;
-		properties->addProperty(property::createCopyProperty("Scene size", sceneSize));
+		auto sizeProp = property::createCopyProperty("Scene size", sceneSize);
+		sizeProp->setReadOnly(true);
 		break;
 	}
 
@@ -206,7 +207,7 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 	case SGANode::Type::Instance:
 	{
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
-		properties->createPropertyAndWrapper("transformation", item->transformation);
+		properties->createPropertyAndWrapper("transformation", item->transformation).first->setReadOnly(true);
 		break;
 	}
 	}

@@ -7,6 +7,7 @@ set(HEADER_FILES
 	Document.h
 	MeshImport.h
 	SGAExecution.h
+	SGAFile.h
 	SGAProperties.h
 )
 
@@ -14,6 +15,7 @@ set(SOURCE_FILES
 	Document.cpp
 	MeshImport.cpp
 	SGAExecution.cpp
+	SGAFile.cpp
 	SGAProperties.cpp
 )
 

@@ -235,7 +235,9 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 		properties->createPropertyAndWrapper("transformation", item->transformation);
 		auto bb = simplerender::boundingBox(m_scene);
 		auto sceneSize = bb.second - bb.first;
-		properties->addProperty(property::createCopyProperty("Scene size", sceneSize));
+		auto sizeProp = property::createCopyProperty("Scene size", sceneSize);
+		sizeProp->setReadOnly(true);
+		properties->addProperty(sizeProp);
 		return properties;
 	}
 
@@ -263,7 +265,7 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	{
 		auto properties = std::make_shared<ObjectProperties>(item->name);
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
-		properties->createPropertyAndWrapper("transformation", item->transformation);
+		properties->createPropertyAndWrapper("transformation", item->transformation).first->setReadOnly(true);
 		return properties;
 	}
 	}

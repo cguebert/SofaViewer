@@ -1,7 +1,9 @@
 #include "Document.h"
-#include "SGAProperties.h"
 #include "SGAExecution.h"
+#include "SGAFile.h"
+#include "SGAProperties.h"
 #include "MeshImport.h"
+
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
@@ -14,7 +16,11 @@
 
 #include <iostream>
 
-int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction").setDescription("Create Sofa simulations using higher level objects.").canCreateNew(true);
+int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction")
+	.setDescription("Create Sofa simulations using higher level objects.")
+	.canCreateNew(true)
+	.addLoadFile("SGA document (*.sga)")
+	.addSaveFile("SGA document (*.sga)");
 ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction").addDocument(SofaGraphAbstractionDoc);
 
 namespace
@@ -99,7 +105,14 @@ Document::Document(const std::string& type)
 
 bool Document::loadFile(const std::string& path)
 {
-	return false;
+	SGAFile sgaFile(m_scene, m_graph);
+	return sgaFile.loadFile(path);
+}
+
+bool Document::saveFile(const std::string& path)
+{
+	SGAFile sgaFile(m_scene, m_graph);
+	return sgaFile.saveFile(path);
 }
 
 void Document::initUI(simplegui::SimpleGUI& gui)

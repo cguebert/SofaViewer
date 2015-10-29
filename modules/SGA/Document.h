@@ -34,6 +34,7 @@ public:
 	Document(const std::string& type);
 
 	bool loadFile(const std::string& path) override;
+	bool saveFile(const std::string& path) override;
 	void initUI(simplegui::SimpleGUI& gui) override;
 
 	void initOpenGL() override;

@@ -25,12 +25,13 @@ public:
 	const ValueWrapperList& valueWrappers();
 
 	template <class T>
-	void createPropertyAndWrapper(const std::string& name, T& val)
+	std::pair<Property::SPtr, BaseValueWrapper::SPtr> createPropertyAndWrapper(const std::string& name, T& val)
 	{
 		auto prop = property::createCopyProperty(name, val);
 		auto wrapper = property::createValueRefWrapper(val, prop);
 		addProperty(prop);
 		addValueWrapper(wrapper);
+		return { prop, wrapper };
 	}
 
 	void applyProperties(); /// Save the properties

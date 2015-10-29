@@ -2,6 +2,7 @@
 
 #include <core/core.h>
 #include <core/MetaProperties.h>
+#include <core/StringConversion.h>
 
 #include <memory>
 #include <string>
@@ -64,6 +65,8 @@ public:
 	virtual std::type_index type() const = 0;
 	virtual bool validate() = 0; // Applies meta::Validators, returns true if the value has been modified
 	virtual meta::BaseMetaContainer& baseMetaContainer() = 0;
+	virtual std::string toString() const = 0;
+	virtual void fromString(const std::string& text) = 0;
 };
 
 template <class T>
@@ -91,6 +94,12 @@ public:
 
 	meta::MetaContainer<T>& metaContainer()
 	{ return m_metaProperties; }
+
+	std::string toString() const
+	{ return conversion::toString(value()); }
+
+	void fromString(const std::string& text)
+	{ conversion::fromString(value(), text); }
 
 protected:
 	meta::MetaContainer<T> m_metaProperties;
