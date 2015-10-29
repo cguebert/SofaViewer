@@ -154,7 +154,9 @@ bool Document::loadFile(const std::string& path)
 		return node;
 	};
 
-	auto node = importXMLFile(*this, path, createNodeFunc);
+	auto getPropertiesFunc = [this](GraphNode* item) { return objectProperties(item); };
+
+	auto node = importXMLFile(path, createNodeFunc, getPropertiesFunc);
 	if (!node)
 		return false;
 
@@ -166,7 +168,8 @@ bool Document::loadFile(const std::string& path)
 
 bool Document::saveFile(const std::string& path)
 {
-	return exportToXMLFile(*this, path);
+	auto getPropertiesFunc = [this](GraphNode* item) { return objectProperties(item); };
+	return exportToXMLFile(path, m_rootNode.get(), getPropertiesFunc);
 }
 
 void Document::initUI(simplegui::SimpleGUI& gui)

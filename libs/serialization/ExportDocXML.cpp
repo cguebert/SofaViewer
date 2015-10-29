@@ -93,9 +93,9 @@ void addName(XMLExporter::AttributesList& attributes, const std::string& name)
 		attributes.emplace(attributes.begin(), "name", name);
 }
 
-void exportNode(XMLExporter& exporter, BaseDocument& document, GraphNode* node)
+void exportNode(XMLExporter& exporter, GraphNode* node, GetPropertiesFunc& getPropertiesFunc)
 {
-	auto properties = document.objectProperties(node);
+	auto properties = getPropertiesFunc(node);
 	XMLExporter::AttributesList attributes;
 	if (properties)
 		attributes = getAttributes(properties.get());
@@ -108,17 +108,16 @@ void exportNode(XMLExporter& exporter, BaseDocument& document, GraphNode* node)
 	{
 		exporter.startNode(type, attributes);
 		for (const auto& child : node->children)
-			exportNode(exporter, document, child.get());
+			exportNode(exporter, child.get(), getPropertiesFunc);
 		exporter.endNode();
 	}
 }
 
 }
 
-bool exportToXMLFile(BaseDocument& document, const std::string& filePath)
+bool exportToXMLFile(const std::string& filePath, GraphNode* item, GetPropertiesFunc getPropertiesFunc)
 {
-	auto root = document.graph().root();
-	if (!root)
+	if (!item || !getPropertiesFunc)
 		return false;
 
 	std::ofstream file(filePath);
@@ -126,6 +125,6 @@ bool exportToXMLFile(BaseDocument& document, const std::string& filePath)
 		return false;
 
 	XMLExporter exporter(file);
-	exportNode(exporter, document, root);
+	exportNode(exporter, item, getPropertiesFunc);
 	return true;
 }

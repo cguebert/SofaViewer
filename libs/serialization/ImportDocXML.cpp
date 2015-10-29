@@ -30,8 +30,8 @@ std::string removeUnderscores(const std::string& val)
 class XMLImporter
 {
 public:
-	XMLImporter(BaseDocument& document, NodeCreationFunc nodeCreationFunc) 
-		: m_document(document), m_nodeCreationFunc(nodeCreationFunc) {}
+	XMLImporter(NodeCreationFunc nodeCreationFunc, GetPropertiesFunc getPropertiesFunc)
+		: m_nodeCreationFunc(nodeCreationFunc), m_getPropertiesFunc(getPropertiesFunc) {}
 
 	GraphNode::SPtr parseNode(XMLElement* xmlElt, GraphNode* parent = nullptr);
 
@@ -39,8 +39,8 @@ private:
 	GraphNode::SPtr createNode(XMLElement* xmlElt, GraphNode* parent);
 	void fillProperties(XMLElement* xmlElt, ObjectProperties* properties);
 
-	BaseDocument& m_document;
 	NodeCreationFunc m_nodeCreationFunc;
+	GetPropertiesFunc m_getPropertiesFunc;
 };
 
 GraphNode::SPtr XMLImporter::parseNode(XMLElement* xmlElt, GraphNode* parent)
@@ -71,7 +71,7 @@ GraphNode::SPtr XMLImporter::createNode(XMLElement* xmlElt, GraphNode* parent)
 		if (parent)
 			parent->children.push_back(node);
 
-		auto properties = m_document.objectProperties(node.get());
+		auto properties = m_getPropertiesFunc(node.get());
 		if (properties)
 			fillProperties(xmlElt, properties.get());
 	}
@@ -94,7 +94,7 @@ void XMLImporter::fillProperties(XMLElement* xmlElt, ObjectProperties* propertie
 
 }
 
-GraphNode::SPtr importXMLFile(BaseDocument& document, const std::string& filePath, NodeCreationFunc nodeCreationFunc)
+GraphNode::SPtr importXMLFile(const std::string& filePath, NodeCreationFunc nodeCreationFunc, GetPropertiesFunc getPropertiesFunc)
 {
 	if (!nodeCreationFunc)
 		return nullptr;
@@ -103,6 +103,6 @@ GraphNode::SPtr importXMLFile(BaseDocument& document, const std::string& filePat
 	if (XML_SUCCESS != xmlDoc.LoadFile(filePath.c_str()))
 		return nullptr;
 
-	XMLImporter importer(document, nodeCreationFunc);
+	XMLImporter importer(nodeCreationFunc, getPropertiesFunc);
 	return importer.parseNode(xmlDoc.RootElement());
 }
