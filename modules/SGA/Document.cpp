@@ -1,18 +1,14 @@
 #include "Document.h"
 #include "SGAExecution.h"
-#include "SGAFile.h"
 #include "SGAProperties.h"
 #include "MeshImport.h"
-
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
 #include <core/PropertiesUtils.h>
 #include <core/SimpleGUI.h>
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
+#include <serialization/DocXML.h>
 
 #include <iostream>
 
@@ -105,14 +101,12 @@ Document::Document(const std::string& type)
 
 bool Document::loadFile(const std::string& path)
 {
-	SGAFile sgaFile(m_scene, m_graph);
-	return sgaFile.loadFile(path);
+	return false;
 }
 
 bool Document::saveFile(const std::string& path)
 {
-	SGAFile sgaFile(m_scene, m_graph);
-	return sgaFile.saveFile(path);
+	return exportToXMLFile(*this, path);
 }
 
 void Document::initUI(simplegui::SimpleGUI& gui)

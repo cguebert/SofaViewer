@@ -28,7 +28,7 @@ set_target_properties(${PROJECT_NAME} PROPERTIES FOLDER "Plugins")
 install(TARGETS ${PROJECT_NAME} DESTINATION ${MODULE_DIR})
 
 # Dependencies
-target_link_libraries(${PROJECT_NAME} "Core")
+target_link_libraries(${PROJECT_NAME} "Core" "Serialization" )
 target_link_libraries(${PROJECT_NAME} "SimpleRender")
 
 add_library("Assimp" SHARED IMPORTED)

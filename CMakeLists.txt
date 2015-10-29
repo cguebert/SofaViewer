@@ -27,6 +27,7 @@ include_directories("libs")
 
 add_subdirectory("libs/core")
 add_subdirectory("libs/render")
+add_subdirectory("libs/serialization")
 add_subdirectory("libs/SFELib")
 
 include_directories("modules")
