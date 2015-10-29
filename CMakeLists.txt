@@ -23,9 +23,11 @@ if(MSVC)
 endif()
 
 # Librairies
-add_subdirectory("core")
-add_subdirectory("render")
-add_subdirectory("modules/SFELib")
+include_directories("libs")
+
+add_subdirectory("libs/core")
+add_subdirectory("libs/render")
+add_subdirectory("libs/SFELib")
 
 include_directories("modules")
 
