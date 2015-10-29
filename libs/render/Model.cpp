@@ -30,9 +30,10 @@ void Model::prepareBuffers()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
-	// Normals
+	// If the mesh has triangles
 	if (!m_mergedTriangles.empty())
 	{
+		// Normals
 		if (m_normals.empty())
 			m_normals.resize(vertSize);
 
@@ -42,17 +43,17 @@ void Model::prepareBuffers()
 
 		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 		glEnableVertexAttribArray(1);
-	}
 
-	// Texture coordinates
-	if(m_hasTexture && !m_texCoords.empty())
-	{
-		glGenBuffers(1, &m_texCoordsVBO);
-		glBindBuffer(GL_ARRAY_BUFFER, m_texCoordsVBO);
-		glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float) * m_texCoords.size(), nullptr, GL_DYNAMIC_DRAW);
+		// Texture coordinates
+		if (m_hasTexture && !m_texCoords.empty())
+		{
+			glGenBuffers(1, &m_texCoordsVBO);
+			glBindBuffer(GL_ARRAY_BUFFER, m_texCoordsVBO);
+			glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(float) * m_texCoords.size(), nullptr, GL_DYNAMIC_DRAW);
 
-		glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-		glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+			glEnableVertexAttribArray(2);
+		}
 	}
 
 	// Indices

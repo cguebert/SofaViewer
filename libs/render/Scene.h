@@ -39,6 +39,15 @@ public:
 	glm::vec3 size() const;
 
 protected:
+	struct ProgramStruct
+	{
+		ShaderProgram program;
+		int mvLoc = 0, mvpLoc = 0, colLoc = 0, texLoc = 0;
+	};
+
+	void prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader);
+	ProgramStruct& selectProgram(const ModelPtr model);
+
 	Models m_models;
 	ModelInstances m_instances;
 
@@ -48,8 +57,7 @@ protected:
 	glm::quat m_rotation;
 	glm::vec3 m_translation = { 0.f, 0.f, 0.f };
 
-	ShaderProgram m_program;
-	int m_mvLoc = 0, m_mvpLoc = 0, m_colLoc = 0, m_texLoc = 0;
+	ProgramStruct m_trianglesProg, m_linesProg;
 };
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene);

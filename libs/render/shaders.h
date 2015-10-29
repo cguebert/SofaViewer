@@ -1,4 +1,4 @@
-const char* fragmentShader = R"~~(#version 330 core
+const char* trianglesFragmentShader = R"~~(#version 330 core
 in vec4 vPosition;
 in vec4 vNormal;
 
@@ -40,7 +40,7 @@ void main()
 }
 )~~";
 
-const char* vertexShader = R"~~(#version 330 core
+const char* trianglesVertexShader = R"~~(#version 330 core
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 
@@ -64,5 +64,29 @@ void main()
 	#ifdef USE_TEXTURE
 		vTexCoord = vec2(texCoord.x, 1.0f - mgl_TexCoords.y);
 	#endif
+}
+)~~";
+
+//****************************************************************************//
+
+const char* linesFragmentShader = R"~~(#version 330 core
+uniform vec4 diffuseColor;
+
+out vec4 color;
+
+void main()
+{
+	color = diffuseColor;
+}
+)~~";
+
+const char* linesVertexShader = R"~~(#version 330 core
+layout (location = 0) in vec3 position;
+
+uniform mat4 MVP;
+
+void main()
+{
+	gl_Position = MVP * vec4(position, 1.0f);
 }
 )~~";

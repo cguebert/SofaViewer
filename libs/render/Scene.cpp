@@ -30,15 +30,8 @@ void Scene::initOpenGL()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	m_program.removeShaders();
-	m_program.addShaderFromMemory(ShaderType::Vertex, vertexShader);
-	m_program.addShaderFromMemory(ShaderType::Fragment, fragmentShader);
-	m_program.link();
-
-	m_mvLoc = m_program.uniformLocation("MV");
-	m_mvpLoc = m_program.uniformLocation("MVP");
-	m_colLoc = m_program.uniformLocation("diffuseColor");
-//	m_texLoc = m_program.uniformLocation("texture");
+	prepareProgram(m_trianglesProg, trianglesVertexShader, trianglesFragmentShader);
+	prepareProgram(m_linesProg, linesVertexShader, linesFragmentShader);
 }
 
 void Scene::resize(int width, int height)
@@ -68,19 +61,23 @@ void Scene::render()
 	m_modelview = glm::rotate(m_modelview, glm::radians(-90.f), glm::vec3(0.f, 0.f, 1.f) );
 	m_modelview = glm::translate(m_modelview, -m_center);		// move scene to origin to apply rotation
 	
-	m_program.use();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	if (m_instances.empty())
 	{
 		glm::mat4 modelviewProjection = m_projection * m_modelview;
-		glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
-		glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
-
+		
 		for (const auto& object : m_models)
 		{
-			glUniform4fv(m_colLoc, 1, &object->m_color[0]);
+			const auto& prog = selectProgram(object);
+			prog.program.use();
+
+			if (prog.mvLoc != -1) 
+				glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
+			glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
+
+			glUniform4fv(prog.colLoc, 1, &object->m_color[0]);
+
 			object->render();
 		}
 	}
@@ -89,14 +86,41 @@ void Scene::render()
 		for (const auto& instance : m_instances)
 		{
 			const auto& object = instance.second;
+			const auto& prog = selectProgram(object);
+			prog.program.use();
+
 			glm::mat4 modelview = m_modelview * instance.first;
-			glUniformMatrix4fv(m_mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
 			glm::mat4 modelviewProjection = m_projection * modelview;
-			glUniformMatrix4fv(m_mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
-			glUniform4fv(m_colLoc, 1, &object->m_color[0]);
+			if (prog.mvLoc != -1)
+				glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
+			glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
+
+			glUniform4fv(prog.colLoc, 1, &object->m_color[0]);
+
 			object->render();
 		}
 	}
+}
+
+void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader)
+{
+	auto& prog = ps.program;
+	prog.removeShaders();
+	prog.addShaderFromMemory(ShaderType::Vertex, vertexShader);
+	prog.addShaderFromMemory(ShaderType::Fragment, fragmentShader);
+	prog.link();
+
+	ps.mvLoc = prog.uniformLocation("MV");
+	ps.mvpLoc = prog.uniformLocation("MVP");
+	ps.colLoc = prog.uniformLocation("diffuseColor");
+	ps.texLoc = prog.uniformLocation("texture");
+}
+
+Scene::ProgramStruct& Scene::selectProgram(const ModelPtr model)
+{
+	if (!model->m_triangles.empty())
+		return m_trianglesProg;
+	return m_linesProg;
 }
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
@@ -105,7 +129,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 		return std::make_pair(glm::vec3(-5, -5, -5), glm::vec3(5, 5, 5));
 
 	glm::vec3 vMin, vMax;
-	for(int i=0; i<3; ++i)
+	for (int i = 0; i < 3; ++i)
 	{
 		vMin[i] = std::numeric_limits<float>::max();
 		vMax[i] = -std::numeric_limits<float>::max();
