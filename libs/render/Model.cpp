@@ -87,8 +87,11 @@ void Model::updatePositions()
 
 void Model::updateIndices()
 {
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesEBO);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_mergedTriangles.size() * 3 * sizeof(GLuint), &m_mergedTriangles[0]);
+	if (!m_mergedTriangles.empty())
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_indicesEBO);
+		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, m_mergedTriangles.size() * 3 * sizeof(GLuint), &m_mergedTriangles[0]);
+	}
 
 	if (!m_texCoords.empty())
 	{
@@ -105,7 +108,9 @@ void Model::initShader()
 void Model::render()
 {
 	glBindVertexArray(m_VAO);
-	glDrawElements(GL_TRIANGLES, m_mergedTriangles.size() * 3, GL_UNSIGNED_INT, nullptr);
+
+	if (!m_mergedTriangles.empty())
+		glDrawElements(GL_TRIANGLES, m_mergedTriangles.size() * 3, GL_UNSIGNED_INT, nullptr);
 }
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model)

@@ -22,7 +22,7 @@ ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction")
 namespace
 {
 
-SGANode* getChild(SGANode* parent, SGANode::Type type)
+SGANode* getChild(GraphNode* parent, SGANode::Type type)
 {
 	for (auto child : parent->children)
 	{
@@ -34,15 +34,53 @@ SGANode* getChild(SGANode* parent, SGANode::Type type)
 	return nullptr;
 }
 
+const std::vector<std::string>& nodeTypeNames()
+{
+	static std::vector<std::string> typesNames = { "Root", "Node", "Mesh", "Instance", "SGA root", "SGA physics", "SGA collision", "SGA visual", "SGA modifier" };
+	return typesNames;
+}
+
+const std::string& getTypeName(SGANode::Type type)
+{
+	return nodeTypeNames()[static_cast<int>(type)];
+}
+
+SGANode::Type getNodeType(const std::string& type)
+{
+	auto& names = nodeTypeNames();
+	auto it = std::find(names.begin(), names.end(), type);
+	if (it == names.end())
+		return SGANode::Type::Node;
+	int index = std::distance(names.begin(), it);
+	return static_cast<SGANode::Type>(index);
+}
+
 SGANode::Type SGAToNodeType(sga::ObjectDefinition::ObjectType type)
 {
 	static std::vector<SGANode::Type> sgaToNodeTypes = { SGANode::Type::SGA_Root, SGANode::Type::SGA_Physics, SGANode::Type::SGA_Collision, SGANode::Type::SGA_Visual, SGANode::Type::SGA_Modifier };
 	return sgaToNodeTypes[static_cast<int>(type)];
 }
 
+const std::string& SGATypeName(sga::ObjectDefinition::ObjectType type)
+{
+	static std::vector<std::string> sgaTypesNames = { "root", "physics", "collision", "visual", "modifier" };
+	return sgaTypesNames[static_cast<int>(type)];
+}
+
+bool isSGANode(SGANode::Type type)
+{
+	if (type == SGANode::Type::SGA_Root ||
+		type == SGANode::Type::SGA_Physics ||
+		type == SGANode::Type::SGA_Collision ||
+		type == SGANode::Type::SGA_Visual ||
+		type == SGANode::Type::SGA_Modifier)
+		return true;
+	return false;
+}
+
 // Returns the position of the new node, and the node to be removed or null
 // Default order: Physics, Collision, Visual, Modifier, Nodes
-std::pair<int, SGANode*> indexOfNewNode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+std::pair<int, SGANode*> indexOfNewNode(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
 {
 	using ObjectType = sga::ObjectDefinition::ObjectType;
 	switch (type)
@@ -94,14 +132,36 @@ Document::Document(const std::string& type)
 	, m_mouseManipulator(m_scene)
 	, m_sgaFactory(modulePath() + "/definitions")
 {
-	m_sgaTypesNames = { "root", "physics", "collision", "visual", "modifier" };
 	prepareSGAObjectsLists();
 	createGraphImages();
 }
 
 bool Document::loadFile(const std::string& path)
 {
-	return false;
+	auto createNodeFunc = [this](const std::string& typeName, const std::string& id) 
+	{
+		auto type = getNodeType(typeName);
+		auto node = createNode(id, type, nullptr);
+		if (isSGANode(type))
+			node->sgaDefinition = m_sgaFactory.definition(id);
+		else if (type == SGANode::Type::Mesh)
+		{
+			auto model = std::make_shared<simplerender::Model>();
+			m_scene.addModel(model);
+			node->model = model;
+			m_newModels.push_back(node->model.get());
+		}
+		return node;
+	};
+
+	auto node = importXMLFile(*this, path, createNodeFunc);
+	if (!node)
+		return false;
+
+	m_rootNode = std::dynamic_pointer_cast<SGANode>(node);
+	m_graph.setRoot(m_rootNode);
+	updateInstances();
+	return true;
 }
 
 bool Document::saveFile(const std::string& path)
@@ -117,11 +177,8 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	auto& panel = m_gui->buttonsPanel();
 	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ convertAndRun(); });
 
-	auto root = createNode("SGA scene", "Root", SGANode::Type::Root, nullptr);
-	m_rootNode = root;
+	m_rootNode = createNode("SGA scene", SGANode::Type::Root, nullptr);
 	m_graph.setRoot(m_rootNode);
-
-	addSGANode(root.get(), sga::ObjectDefinition::ObjectType::RootObject);
 }
 
 void Document::initOpenGL()
@@ -148,11 +205,11 @@ bool Document::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
-SGANode::SPtr Document::createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position)
+SGANode::SPtr Document::createNode(const std::string& name, SGANode::Type nodeType, GraphNode* parent, int position)
 {
 	auto node = SGANode::create();
 	node->name = name;
-	node->type = type;
+	node->type = getTypeName(nodeType);
 	node->nodeType = nodeType;
 	node->parent = parent;
 	node->uniqueId = m_nextNodeId++;
@@ -201,7 +258,7 @@ void Document::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr pt
 		return;
 
 	if (item->nodeType == SGANode::Type::Root || item->nodeType == SGANode::Type::Node)
-		updateInstancesTransformation();
+		updateInstances();
 }
 
 void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
@@ -280,7 +337,7 @@ void Document::importMesh()
 	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 }
 
-void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+void Document::addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
 {
 	auto dlg = m_gui->createDialog("Add SGA " + SGATypeName(type) + " object");
 	auto& panel = dlg->content();
@@ -296,7 +353,7 @@ void Document::addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType typ
 		std::tie(index, prev) = indexOfNewNode(parent, type);
 
 		auto objectType = SGAObjectId(type, objectTypeId);
-		auto node = createNode(objectType, "SGA " + SGATypeName(type), SGAToNodeType(type), parent, index);
+		auto node = createNode(objectType, SGAToNodeType(type), parent, index);
 		node->sgaDefinition = m_sgaFactory.definition(objectType);
 
 		if (prev)
@@ -336,29 +393,37 @@ void Document::createGraphImages()
 
 void Document::convertAndRun()
 {
+	auto root = m_graph.root();
+	if (!getChild(root, SGANode::Type::SGA_Root))
+		addSGANode(root, sga::ObjectDefinition::ObjectType::RootObject);
+
 	std::string dataPath = modulePath();
 	m_execution = std::make_shared<SGAExecution>(m_sgaFactory, dataPath);
 	m_execution->convert(m_rootNode.get());
 }
 
-void Document::updateInstancesTransformation()
+void Document::updateInstances()
 {
 	m_scene.instances().clear();
 	glm::mat4 transformation;
-	updateTransformation(dynamic_cast<SGANode*>(m_rootNode.get()), transformation);
+	updateInstances(dynamic_cast<SGANode*>(m_rootNode.get()), transformation);
 }
 
-void Document::updateTransformation(SGANode* item, const glm::mat4& transformation)
+void Document::updateInstances(SGANode* item, const glm::mat4& transformation)
 {
+	auto accTrans = transformation;
 	if (item->nodeType == SGANode::Type::Root || item->nodeType == SGANode::Type::Node)
 	{
-		auto accTrans = item->transformation * transformation;
-
-		for (auto child : item->children)
-			updateTransformation(dynamic_cast<SGANode*>(child.get()), accTrans);
+		accTrans = item->transformation * transformation;
 	}
 	else if (item->nodeType == SGANode::Type::Instance)
 	{
-		m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[item->meshId] });
+		item->transformation = transformation;
+		auto model = m_scene.models()[item->meshId];
+		item->model = model;
+		m_scene.addInstance({ glm::transpose(transformation), model });
 	}
+
+	for (auto child : item->children)
+		updateInstances(dynamic_cast<SGANode*>(child.get()), accTrans);
 }

@@ -72,6 +72,7 @@ namespace property
 			using array_type = ArrayBaseType<T>;
 			const int size0 = ArrayTraits<T>::size;
 			const int size1 = ArrayTraits<array_type>::size;
+			vec.resize(size0 * size1);
 
 			for (int i = 0; i < size0; ++i)
 				for (int j = 0; j < size1; ++j)
@@ -82,6 +83,7 @@ namespace property
 			using array_type = ArrayBaseType<T>;
 			const int size0 = ArrayTraits<T>::size;
 			const int size1 = ArrayTraits<array_type>::size;
+			assert(vec.size() >= size0 * size1);
 
 			for (int i = 0; i < size0; ++i)
 				for (int j = 0; j < size1; ++j)
@@ -98,6 +100,7 @@ namespace property
 			using base_type = ArrayBaseType<array_type>;
 			const int size = ArrayTraits<array_type>::size;
 			const int nb = std::distance(std::begin(val), std::end(val));
+			vec.resize(nb * size);
 
 			for (int i = 0; i < nb; ++i)
 			{
@@ -110,7 +113,8 @@ namespace property
 			using array_type = ArrayBaseType<T>;
 			using base_type = ArrayBaseType<array_type>;
 			const int size = ArrayTraits<array_type>::size;
-			const int nb = std::distance(std::begin(val), std::end(val));
+			const int nb = std::distance(std::begin(vec), std::end(vec)) / size;
+			val.resize(nb);
 
 			for (int i = 0; i < nb; ++i)
 			{
@@ -189,7 +193,7 @@ namespace property
 			const int size1 = ArrayTraits<array_type>::size;
 
 			using copy_vector_type = CopyVectorType<T>;
-			copy_vector_type copyVal(size0 * size1);
+			copy_vector_type copyVal;
 			DoubleArrayCopier<T>::toVector(val, copyVal);
 
 			using WrapperType = VectorWrapper<copy_vector_type>;
@@ -212,10 +216,9 @@ namespace property
 			using array_type = ArrayBaseType<T>;
 			using base_type = ArrayBaseType<array_type>;
 			const int size = ArrayTraits<array_type>::size;
-			const int nb = std::distance(std::begin(val), std::end(val));
 
 			using copy_vector_type = CopyVectorType<T>;
-			copy_vector_type copyVal(nb * size);
+			copy_vector_type copyVal;
 			ArraysVectorCopier<T>::toVector(val, copyVal);
 
 			using WrapperType = VectorWrapper<copy_vector_type>;

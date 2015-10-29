@@ -1,12 +1,9 @@
 #include <serialization/DocXML.h>
 
-#include <core/BaseDocument.h>
-#include <core/Graph.h>
 #include <core/ObjectProperties.h>
 
 #include <algorithm>
 #include <fstream>
-#include <string>
 #include <vector>
 
 namespace
@@ -19,7 +16,7 @@ std::string removeWhitespaces(const std::string& val)
 	return ret;
 }
 
-class SERIALIZATION_API XMLExporter
+class XMLExporter
 {
 public:
 	using Attribute = std::pair<std::string, std::string>;
@@ -87,6 +84,9 @@ XMLExporter::AttributesList getAttributes(ObjectProperties* properties)
 
 void addName(XMLExporter::AttributesList& attributes, const std::string& name)
 {
+	if (name.empty())
+		return;
+
 	if (attributes.end() == std::find_if(attributes.begin(), attributes.end(),
 		[&name](const XMLExporter::Attribute& attribute) { return attribute.first == name; })
 		)

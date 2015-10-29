@@ -26,10 +26,10 @@ target_link_libraries(${PROJECT_NAME} "SimpleRender")
 if(WIN32)
 	add_library("SofaFrontEnd" SHARED IMPORTED)
 	set_target_properties("SofaFrontEnd" PROPERTIES 
-		IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0.lib
-		IMPORTED_IMPLIB_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0.lib
-		IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0rd.lib
-		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0d.lib)
+		IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0.lib
+		IMPORTED_IMPLIB_RELEASE ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0.lib
+		IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0rd.lib
+		IMPORTED_IMPLIB_DEBUG ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0d.lib)
 	target_link_libraries(${PROJECT_NAME} "SofaFrontEnd")
 elseif(UNIX)	
 	if( CMAKE_CXX_COMPILER_ID STREQUAL "GNU" )

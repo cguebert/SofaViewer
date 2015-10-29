@@ -320,6 +320,7 @@ void Document::updateTransformation(ModelNode* item, const glm::mat4& transforma
 	}
 	else if (item->nodeType == ModelNode::Type::Instance)
 	{
+		item->transformation = transformation;
 		m_scene.addInstance({ glm::transpose(transformation), m_scene.models()[item->meshId] });
 	}
 }

@@ -7,7 +7,6 @@ set(HEADER_FILES
 	Document.h
 	MeshImport.h
 	SGAExecution.h
-	SGAFile.h
 	SGAProperties.h
 )
 
@@ -15,7 +14,6 @@ set(SOURCE_FILES
 	Document.cpp
 	MeshImport.cpp
 	SGAExecution.cpp
-	SGAFile.cpp
 	SGAProperties.cpp
 )
 
@@ -32,36 +30,36 @@ target_link_libraries(${PROJECT_NAME} "Core" "Serialization" )
 target_link_libraries(${PROJECT_NAME} "SimpleRender")
 
 add_library("Assimp" SHARED IMPORTED)
-set_target_properties("Assimp" PROPERTIES IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/assimp.lib)
+set_target_properties("Assimp" PROPERTIES IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/assimp.lib)
 target_link_libraries(${PROJECT_NAME} "Assimp")
 
 add_library("SofaGraphAbstraction" SHARED IMPORTED)
 set_target_properties("SofaGraphAbstraction" PROPERTIES 
-	IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaGraphAbstraction.lib
-	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaGraphAbstraction.lib
-	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaGraphAbstractionrd.lib
-	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaGraphAbstractiond.lib)
+	IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/SofaGraphAbstraction.lib
+	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_LIB_DIR}/SofaGraphAbstraction.lib
+	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_LIB_DIR}/SofaGraphAbstractionrd.lib
+	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_LIB_DIR}/SofaGraphAbstractiond.lib)
 target_link_libraries(${PROJECT_NAME} "SofaGraphAbstraction")
-install(FILES ${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstraction${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS Release DESTINATION ${MODULE_DIR})
-install(FILES ${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstractionrd${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS RelWithDebInfo DESTINATION ${MODULE_DIR})
-install(FILES ${LIBRARIES_BASE_DIR}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstractiond${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS Debug DESTINATION ${MODULE_DIR})
+install(FILES ${LIBRARIES_LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstraction${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS Release DESTINATION ${MODULE_DIR})
+install(FILES ${LIBRARIES_LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstractionrd${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS RelWithDebInfo DESTINATION ${MODULE_DIR})
+install(FILES ${LIBRARIES_LIB_DIR}/${CMAKE_SHARED_LIBRARY_PREFIX}SofaGraphAbstractiond${CMAKE_SHARED_LIBRARY_SUFFIX} CONFIGURATIONS Debug DESTINATION ${MODULE_DIR})
 
 add_library("SofaFrontEnd" SHARED IMPORTED)
 set_target_properties("SofaFrontEnd" PROPERTIES 
-	IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0.lib
-	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0.lib
-	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0rd.lib
-	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEnd_1_0d.lib)
+	IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0.lib
+	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0.lib
+	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0rd.lib
+	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_LIB_DIR}/SofaFrontEnd_1_0d.lib)
 target_link_libraries(${PROJECT_NAME} "SofaFrontEnd")
 	
 add_library("SofaFrontEndLocal" SHARED IMPORTED)
 set_target_properties("SofaFrontEndLocal" PROPERTIES 
-	IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0.lib
-	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0.lib
-	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0rd.lib
-	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_BASE_DIR}/lib/SofaFrontEndLocal_1_0d.lib)
+	IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/SofaFrontEndLocal_1_0.lib
+	IMPORTED_IMPLIB_RELEASE ${LIBRARIES_LIB_DIR}/SofaFrontEndLocal_1_0.lib
+	IMPORTED_IMPLIB_RELWITHDEBINFO ${LIBRARIES_LIB_DIR}/SofaFrontEndLocal_1_0rd.lib
+	IMPORTED_IMPLIB_DEBUG ${LIBRARIES_LIB_DIR}/SofaFrontEndLocal_1_0d.lib)
 target_link_libraries(${PROJECT_NAME} "SofaFrontEndLocal")
 
 install(DIRECTORY ${LIBRARIES_BASE_DIR}/sga/definitions DESTINATION ${MODULE_DIR})
 
-install(FILES ${LIBRARIES_BASE_DIR}/lib/assimp.dll DESTINATION ${SHARED_DIR})
+install(FILES ${LIBRARIES_LIB_DIR}/assimp.dll DESTINATION ${SHARED_DIR})

@@ -111,7 +111,7 @@ std::vector<simplerender::Model*> MeshImport::importMeshes(const std::string& fi
 
 void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, SGANode* parent)
 {
-	auto n = m_document->createNode(aNode->mName.C_Str(), "Node", SGANode::Type::Node, parent);
+	auto n = m_document->createNode(aNode->mName.C_Str(), SGANode::Type::Node, parent);
 	auto nodeTransformation = convert(aNode->mTransformation);
 	n->transformation = nodeTransformation;
 	auto accTrans = nodeTransformation * transformation;
@@ -130,7 +130,7 @@ void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const 
 	if (modelId < 0)
 		return;
 
-	auto n = m_document->createNode(mesh->mName.C_Str(), "Instance", SGANode::Type::Instance, parent);
+	auto n = m_document->createNode(mesh->mName.C_Str(), SGANode::Type::Instance, parent);
 	n->meshId = modelId;
 	n->model = m_scene.models()[modelId];
 	n->transformation = transformation;
@@ -146,7 +146,7 @@ void MeshImport::parseScene(const aiScene* scene)
 		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE)
 			continue;
 
-		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), "Mesh", SGANode::Type::Mesh, m_graph.root());
+		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), SGANode::Type::Mesh, m_graph.root());
 
 		auto model = createModel(mesh);
 		node->model = model;

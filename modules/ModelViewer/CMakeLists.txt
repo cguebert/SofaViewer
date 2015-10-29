@@ -24,7 +24,7 @@ target_link_libraries(${PROJECT_NAME} "Core")
 target_link_libraries(${PROJECT_NAME} "SimpleRender")
 
 add_library("Assimp" SHARED IMPORTED)
-set_target_properties("Assimp" PROPERTIES IMPORTED_IMPLIB ${LIBRARIES_BASE_DIR}/lib/assimp.lib)
+set_target_properties("Assimp" PROPERTIES IMPORTED_IMPLIB ${LIBRARIES_LIB_DIR}/assimp.lib)
 target_link_libraries(${PROJECT_NAME} "Assimp")
 
-install(FILES ${LIBRARIES_BASE_DIR}/lib/assimp.dll DESTINATION ${SHARED_DIR})
+install(FILES ${LIBRARIES_LIB_DIR}/assimp.dll DESTINATION ${SHARED_DIR})

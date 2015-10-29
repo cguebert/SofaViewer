@@ -49,24 +49,22 @@ public:
 	void closeObjectProperties(GraphNode* item, ObjectPropertiesPtr ptr, bool accepted) override;
 	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
-	SGANode::SPtr createNode(const std::string& name, const std::string& type, SGANode::Type nodeType, GraphNode* parent, int position = -1);
+	SGANode::SPtr createNode(const std::string& name, SGANode::Type nodeType, GraphNode* parent, int position = -1);
 
 protected:
 	void importMesh();
-
 	void convertAndRun();
-
-	void addSGANode(SGANode* parent, sga::ObjectDefinition::ObjectType type);
+	
+	void addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type);
 
 	void prepareSGAObjectsLists();
-	const std::string& SGATypeName(sga::ObjectDefinition::ObjectType type);
 	const std::vector<std::string>& SGAObjectsLabels(sga::ObjectDefinition::ObjectType type);
 	const std::string& SGAObjectId(sga::ObjectDefinition::ObjectType type, int index);
 
 	void createGraphImages();
 
-	void updateInstancesTransformation();
-	void updateTransformation(SGANode* item, const glm::mat4& transformation);
+	void updateInstances();
+	void updateInstances(SGANode* item, const glm::mat4& transformation);
 
 	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;
@@ -74,7 +72,6 @@ protected:
 	SofaMouseManipulator m_mouseManipulator;
 	sga::ObjectFactory m_sgaFactory;
 
-	std::vector<std::string> m_sgaTypesNames;
 	std::vector<std::vector<std::string>> m_sgaObjectsLabels;
 	std::vector<std::vector<std::string>> m_sgaObjectsIds;
 
@@ -88,9 +85,6 @@ protected:
 
 inline Graph& Document::graph()
 { return m_graph; }
-
-inline const std::string& Document::SGATypeName(sga::ObjectDefinition::ObjectType type)
-{ return m_sgaTypesNames[static_cast<int>(type)]; }
 
 inline const std::vector<std::string>& Document::SGAObjectsLabels(sga::ObjectDefinition::ObjectType type)
 { return m_sgaObjectsLabels[static_cast<int>(type)]; }

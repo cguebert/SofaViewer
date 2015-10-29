@@ -8,11 +8,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 include(cmake/functions.cmake)
 
 set(LIBRARIES_BASE_DIR "" CACHE PATH "Directory where other libraries are installed")
-set(LIBRARIES_INCLUDE_DIRS ${LIBRARIES_BASE_DIR}/include)
-set(LIBRARIES_LIB_DIRS ${LIBRARIES_BASE_DIR}/lib)
+set(LIBRARIES_INCLUDE_DIR ${LIBRARIES_BASE_DIR}/include)
+set(LIBRARIES_LIB_DIR ${LIBRARIES_BASE_DIR}/lib)
 
 include_directories(".")
-include_directories(${LIBRARIES_INCLUDE_DIRS})
+include_directories(${LIBRARIES_INCLUDE_DIR})
 
 set(TARGET_DIR "${CMAKE_INSTALL_PREFIX}/\${BUILD_TYPE}")
 set(SHARED_DIR "${TARGET_DIR}/shared")
