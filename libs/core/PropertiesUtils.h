@@ -59,9 +59,19 @@ namespace property
 	struct ArrayCopier
 	{
 		static void toVector(const T& val, CopyVectorType<T>& vec) 
-		{ std::copy(std::begin(val), std::end(val), std::begin(vec), std::end(vec)); }
+		{
+			const int size = ArrayTraits<T>::size;
+			vec.resize(size);
+			for (int i = 0; i < size; ++i)
+				vec[i] = val[i];
+		}
 		static void fromVector(const CopyVectorType<T>& vec, T& val) 
-		{ std::copy(std::begin(vec), std::end(vec), std::begin(val), std::end(val)); }
+		{
+			const int size = ArrayTraits<T>::size;
+			assert(vec.size() >= size);
+			for (int i = 0; i < size; ++i)
+				val[i] = vec[i];
+		}
 	};
 
 	template <class T>
@@ -167,7 +177,8 @@ namespace property
 			using base_type = ArrayBaseType<T>;
 			const int size = ArrayTraits<T>::size;
 			using copy_vector_type = CopyVectorType<T>;
-			copy_vector_type copyVal(std::begin(val), std::end(val));
+			copy_vector_type copyVal;
+			ArrayCopier<T>::toVector(val, copyVal);
 
 			using WrapperType = VectorWrapper<copy_vector_type>;
 			WrapperType wrapper(std::move(copyVal));

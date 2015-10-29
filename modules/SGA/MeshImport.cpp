@@ -43,14 +43,6 @@ namespace property
 	}
 }
 
-namespace std
-{
-
-inline glm::vec3::value_type* begin(glm::vec3& v) { return &v.x; }
-inline glm::vec3::value_type* end(glm::vec3& v) { return &v.x + 3; }
-
-}
-
 namespace
 {
 
@@ -213,6 +205,7 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 		properties->createPropertyAndWrapper("edges", model->m_edges);
 		properties->createPropertyAndWrapper("triangles", model->m_triangles);
 		properties->createPropertyAndWrapper("normals", model->m_normals);
+		properties->createPropertyAndWrapper("color", model->m_color);
 		break;
 	}
 
