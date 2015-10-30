@@ -123,12 +123,18 @@ void sgaExec::CreationContext::updateTransformation()
 
 //****************************************************************************//
 
-SGAExecution::SGAExecution(sga::ObjectFactory factory, const std::string& dataPath)
-	: m_objectFactory(factory)
+SGAExecution::SGAExecution(simplerender::Scene& scene, sga::ObjectFactory factory, const std::string& dataPath)
+	: m_scene(scene)
+	, m_objectFactory(factory)
 	, m_dataPath(dataPath)
 	, m_sofaSimulation(sfe::getLocalSimulation())
 {
+	m_sofaSimulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
+}
 
+SGAExecution::~SGAExecution()
+{
+	m_sofaSimulation.clear(); // Free the simulation
 }
 
 void SGAExecution::convert(SGANode* root)
@@ -201,6 +207,13 @@ void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& contex
 	{
 		context.updateTransformation();
 		auto visuMesh = createSofaObject(visualNode, context);
+
+		UpdateModelStruct updateModel;
+		auto visuModel = visuMesh.sofaNode().objectOfType("State");
+		updateModel.verticesData = visuModel.data("position");
+		updateModel.normalsData = visuModel.data("normal");
+		updateModel.model = context.model;
+		m_updateModelsStructs.push_back(updateModel);
 	}
 
 	auto modifiers = getModifiers(item);
@@ -213,7 +226,7 @@ void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& contex
 
 void SGAExecution::convertMesh(SGANode* item, sgaExec::CreationContext& context)
 {
-	context.model = item->model;
+	context.model = std::make_shared<simplerender::Model>(*item->model);
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa
@@ -331,4 +344,54 @@ void SGAExecution::postObjectsCreation()
 			createSofaObject(deferred.second[i], context);
 		}
 	}
+}
+
+void SGAExecution::run(CallbackFunc updateViewFunc)
+{
+	m_sofaSimulation.init();
+
+	m_originModels = m_scene.models();
+	m_originInstances = m_scene.instances();
+	m_scene.models().clear();
+	m_scene.instances().clear();
+
+	for (auto& modelUdpate : m_updateModelsStructs)
+		m_scene.addModel(modelUdpate.model);
+
+	m_updateViewFunc = updateViewFunc;
+	m_sofaSimulation.setAnimate(true);
+}
+
+void SGAExecution::stop()
+{
+	m_sofaSimulation.setAnimate(false, true);
+
+	m_scene.models() = m_originModels;
+	m_scene.instances() = m_originInstances;
+
+	m_updateModelsStructs.clear();
+	m_updateViewFunc();
+}
+
+void SGAExecution::render()
+{
+	if (!m_modelsInitialized)
+	{
+		for (auto& model : m_scene.models())
+			model->init();
+	}
+
+	m_scene.render();
+}
+
+void SGAExecution::postStep()
+{
+	for (auto& modelUpdate : m_updateModelsStructs)
+	{
+		modelUpdate.verticesData.get(modelUpdate.model->m_vertices);
+		modelUpdate.normalsData.get(modelUpdate.model->m_normals);
+		modelUpdate.model->updatePositions();
+	}
+
+	m_updateViewFunc();
 }

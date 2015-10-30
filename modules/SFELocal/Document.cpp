@@ -27,6 +27,11 @@ Document::Document(const std::string& type)
 {
 }
 
+Document::~Document()
+{
+	m_simulation.clear(); // Free the simulation
+}
+
 bool Document::loadFile(const std::string& path)
 {
 	// Read settings

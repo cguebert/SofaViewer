@@ -86,7 +86,7 @@ void Model::updatePositions()
 	glBindBuffer(GL_ARRAY_BUFFER, m_verticesVBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_vertices.size(), &m_vertices[0]);
 
-	if (!m_mergedTriangles.empty())
+	if (!m_normals.empty())
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, m_normalsVBO);
 		glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_normals.size(), &m_normals[0]);

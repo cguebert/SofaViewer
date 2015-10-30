@@ -178,7 +178,16 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools).addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
 
 	auto& panel = m_gui->buttonsPanel();
-	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ convertAndRun(); });
+	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ 
+		if (!m_execution)
+			convertAndRun();
+	});
+
+	panel.addButton("Stop", "Stop the Sofa simulation", [this](){ 
+		if (m_execution) 
+			m_execution->stop(); 
+		m_execution.reset(); 
+	});
 
 	m_rootNode = createNode("SGA scene", SGANode::Type::Root, nullptr);
 	m_graph.setRoot(m_rootNode);
@@ -196,6 +205,12 @@ void Document::resize(int width, int height)
 
 void Document::render()
 {
+	if (m_execution)
+	{
+		m_execution->render();
+		return;
+	}
+
 	for (auto model : m_newModels)
 		model->init();
 	m_newModels.clear();
@@ -401,8 +416,11 @@ void Document::convertAndRun()
 		addSGANode(root, sga::ObjectDefinition::ObjectType::RootObject);
 
 	std::string dataPath = modulePath();
-	m_execution = std::make_shared<SGAExecution>(m_sgaFactory, dataPath);
+	m_execution = std::make_shared<SGAExecution>(m_scene, m_sgaFactory, dataPath);
 	m_execution->convert(m_rootNode.get());
+	m_execution->run([this](){
+		m_gui->updateView();
+	});
 }
 
 void Document::updateInstances()
