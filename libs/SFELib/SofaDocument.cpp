@@ -71,6 +71,7 @@ void SofaDocument::render()
 	{
 		for(auto model : m_scene.models())
 			model->updatePositions();
+		m_updateObjects = false;
 	}
 
 	m_scene.render();
