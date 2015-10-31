@@ -146,7 +146,7 @@ void ShaderProgram::use() const
 	glUseProgram(id());
 }
 
-unsigned int ShaderProgram::uniformLocation(const std::string& name) const
+int ShaderProgram::uniformLocation(const std::string& name) const
 {
 	return glGetUniformLocation(id(), name.c_str());
 }

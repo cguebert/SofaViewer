@@ -26,7 +26,7 @@ public:
 	unsigned int id() const;
 	void use() const;
 
-	unsigned int uniformLocation(const std::string& name) const;
+	int uniformLocation(const std::string& name) const;
 
 protected:
 	void addShader(ShaderType type, unsigned int id);

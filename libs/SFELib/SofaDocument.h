@@ -70,6 +70,7 @@ protected:
 	std::chrono::high_resolution_clock::time_point m_fpsStart;
 
 	std::vector<SofaModel> m_sofaModels;
+	std::vector<simplerender::Scene::ModelPtr> m_newModels;
 };
 
 inline Graph& SofaDocument::graph()

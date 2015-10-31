@@ -118,7 +118,7 @@ void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const ch
 
 Scene::ProgramStruct& Scene::selectProgram(const ModelPtr model)
 {
-	if (!model->m_triangles.empty())
+	if (!model->m_mergedTriangles.empty())
 		return m_trianglesProg;
 	return m_linesProg;
 }

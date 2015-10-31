@@ -63,6 +63,10 @@ void SofaDocument::resize(int width, int height)
 
 void SofaDocument::render()
 {
+	for (auto model : m_newModels)
+		model->init();
+	m_newModels.clear();
+
 	if(m_updateObjects)
 	{
 		for(auto model : m_scene.models())
@@ -157,6 +161,7 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	}
 */
 	sofaModel.model = model;
+	m_newModels.push_back(model);
 	return sofaModel;
 }
 
