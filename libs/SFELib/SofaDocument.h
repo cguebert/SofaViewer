@@ -59,6 +59,7 @@ protected:
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 	sfe::Simulation m_simulation;
+	std::vector<sfe::CallbackHandle> m_sfeCallbacks;
 	GraphImages m_graphImages;
 	bool m_updateObjects = false;
 	std::vector<ObjectPropertiesPtr> m_openedObjectProperties;

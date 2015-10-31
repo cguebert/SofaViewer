@@ -129,7 +129,7 @@ SGAExecution::SGAExecution(simplerender::Scene& scene, sga::ObjectFactory factor
 	, m_dataPath(dataPath)
 	, m_sofaSimulation(sfe::getLocalSimulation())
 {
-	m_sofaSimulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
+	m_stepCallbackHandle = m_sofaSimulation.addCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
 }
 
 SGAExecution::~SGAExecution()

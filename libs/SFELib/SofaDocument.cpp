@@ -181,8 +181,8 @@ void SofaDocument::parseScene()
 void SofaDocument::setupCallbacks()
 {
 	sfe::SetAsynchronousCallbacks(true);
-	m_simulation.setCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); });
-	m_simulation.setCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); });
+	m_sfeCallbacks.push_back(m_simulation.addCallback(sfe::Simulation::CallbackType::Step, [this](){ postStep(); }));
+	m_sfeCallbacks.push_back(m_simulation.addCallback(sfe::Simulation::CallbackType::Reset, [this](){ postStep(); }));
 }
 
 void SofaDocument::updateObjects()

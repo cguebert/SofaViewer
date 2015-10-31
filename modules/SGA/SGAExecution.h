@@ -57,4 +57,5 @@ private:
 	std::vector<UpdateModelStruct> m_updateModelsStructs;
 	CallbackFunc m_updateViewFunc;
 	bool m_modelsInitialized = false;
+	sfe::CallbackHandle m_stepCallbackHandle;
 };
