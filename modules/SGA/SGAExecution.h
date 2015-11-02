@@ -5,6 +5,7 @@
 #include <render/Scene.h>
 
 class SGANode;
+struct SimulationProperties;
 
 namespace sgaExec
 {
@@ -19,7 +20,7 @@ public:
 	SGAExecution(simplerender::Scene& scene, sga::ObjectFactory factory, const std::string& dataPath);
 	~SGAExecution();
 
-	void convert(SGANode* root);
+	void convert(const SimulationProperties& simuProp, SGANode* root);
 
 	void run(CallbackFunc updateViewFunc);
 	void stop();

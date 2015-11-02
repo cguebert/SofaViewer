@@ -28,6 +28,14 @@ public:
 
 //****************************************************************************//
 
+struct SimulationProperties
+{
+	std::array<double, 3> gravity;
+	double timestep = 0.02;
+};
+
+//****************************************************************************//
+
 class Document : public BaseDocument
 {
 public:
@@ -81,6 +89,7 @@ protected:
 	std::vector<simplerender::Model*> m_newModels;
 
 	std::shared_ptr<SGAExecution> m_execution;
+	SimulationProperties m_simulationProperties;
 };
 
 inline Graph& Document::graph()

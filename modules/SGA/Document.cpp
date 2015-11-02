@@ -134,6 +134,8 @@ Document::Document(const std::string& type)
 {
 	prepareSGAObjectsLists();
 	createGraphImages();
+
+	m_simulationProperties.gravity = { 0, -9.81, 0 };
 }
 
 bool Document::loadFile(const std::string& path)
@@ -247,6 +249,14 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	switch (item->nodeType)
 	{
 	case SGANode::Type::Root:
+	{
+		auto properties = std::make_shared<ObjectProperties>(item->name);
+		properties->createPropertyAndWrapper("gravity", m_simulationProperties.gravity);
+		properties->createPropertyAndWrapper("timestep", m_simulationProperties.timestep);
+		populateProperties(item, m_scene, properties.get());
+		return properties;
+	}
+
 	case SGANode::Type::Node:
 	case SGANode::Type::Mesh:
 	case SGANode::Type::Instance:
@@ -417,7 +427,7 @@ void Document::convertAndRun()
 
 	std::string dataPath = modulePath();
 	m_execution = std::make_shared<SGAExecution>(m_scene, m_sgaFactory, dataPath);
-	m_execution->convert(m_rootNode.get());
+	m_execution->convert(m_simulationProperties,  m_rootNode.get());
 	m_execution->run([this](){
 		m_gui->updateView();
 	});

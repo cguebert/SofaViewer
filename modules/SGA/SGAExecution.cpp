@@ -137,10 +137,12 @@ SGAExecution::~SGAExecution()
 	m_sofaSimulation.clear(); // Free the simulation
 }
 
-void SGAExecution::convert(SGANode* root)
+void SGAExecution::convert(const SimulationProperties& simuProp, SGANode* root)
 {
 	sgaExec::CreationContext context;
 	createSofaRoot(root, context);
+	m_sofaSimulation.setGravity(simuProp.gravity[0], simuProp.gravity[1], simuProp.gravity[2]);
+	m_sofaSimulation.setDt(simuProp.timestep);
 
 	parseNode(root, context);
 	postObjectsCreation();
