@@ -4,8 +4,6 @@
 #include <sfe/sofaFrontEndLocal.h>
 #include <sga/types.h>
 
-#include <glm/gtx/matrix_decompose.hpp>
-
 #include <fstream>
 
 namespace sfe
@@ -43,23 +41,16 @@ std::vector<SGANode*> getModifiers(SGANode* parent)
 
 sga::Transformation convertTransformation(const glm::mat4& matrix)
 {
-	sga::Transformation transformation;
-	auto modelTrans = glm::transpose(matrix);
-	glm::vec3 scale, translation, skew;
-	glm::vec4 perspective;
-	glm::quat orientation;
-	if (glm::decompose(modelTrans, scale, orientation, translation, skew, perspective))
+	auto input = getTransformation(matrix);
+	sga::Transformation output;
+	for (int i = 0; i < 3; ++i)
 	{
-		glm::vec3 rotation = glm::degrees(glm::eulerAngles(orientation));
-		for (int i = 0; i < 3; ++i)
-		{
-			transformation.translation[i] = translation[i];
-			transformation.rotation[i] = rotation[i];
-			transformation.scale[i] = scale[i];
-		}
+		output.translation[i] = input.translation[i];
+		output.rotation[i] = input.rotation[i];
+		output.scale[i] = input.scale[i];
 	}
 
-	return transformation;
+	return output;
 }
 
 }
@@ -141,7 +132,7 @@ void SGAExecution::convert(const SimulationProperties& simuProp, SGANode* root)
 {
 	sgaExec::CreationContext context;
 	createSofaRoot(root, context);
-	m_sofaSimulation.setGravity(simuProp.gravity[0], simuProp.gravity[1], simuProp.gravity[2]);
+	m_sofaSimulation.setGravity(simuProp.gravity.x, simuProp.gravity.y, simuProp.gravity.z);
 	m_sofaSimulation.setDt(simuProp.timestep);
 
 	parseNode(root, context);
@@ -158,9 +149,9 @@ void SGAExecution::parseNode(SGANode* node, sgaExec::CreationContext& context)
 		convertObject(node, context);
 	else if (node->nodeType == SGANode::Type::Node || node->nodeType == SGANode::Type::Root)
 	{
-		context.globalTransformationMatrix = node->transformation;
+		context.globalTransformationMatrix = node->transformationMatrix;
 		context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
-		context.localTransformationMatrix = node->transformation * context.localTransformationMatrix;
+		context.localTransformationMatrix = node->transformationMatrix * context.localTransformationMatrix;
 		context.localTransformation = convertTransformation(context.localTransformationMatrix);
 
 		sgaExec::CreationContext tmpContext = context;
@@ -232,7 +223,7 @@ void SGAExecution::convertMesh(SGANode* item, sgaExec::CreationContext& context)
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa
-	context.transformation = convertTransformation(item->transformation);
+	context.transformation = convertTransformation(item->transformationMatrix);
 	
 	// Update bounding box
 	auto bb = simplerender::boundingBox(*item->model);

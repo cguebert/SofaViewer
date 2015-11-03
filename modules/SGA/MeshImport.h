@@ -6,6 +6,8 @@
 
 #include <glm/glm.hpp>
 
+#include <core/PropertiesUtils.h>
+
 class Document;
 class Graph;
 class ObjectProperties;
@@ -20,6 +22,39 @@ namespace simplerender
 {
 class Model;
 class Scene;
+}
+
+namespace property
+{
+	namespace details
+	{
+		template <>
+		struct ArrayTraits<glm::vec3>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 3;
+			using value_type = glm::vec3::value_type;
+		};
+
+		template <>
+		struct ArrayTraits<glm::vec4>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 4;
+			using value_type = glm::vec4::value_type;
+		};
+
+		template <>
+		struct ArrayTraits<glm::mat4>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 4;
+			using value_type = glm::mat4::col_type;
+		};
+	}
 }
 
 class MeshImport

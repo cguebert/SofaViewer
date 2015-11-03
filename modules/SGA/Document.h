@@ -10,6 +10,17 @@
 
 class SGAExecution;
 
+struct SGATransformation
+{
+	SGATransformation(glm::vec3 t, glm::vec3 r, glm::vec3 s) : translation(t), rotation(r), scale(s) {}
+	SGATransformation() : scale(1, 1, 1) {}
+
+	glm::vec3 translation, rotation, scale;
+};
+
+SGATransformation toTransformationComponents(const glm::mat4& matrix);
+glm::mat4 toTransformationMatrix(const SGATransformation& transformation);
+
 class SGANode : public GraphNode
 {
 public:
@@ -20,8 +31,9 @@ public:
 
 	Type nodeType;
 
-	glm::mat4 transformation; // Root & Node
-	simplerender::Scene::ModelPtr model; // Mesh
+	glm::mat4 transformationMatrix; // Root & Instance
+	SGATransformation transformationComponents; // Node
+	simplerender::Scene::ModelPtr model; // Mesh & Instance
 	int meshId = -1; // Instance
 	sga::ObjectDefinition sgaDefinition; // SGA nodes
 };
@@ -30,7 +42,7 @@ public:
 
 struct SimulationProperties
 {
-	std::array<double, 3> gravity;
+	glm::vec3 gravity = { 0, -9.81, 0 };
 	double timestep = 0.02;
 };
 

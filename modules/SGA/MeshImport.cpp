@@ -10,39 +10,6 @@
 
 #include <glm/glm.hpp>
 
-namespace property
-{
-	namespace details
-	{
-		template <>
-		struct ArrayTraits<glm::vec3>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 3;
-			using value_type = glm::vec3::value_type;
-		};
-
-		template <>
-		struct ArrayTraits<glm::vec4>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 4;
-			using value_type = glm::vec4::value_type;
-		};
-
-		template <>
-		struct ArrayTraits<glm::mat4>
-		{
-			static const bool isArray = true;
-			static const bool fixed = true;
-			static const int size = 4;
-			using value_type = glm::mat4::col_type;
-		};
-	}
-}
-
 namespace
 {
 
@@ -114,7 +81,7 @@ void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm:
 {
 	auto n = m_document->createNode(aNode->mName.C_Str(), SGANode::Type::Node, parent);
 	auto nodeTransformation = convert(aNode->mTransformation);
-	n->transformation = nodeTransformation;
+	n->transformationComponents = getTransformation(nodeTransformation);
 	auto accTrans = nodeTransformation * transformation;
 
 	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
@@ -134,7 +101,7 @@ void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const 
 	auto n = m_document->createNode(mesh->mName.C_Str(), SGANode::Type::Instance, parent);
 	n->meshId = modelId;
 	n->model = m_scene.models()[modelId];
-	n->transformation = transformation;
+	n->transformationMatrix = transformation;
 	m_scene.addInstance({ glm::transpose(transformation), n->model });
 }
 
@@ -181,7 +148,7 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 	{
 	case SGANode::Type::Root:
 	{
-		properties->createPropertyAndWrapper("transformation", item->transformation);
+		properties->createPropertyAndWrapper("transformation", item->transformationMatrix);
 		auto bb = simplerender::boundingBox(scene);
 		auto sceneSize = bb.second - bb.first;
 		auto sizeProp = property::createCopyProperty("Scene size", sceneSize);
@@ -191,7 +158,9 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 
 	case SGANode::Type::Node:
 	{
-		properties->createPropertyAndWrapper("transformation", item->transformation);
+		properties->createPropertyAndWrapper("translation", item->transformationComponents.translation);
+		properties->createPropertyAndWrapper("rotation", item->transformationComponents.rotation);
+		properties->createPropertyAndWrapper("scale", item->transformationComponents.scale);
 		break;
 	}
 
@@ -212,7 +181,7 @@ void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectP
 	case SGANode::Type::Instance:
 	{
 		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
-		properties->createPropertyAndWrapper("transformation", item->transformation).first->setReadOnly(true);
+		properties->createPropertyAndWrapper("transformation", item->transformationMatrix).first->setReadOnly(true);
 		break;
 	}
 	}

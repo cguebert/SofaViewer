@@ -10,6 +10,9 @@
 
 #include <serialization/DocXML.h>
 
+#include <glm/gtx/matrix_decompose.hpp>
+#include <glm/gtx/quaternion.hpp>
+
 #include <iostream>
 
 int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction")
@@ -127,6 +130,34 @@ std::pair<int, SGANode*> indexOfNewNode(GraphNode* parent, sga::ObjectDefinition
 
 }
 
+SGATransformation toTransformationComponents(const glm::mat4& matrix)
+{
+	SGATransformation transformation;
+	auto modelTrans = glm::transpose(matrix);
+	glm::vec3 scale, translation, skew;
+	glm::vec4 perspective;
+	glm::quat orientation;
+	if (glm::decompose(modelTrans, scale, orientation, translation, skew, perspective))
+	{
+		glm::vec3 rotation = glm::degrees(glm::eulerAngles(orientation));
+		transformation = { translation, rotation, scale };
+	}
+
+	return transformation;
+}
+
+glm::mat4 toTransformationMatrix(const SGATransformation& transformation)
+{
+	glm::quat orientation(glm::radians(transformation.rotation));
+	glm::mat4 transMat;
+	transMat = glm::translate(transMat, transformation.translation);
+	transMat = transMat * glm::toMat4(orientation);
+	transMat = glm::scale(transMat, transformation.scale);
+	transMat = glm::transpose(transMat);
+
+	return transMat;
+}
+
 Document::Document(const std::string& type)
 	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
@@ -134,8 +165,6 @@ Document::Document(const std::string& type)
 {
 	prepareSGAObjectsLists();
 	createGraphImages();
-
-	m_simulationProperties.gravity = { 0, -9.81, 0 };
 }
 
 bool Document::loadFile(const std::string& path)
@@ -443,13 +472,19 @@ void Document::updateInstances()
 void Document::updateInstances(SGANode* item, const glm::mat4& transformation)
 {
 	auto accTrans = transformation;
-	if (item->nodeType == SGANode::Type::Root || item->nodeType == SGANode::Type::Node)
+	if (item->nodeType == SGANode::Type::Root)
 	{
-		accTrans = item->transformation * transformation;
+		accTrans = item->transformationMatrix * transformation;
+	}
+	else if(item->nodeType == SGANode::Type::Node)
+	{
+		glm::mat4 transMat = toTransformationMatrix(item->transformationComponents);
+		accTrans = transMat * transformation;
+		item->transformationMatrix = transMat;
 	}
 	else if (item->nodeType == SGANode::Type::Instance)
 	{
-		item->transformation = transformation;
+		item->transformationMatrix = transformation;
 		auto model = m_scene.models()[item->meshId];
 		item->model = model;
 		m_scene.addInstance({ glm::transpose(transformation), model });
