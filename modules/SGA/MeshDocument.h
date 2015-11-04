@@ -30,7 +30,7 @@ public:
 
 	glm::mat4 transformationMatrix; // Root & Node & Instance (Read only)
 	TransformationComponents transformationComponents; // Root & Node
-	simplerender::Scene::ModelPtr model; // Mesh & Instance
+	simplerender::Model::SPtr model; // Mesh & Instance
 	int meshId = -1; // Instance
 };
 
@@ -61,6 +61,9 @@ public:
 
 	MeshNode::SPtr createNode(const std::string& name, MeshNode::Type nodeType, GraphNode* parent, int position = -1);
 	GraphNode::SPtr createNode(const std::string& typeName, const std::string& id); // For the loading of a document
+
+	void removeDuplicateMeshes();
+	void removeUnusedMeshes();
 
 protected:
 	void createGraphImages();

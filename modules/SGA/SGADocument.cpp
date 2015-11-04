@@ -117,7 +117,7 @@ std::pair<int, SGANode*> indexOfNewNode(GraphNode* parent, sga::ObjectDefinition
 	{
 		auto firstNode = getChild(parent, MeshNode::Type::Node);
 		if (firstNode)
-			return std::make_pair(indexOfChild(parent, firstNode), nullptr); // Add before the first node
+			return std::make_pair(graph::indexOfChild(parent, firstNode), nullptr); // Add before the first node
 		return std::make_pair(-1, nullptr); // Add at the end
 	}
 	}
@@ -163,10 +163,10 @@ bool Document::saveFile(const std::string& path)
 
 void Document::initUI(simplegui::SimpleGUI& gui)
 {
-	MeshDocument::initUI(gui);
-
 	m_gui = &gui;
-	m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools).addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
+	auto& toolsMenu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	toolsMenu.addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
+	toolsMenu.addSeparator();
 
 	auto& panel = m_gui->buttonsPanel();
 	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ 
@@ -179,6 +179,8 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 			m_execution->stop(); 
 		m_execution.reset(); 
 	});
+
+	MeshDocument::initUI(gui);
 }
 
 void Document::initOpenGL()

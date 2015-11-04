@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 
 #include <array>
+#include <memory>
 #include <vector>
 
 namespace simplerender
@@ -25,6 +26,8 @@ using IdList = std::vector < int >;
 class Model
 {
 public:
+	using SPtr = std::shared_ptr<Model>;
+
 	void init();
 	void prepareBuffers();
 	void updatePositions();

@@ -5,24 +5,21 @@
 #include <glm/gtc/quaternion.hpp>
 #include <glm/detail/type_mat4x4.hpp>
 
-#include <memory>
-
 namespace simplerender
 {
 
 class Scene
 {
 public:
-	using ModelPtr = std::shared_ptr<Model>;
-	using Models = std::vector<ModelPtr>;
-	using ModelInstance = std::pair<glm::mat4, ModelPtr>;
+	using Models = std::vector<Model::SPtr>;
+	using ModelInstance = std::pair<glm::mat4, Model::SPtr>;
 	using ModelInstances = std::vector<ModelInstance>;
 
 	void initOpenGL();
 	void resize(int width, int height);
 	void render();
 
-	void addModel(ModelPtr model);
+	void addModel(Model::SPtr model);
 	Models& models();
 	const Models& models() const;
 
@@ -46,7 +43,7 @@ protected:
 	};
 
 	void prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader);
-	ProgramStruct& selectProgram(const ModelPtr model);
+	ProgramStruct& selectProgram(const Model::SPtr model);
 
 	Models m_models;
 	ModelInstances m_instances;
@@ -64,7 +61,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene);
 
 //****************************************************************************//
 
-inline void Scene::addModel(ModelPtr model)
+inline void Scene::addModel(Model::SPtr model)
 { m_models.push_back(model); }
 
 inline Scene::Models& Scene::models()

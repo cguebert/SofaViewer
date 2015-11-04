@@ -45,6 +45,54 @@ const std::string& getTypeName(MeshNode::Type type)
 	return meshNodeTypeNames()[static_cast<int>(type)];
 }
 
+graph::GraphNodes getNodes(GraphNode* root, MeshNode::Type type)
+{
+	return graph::getNodes(root, [type](GraphNode* baseNode){
+		auto node = dynamic_cast<MeshNode*>(baseNode);
+		return node && node->nodeType == type;
+	});
+}
+
+std::vector<MeshNode*> convertToMeshNodes(const graph::GraphNodes& nodes)
+{
+	std::vector<MeshNode*> meshNodes;
+	for (const auto& node : nodes)
+	{
+		auto meshNode = dynamic_cast<MeshNode*>(node);
+		if (meshNode)
+			meshNodes.push_back(meshNode);
+	}
+	return meshNodes;
+}
+
+std::vector<std::string> getMeshesNames(GraphNode* root)
+{
+	auto meshNodes = getNodes(root, MeshNode::Type::Mesh);
+
+	std::vector<std::string> names;
+	for (auto& mesh : meshNodes)
+		names.push_back(mesh->name);
+	return names;
+}
+
+std::string createNewName(GraphNode* root, MeshNode::Type type, const std::string& prefix)
+{
+	auto nodes = getNodes(root, type);
+	std::vector<std::string> names;
+	for (const auto& node : nodes)
+		names.push_back(node->name);
+
+	int i = nodes.size() + 1;
+	std::string name = prefix + std::to_string(i);
+	while (names.end() != std::find(names.begin(), names.end(), name))
+	{
+		++i;
+		name = prefix + std::to_string(i);
+	}
+
+	return name;
+}
+
 }
 
 TransformationComponents toTransformationComponents(const glm::mat4& matrix)
@@ -99,6 +147,10 @@ bool MeshDocument::saveFile(const std::string& path)
 void MeshDocument::initUI(simplegui::SimpleGUI& gui)
 {
 	m_graph.setRoot(m_rootNode);
+
+	auto& toolsMenu = gui.getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	toolsMenu.addItem("Remove duplicate meshes", "Remove meshes that are identical to each other", [this](){ removeDuplicateMeshes(); });
+	toolsMenu.addItem("Remove unused meshes", "Remove meshes that have no instance", [this](){ removeUnusedMeshes(); });
 }
 
 void MeshDocument::initOpenGL()
@@ -187,6 +239,7 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 
 	case MeshNode::Type::Node:
 	{
+		properties->addProperty(property::createRefProperty("name", item->name));
 		properties->createPropertyAndWrapper("translation", item->transformationComponents.translation);
 		properties->createPropertyAndWrapper("rotation", item->transformationComponents.rotation);
 		properties->createPropertyAndWrapper("scale", item->transformationComponents.scale);
@@ -209,7 +262,8 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 
 	case MeshNode::Type::Instance:
 	{
-		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
+		properties->addProperty(property::createRefProperty("name", item->name));
+		properties->addProperty(property::createRefProperty("mesh id", item->meshId, meta::Enum(getMeshesNames(m_rootNode.get()))));
 		properties->createPropertyAndWrapper("transformation", item->transformationMatrix).first->setReadOnly(true);
 		break;
 	}
@@ -224,7 +278,7 @@ void MeshDocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPt
 	if (!item)
 		return;
 
-	if (item->nodeType == MeshNode::Type::Root || item->nodeType == MeshNode::Type::Node)
+	if (item->nodeType == MeshNode::Type::Root || item->nodeType == MeshNode::Type::Node || item->nodeType == MeshNode::Type::Instance)
 		updateInstances();
 }
 
@@ -251,7 +305,7 @@ void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 
 	case MeshNode::Type::Instance:
 	{
-		menu.addItem("Remove instance", "Remove this mesh instance", [item, this]() { removeNode(item); });
+		menu.addItem("Remove instance", "Remove this mesh instance", [item, this]() { removeNode(item); updateInstances(); });
 		return;
 	}
 	}
@@ -303,7 +357,7 @@ void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformati
 
 void MeshDocument::addNode(MeshNode* parent)
 {
-
+	createNode(createNewName(m_rootNode.get(), MeshNode::Type::Node, "Node "), MeshNode::Type::Node, parent);
 }
 
 void MeshDocument::removeNode(MeshNode* item)
@@ -314,5 +368,59 @@ void MeshDocument::removeNode(MeshNode* item)
 
 void MeshDocument::addInstance(MeshNode* parent)
 {
+	createNode(createNewName(m_rootNode.get(), MeshNode::Type::Instance, "Instance "), MeshNode::Type::Instance, parent);
+}
 
+void MeshDocument::removeDuplicateMeshes()
+{
+	
+}
+
+void MeshDocument::removeUnusedMeshes()
+{
+	// Get the list of the instances
+	auto instanceNodes = getNodes(m_rootNode.get(), MeshNode::Type::Instance);
+	std::vector<simplerender::Model*> instancedModels;
+	for (auto& instanceNode : instanceNodes)
+	{
+		auto node = dynamic_cast<MeshNode*>(instanceNode);
+		instancedModels.push_back(node->model.get());
+	}
+
+	// Create a unique list of used models
+	std::sort(instancedModels.begin(), instancedModels.end());
+	auto lastInstanced = std::unique(instancedModels.begin(), instancedModels.end());
+	if (lastInstanced != instancedModels.end())
+		instancedModels.erase(lastInstanced, instancedModels.end());
+
+	// Test if a model is used
+	auto isUnused = [&instancedModels](const simplerender::Model::SPtr& model){
+		auto modelPtr = model.get();
+		return instancedModels.end() == std::find(instancedModels.begin(), instancedModels.end(), modelPtr);
+	};
+	auto& models = m_scene.models();
+	auto last = std::remove_if(models.begin(), models.end(), isUnused);
+
+	// Iterate over unused models
+	if (last != models.end())
+	{
+		auto meshNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Mesh));
+		for (auto it = last, itEnd = models.end(); it != itEnd; ++it)
+		{
+			// If there is a mesh node in the graph, remove it
+			auto model = *it;
+			auto itMesh = std::find_if(meshNodes.begin(), meshNodes.end(), [&model](MeshNode* node){
+				return node->model == model;
+			});
+
+			if (itMesh != meshNodes.end())
+			{
+				auto meshNode = *itMesh;
+				m_graph.removeChild(meshNode->parent, meshNode);
+			}
+		}
+
+		// Modifiy the scene's models list
+		models.erase(last, models.end());
+	}
 }

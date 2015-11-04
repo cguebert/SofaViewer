@@ -116,7 +116,7 @@ void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const ch
 	ps.texLoc = prog.uniformLocation("texture");
 }
 
-Scene::ProgramStruct& Scene::selectProgram(const ModelPtr model)
+Scene::ProgramStruct& Scene::selectProgram(const Model::SPtr model)
 {
 	if (!model->m_mergedTriangles.empty())
 		return m_trianglesProg;

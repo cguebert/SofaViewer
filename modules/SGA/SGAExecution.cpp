@@ -63,7 +63,7 @@ struct CreationContext
 	std::string name;
 	sga::ObjectWrapper parent;
 	bool hasSGAParent = false;
-	simplerender::Scene::ModelPtr model;
+	simplerender::Model::SPtr model;
 	sga::Transformation transformation;
 	sga::Vec3d boundingBox[2]; // min & max
 	int modifierIndex = 0;
