@@ -14,7 +14,7 @@ template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>
 namespace
 {
 
-SGANode* getChild(SGANode* parent, sga::ObjectDefinition::ObjectType type)
+SGANode* getChild(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
 {
 	for (auto child : parent->children)
 	{
@@ -26,7 +26,7 @@ SGANode* getChild(SGANode* parent, sga::ObjectDefinition::ObjectType type)
 	return nullptr;
 }
 
-std::vector<SGANode*> getModifiers(SGANode* parent)
+std::vector<SGANode*> getModifiers(GraphNode* parent)
 {
 	std::vector<SGANode*> list;
 	for (auto child : parent->children)
@@ -41,7 +41,7 @@ std::vector<SGANode*> getModifiers(SGANode* parent)
 
 sga::Transformation convertTransformation(const glm::mat4& matrix)
 {
-	auto input = getTransformation(matrix);
+	auto input = toTransformationComponents(matrix);
 	sga::Transformation output;
 	for (int i = 0; i < 3; ++i)
 	{
@@ -128,10 +128,14 @@ SGAExecution::~SGAExecution()
 	m_sofaSimulation.clear(); // Free the simulation
 }
 
-void SGAExecution::convert(const SimulationProperties& simuProp, SGANode* root)
+bool SGAExecution::convert(const SimulationProperties& simuProp, GraphNode* root)
 {
 	sgaExec::CreationContext context;
-	createSofaRoot(root, context);
+	auto rootSGANode = getChild(root, sga::ObjectDefinition::ObjectType::RootObject);
+	if (!rootSGANode)
+		return false;
+
+	createSofaRoot(rootSGANode, context);
 	m_sofaSimulation.setGravity(simuProp.gravity.x, simuProp.gravity.y, simuProp.gravity.z);
 	m_sofaSimulation.setDt(simuProp.timestep);
 
@@ -141,29 +145,35 @@ void SGAExecution::convert(const SimulationProperties& simuProp, SGANode* root)
 	std::ofstream out("ExportSofaScene.scn");
 	out << "<?xml version=\"1.0\"?>\n";
 	m_sofaSimulation.root().exportXML(out);
+
+	return true;
 }
 
-void SGAExecution::parseNode(SGANode* node, sgaExec::CreationContext& context)
+void SGAExecution::parseNode(GraphNode* baseNode, sgaExec::CreationContext& context)
 {
-	if (node->model) // Instance or Mesh
-		convertObject(node, context);
-	else if (node->nodeType == SGANode::Type::Node || node->nodeType == SGANode::Type::Root)
+	auto meshNode = dynamic_cast<MeshNode*>(baseNode);
+	if (!meshNode)
+		return;
+
+	if (meshNode->model) // Instance or Mesh
+		convertObject(meshNode, context);
+	else if (meshNode->nodeType == MeshNode::Type::Node || meshNode->nodeType == MeshNode::Type::Root)
 	{
-		context.globalTransformationMatrix = node->transformationMatrix;
+		context.globalTransformationMatrix = meshNode->transformationMatrix;
 		context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
-		context.localTransformationMatrix = node->transformationMatrix * context.localTransformationMatrix;
+		context.localTransformationMatrix = meshNode->transformationMatrix * context.localTransformationMatrix;
 		context.localTransformation = convertTransformation(context.localTransformationMatrix);
 
 		sgaExec::CreationContext tmpContext = context;
-		for (auto child : node->children)
+		for (auto child : meshNode->children)
 		{
-			parseNode(dynamic_cast<SGANode*>(child.get()), context);
+			parseNode(child.get(), context);
 			context = tmpContext; // Reset the context each time we come back
 		}
 	}
 }
 
-void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& context)
+void SGAExecution::convertObject(MeshNode* item, sgaExec::CreationContext& context)
 {
 	auto physicsNode = getChild(item, sga::ObjectDefinition::ObjectType::PhysicsObject);
 	auto collisionNode = getChild(item, sga::ObjectDefinition::ObjectType::CollisionObject);
@@ -217,7 +227,7 @@ void SGAExecution::convertObject(SGANode* item, sgaExec::CreationContext& contex
 	}
 }
 
-void SGAExecution::convertMesh(SGANode* item, sgaExec::CreationContext& context)
+void SGAExecution::convertMesh(MeshNode* item, sgaExec::CreationContext& context)
 {
 	context.model = std::make_shared<simplerender::Model>(*item->model);
 	context.name = item->name;
@@ -312,9 +322,8 @@ void SGAExecution::fillProperties(SGANode* item, sgaExec::CreationContext& conte
 
 void SGAExecution::createSofaRoot(SGANode* item, sgaExec::CreationContext& context)
 {
-	auto rootNode = getChild(item, sga::ObjectDefinition::ObjectType::RootObject);
-	fillProperties(rootNode, context);
-	m_simulationWrapper = m_objectFactory.createRoot(rootNode->sgaDefinition, m_sofaSimulation);
+	fillProperties(item, context);
+	m_simulationWrapper = m_objectFactory.createRoot(item->sgaDefinition, m_sofaSimulation);
 	context.parent = m_simulationWrapper;
 }
 

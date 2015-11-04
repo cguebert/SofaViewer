@@ -8,11 +8,11 @@
 
 #include <core/PropertiesUtils.h>
 
-class Document;
 class Graph;
 class ObjectProperties;
+class MeshDocument;
+class MeshNode;
 class Scene;
-class SGANode;
 
 struct aiScene;
 struct aiNode;
@@ -60,21 +60,19 @@ namespace property
 class MeshImport
 {
 public:
-	MeshImport(Document* doc, simplerender::Scene& scene, Graph& graph);
+	MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph);
 	std::vector<simplerender::Model*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new models
 	
 private:
 	void parseScene(const aiScene* scene);
-	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, SGANode* parent);
-	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, SGANode* parent);
+	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, MeshNode* parent);
+	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, MeshNode* parent);
 
 	int modelIndex(int meshId);
 
-	Document* m_document;
+	MeshDocument* m_document;
 	simplerender::Scene& m_scene;
 	Graph& m_graph;
 	std::vector<std::pair<int, int>> m_modelsIndices; // Mesh id in Assimp scene -> Model id
 	std::vector<simplerender::Model*> m_newModels;
 };
-
-void populateProperties(SGANode* node, const simplerender::Scene& scene, ObjectProperties* properties);

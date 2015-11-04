@@ -4,6 +4,8 @@
 #include <sfe/Simulation.h>
 #include <render/Scene.h>
 
+class GraphNode;
+class MeshNode;
 class SGANode;
 struct SimulationProperties;
 
@@ -20,16 +22,16 @@ public:
 	SGAExecution(simplerender::Scene& scene, sga::ObjectFactory factory, const std::string& dataPath);
 	~SGAExecution();
 
-	void convert(const SimulationProperties& simuProp, SGANode* root);
+	bool convert(const SimulationProperties& simuProp, GraphNode* root);
 
 	void run(CallbackFunc updateViewFunc);
 	void stop();
 	void render();
 
 private:
-	void parseNode(SGANode* node, sgaExec::CreationContext& context);
-	void convertObject(SGANode* item, sgaExec::CreationContext& context);
-	void convertMesh(SGANode* item, sgaExec::CreationContext& context);
+	void parseNode(GraphNode* node, sgaExec::CreationContext& context);
+	void convertObject(MeshNode* item, sgaExec::CreationContext& context);
+	void convertMesh(MeshNode* item, sgaExec::CreationContext& context);
 	void fillProperties(SGANode* item, sgaExec::CreationContext& context);
 
 	void createSofaRoot(SGANode* item, sgaExec::CreationContext& context);

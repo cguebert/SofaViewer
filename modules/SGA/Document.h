@@ -1,40 +1,21 @@
 #pragma once
 
-#include <core/BaseDocument.h>
-#include <core/Graph.h>
-#include <core/MouseManipulator.h>
+#include "MeshDocument.h"
 
-#include <render/Scene.h>
-#include <sfe/Simulation.h>
 #include <sga/ObjectFactory.h>
 
 class SGAExecution;
-
-struct SGATransformation
-{
-	SGATransformation(glm::vec3 t, glm::vec3 r, glm::vec3 s) : translation(t), rotation(r), scale(s) {}
-	SGATransformation() : scale(1, 1, 1) {}
-
-	glm::vec3 translation, rotation, scale;
-};
-
-SGATransformation toTransformationComponents(const glm::mat4& matrix);
-glm::mat4 toTransformationMatrix(const SGATransformation& transformation);
 
 class SGANode : public GraphNode
 {
 public:
 	using SPtr = std::shared_ptr<SGANode>;
-	enum class Type { Root, Node, Mesh, Instance, SGA_Root, SGA_Physics, SGA_Collision, SGA_Visual, SGA_Modifier };
+	enum class Type { SGA_Root, SGA_Physics, SGA_Collision, SGA_Visual, SGA_Modifier };
 
 	static SPtr create() { return std::make_shared<SGANode>(); }
 
 	Type nodeType;
 
-	glm::mat4 transformationMatrix; // Root & Instance
-	SGATransformation transformationComponents; // Node
-	simplerender::Scene::ModelPtr model; // Mesh & Instance
-	int meshId = -1; // Instance
 	sga::ObjectDefinition sgaDefinition; // SGA nodes
 };
 
@@ -48,7 +29,7 @@ struct SimulationProperties
 
 //****************************************************************************//
 
-class Document : public BaseDocument
+class Document : public MeshDocument
 {
 public:
 	Document(const std::string& type);
@@ -70,6 +51,7 @@ public:
 	void graphContextMenu(GraphNode* item, simplegui::Menu& menu) override;
 
 	SGANode::SPtr createNode(const std::string& name, SGANode::Type nodeType, GraphNode* parent, int position = -1);
+	GraphNode::SPtr createNode(const std::string& typeName, const std::string& id); // For the loading of a document
 
 protected:
 	void importMesh();
@@ -81,24 +63,13 @@ protected:
 	const std::vector<std::string>& SGAObjectsLabels(sga::ObjectDefinition::ObjectType type);
 	const std::string& SGAObjectId(sga::ObjectDefinition::ObjectType type, int index);
 
-	void createGraphImages();
+	void createSGAGraphImages();
 
-	void updateInstances();
-	void updateInstances(SGANode* item, const glm::mat4& transformation);
-
-	simplegui::SimpleGUI* m_gui = nullptr;
-	simplerender::Scene m_scene;
-	Graph m_graph;
-	SofaMouseManipulator m_mouseManipulator;
 	sga::ObjectFactory m_sgaFactory;
 
 	std::vector<std::vector<std::string>> m_sgaObjectsLabels;
 	std::vector<std::vector<std::string>> m_sgaObjectsIds;
-
-	SGANode::SPtr m_rootNode;
-	size_t m_nextNodeId = 1;
-	std::vector<int> m_graphImages;
-	std::vector<simplerender::Model*> m_newModels;
+	std::vector<int> m_graphSGAImages;
 
 	std::shared_ptr<SGAExecution> m_execution;
 	SimulationProperties m_simulationProperties;

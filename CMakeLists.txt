@@ -33,7 +33,6 @@ add_subdirectory("libs/SFELib")
 include_directories("modules")
 
 # Plugins
-add_subdirectory("modules/ModelViewer")
 add_subdirectory("modules/SFELocal")
 add_subdirectory("modules/SFEClient")
 add_subdirectory("modules/SGA")

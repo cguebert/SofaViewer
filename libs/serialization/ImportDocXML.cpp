@@ -46,12 +46,14 @@ private:
 GraphNode::SPtr XMLImporter::parseNode(XMLElement* xmlElt, GraphNode* parent)
 {
 	auto node = createNode(xmlElt, parent);
-
-	auto xmlChild = xmlElt->FirstChildElement();
-	while (xmlChild)
+	if (node)
 	{
-		parseNode(xmlChild, node.get());
-		xmlChild = xmlChild->NextSiblingElement();
+		auto xmlChild = xmlElt->FirstChildElement();
+		while (xmlChild)
+		{
+			parseNode(xmlChild, node.get());
+			xmlChild = xmlChild->NextSiblingElement();
+		}
 	}
 
 	return node;

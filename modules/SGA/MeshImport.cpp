@@ -1,5 +1,5 @@
 #include "MeshImport.h"
-#include "Document.h"
+#include "MeshDocument.h"
 
 #include <core/ObjectProperties.h>
 #include <core/PropertiesUtils.h>
@@ -56,7 +56,7 @@ std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh)
 
 }
 
-MeshImport::MeshImport(Document* doc, simplerender::Scene& scene, Graph& graph)
+MeshImport::MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph)
 	: m_document(doc)
 	, m_scene(scene)
 	, m_graph(graph)
@@ -77,11 +77,11 @@ std::vector<simplerender::Model*> MeshImport::importMeshes(const std::string& fi
 	return m_newModels;
 }
 
-void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, SGANode* parent)
+void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, MeshNode* parent)
 {
-	auto n = m_document->createNode(aNode->mName.C_Str(), SGANode::Type::Node, parent);
+	auto n = m_document->createNode(aNode->mName.C_Str(), MeshNode::Type::Node, parent);
 	auto nodeTransformation = convert(aNode->mTransformation);
-	n->transformationComponents = getTransformation(nodeTransformation);
+	n->transformationComponents = toTransformationComponents(nodeTransformation);
 	auto accTrans = nodeTransformation * transformation;
 
 	for (unsigned int i = 0; i < aNode->mNumMeshes; ++i)
@@ -91,14 +91,14 @@ void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm:
 		parseNode(scene, aNode->mChildren[i], accTrans, n.get());
 }
 
-void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, SGANode* parent)
+void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, MeshNode* parent)
 {
 	const auto mesh = scene->mMeshes[id];
 	const auto modelId = modelIndex(id);
 	if (modelId < 0)
 		return;
 
-	auto n = m_document->createNode(mesh->mName.C_Str(), SGANode::Type::Instance, parent);
+	auto n = m_document->createNode(mesh->mName.C_Str(), MeshNode::Type::Instance, parent);
 	n->meshId = modelId;
 	n->model = m_scene.models()[modelId];
 	n->transformationMatrix = transformation;
@@ -115,7 +115,7 @@ void MeshImport::parseScene(const aiScene* scene)
 			(mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && mesh->mPrimitiveTypes != aiPrimitiveType_LINE))
 			continue;
 
-		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), SGANode::Type::Mesh, m_graph.root());
+		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), MeshNode::Type::Mesh, m_graph.root());
 
 		auto model = createModel(mesh);
 		node->model = model;
@@ -127,7 +127,7 @@ void MeshImport::parseScene(const aiScene* scene)
 
 	// Adding graph
 	glm::mat4 transformation;
-	auto root = dynamic_cast<SGANode*>(m_graph.root());
+	auto root = dynamic_cast<MeshNode*>(m_graph.root());
 	parseNode(scene, scene->mRootNode, transformation, root);
 }
 
@@ -140,49 +140,4 @@ int MeshImport::modelIndex(int meshId)
 	}
 
 	return -1;
-}
-
-void populateProperties(SGANode* item, const simplerender::Scene& scene, ObjectProperties* properties)
-{
-	switch (item->nodeType)
-	{
-	case SGANode::Type::Root:
-	{
-		properties->createPropertyAndWrapper("transformation", item->transformationMatrix);
-		auto bb = simplerender::boundingBox(scene);
-		auto sceneSize = bb.second - bb.first;
-		auto sizeProp = property::createCopyProperty("Scene size", sceneSize);
-		sizeProp->setReadOnly(true);
-		break;
-	}
-
-	case SGANode::Type::Node:
-	{
-		properties->createPropertyAndWrapper("translation", item->transformationComponents.translation);
-		properties->createPropertyAndWrapper("rotation", item->transformationComponents.rotation);
-		properties->createPropertyAndWrapper("scale", item->transformationComponents.scale);
-		break;
-	}
-
-	case SGANode::Type::Mesh:
-	{
-		auto model = item->model;
-		if (!model)
-			return;
-
-		properties->createPropertyAndWrapper("vertices", model->m_vertices);
-		properties->createPropertyAndWrapper("edges", model->m_edges);
-		properties->createPropertyAndWrapper("triangles", model->m_triangles);
-		properties->createPropertyAndWrapper("normals", model->m_normals);
-		properties->createPropertyAndWrapper("color", model->m_color);
-		break;
-	}
-
-	case SGANode::Type::Instance:
-	{
-		properties->addProperty(property::createRefProperty("mesh id", item->meshId));
-		properties->createPropertyAndWrapper("transformation", item->transformationMatrix).first->setReadOnly(true);
-		break;
-	}
-	}
 }
