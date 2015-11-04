@@ -26,7 +26,21 @@ public:
 	static SPtr create() { return std::make_shared<GraphNode>(); }
 };
 
+//****************************************************************************//
+
+namespace graph
+{
+
+using NodeFunc = std::function<void(GraphNode*)>;
+using SelectFunction = std::function<bool(GraphNode*)>;
+using GraphNodes = std::vector<GraphNode*>;
+enum class TraversalOrder { BreathFirst, DepthFirst };
+
 int CORE_API indexOfChild(GraphNode* parent, GraphNode* child);
+void CORE_API forEach(GraphNode* root, const NodeFunc& nodeFunc, TraversalOrder order = TraversalOrder::BreathFirst);
+GraphNodes CORE_API getNodes(GraphNode* root, const SelectFunction& selectFunc, TraversalOrder order = TraversalOrder::BreathFirst);
+
+}
 
 //****************************************************************************//
 
