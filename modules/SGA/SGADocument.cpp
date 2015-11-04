@@ -1,4 +1,4 @@
-#include "Document.h"
+#include "SGADocument.h"
 #include "SGAExecution.h"
 #include "SGAProperties.h"
 #include "MeshImport.h"
@@ -15,14 +15,17 @@
 
 #include <iostream>
 
-int SofaGraphAbstractionDoc = RegisterDocument<Document>("Sofa Graph Abstraction")
-	.setDescription("Create Sofa simulations using higher level objects.")
-	.canCreateNew(true)
-	.addLoadFile("SGA document (*.sga)")
-	.addSaveFile("SGA document (*.sga)");
+int registerSGADocument()
+{
+	return RegisterDocument<Document>("Sofa Graph Abstraction")
+		.setDescription("Create Sofa simulations using higher level objects.")
+		.canCreateNew(true)
+		.addLoadFile("SGA document (*.sga)")
+		.addSaveFile("SGA document (*.sga)");
+}
 
 ModuleHandle SofaGraphAbstractionModule = RegisterModule("SofaGraphAbstraction")
-	.addDocument(SofaGraphAbstractionDoc)
+	.addDocument(registerSGADocument())
 	.addDocument(registerMeshDocument());
 
 namespace

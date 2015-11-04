@@ -1,5 +1,5 @@
 #include "SGAExecution.h"
-#include "Document.h"
+#include "SGADocument.h"
 
 #include <sfe/sofaFrontEndLocal.h>
 #include <sga/types.h>

@@ -4,17 +4,17 @@ set(PROJECT_NAME "SGA")
 project(${PROJECT_NAME})
 
 set(HEADER_FILES
-	Document.h
 	MeshDocument.h
 	MeshImport.h
+	SGADocument.h
 	SGAExecution.h
 	SGAProperties.h
 )
 
 set(SOURCE_FILES
-	Document.cpp
 	MeshDocument.cpp
 	MeshImport.cpp
+	SGADocument.cpp
 	SGAExecution.cpp
 	SGAProperties.cpp
 )
