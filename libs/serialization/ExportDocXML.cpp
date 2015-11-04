@@ -88,7 +88,7 @@ void addName(XMLExporter::AttributesList& attributes, const std::string& name)
 		return;
 
 	if (attributes.end() == std::find_if(attributes.begin(), attributes.end(),
-		[&name](const XMLExporter::Attribute& attribute) { return attribute.first == name; })
+		[&name](const XMLExporter::Attribute& attribute) { return attribute.first == "name"; })
 		)
 		attributes.emplace(attributes.begin(), "name", name);
 }
