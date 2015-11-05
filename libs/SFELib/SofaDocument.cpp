@@ -127,7 +127,7 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	if (!sofaModel.d_vertices || !sofaModel.d_normals)
 		return sofaModel;
 
-	auto model = std::make_shared<simplerender::Model>();
+	auto model = std::make_shared<simplerender::Mesh>();
 	sofaModel.d_vertices.get(model->m_vertices);
 	sofaModel.d_normals.get(model->m_normals);
 

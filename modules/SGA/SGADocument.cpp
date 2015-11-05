@@ -17,7 +17,7 @@
 
 int registerSGADocument()
 {
-	return RegisterDocument<Document>("Sofa Graph Abstraction")
+	return RegisterDocument<SGADocument>("Sofa Graph Abstraction")
 		.setDescription("Create Sofa simulations using higher level objects.")
 		.canCreateNew(true)
 		.addLoadFile("SGA document (*.sga)")
@@ -127,7 +127,7 @@ std::pair<int, SGANode*> indexOfNewNode(GraphNode* parent, sga::ObjectDefinition
 
 }
 
-Document::Document(const std::string& type)
+SGADocument::SGADocument(const std::string& type)
 	: MeshDocument(type)
 	, m_sgaFactory(modulePath() + "/definitions")
 {
@@ -137,7 +137,7 @@ Document::Document(const std::string& type)
 	createSGAGraphImages();
 }
 
-bool Document::loadFile(const std::string& path)
+bool SGADocument::loadFile(const std::string& path)
 {
 	auto createNodeFunc = [this](const std::string& typeName, const std::string& id) 
 	{ return createNode(typeName, id); };
@@ -155,13 +155,13 @@ bool Document::loadFile(const std::string& path)
 	return true;
 }
 
-bool Document::saveFile(const std::string& path)
+bool SGADocument::saveFile(const std::string& path)
 {
 	auto getPropertiesFunc = [this](GraphNode* item) { return objectProperties(item); };
 	return exportToXMLFile(path, m_rootNode.get(), getPropertiesFunc);
 }
 
-void Document::initUI(simplegui::SimpleGUI& gui)
+void SGADocument::initUI(simplegui::SimpleGUI& gui)
 {
 	m_gui = &gui;
 	auto& toolsMenu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
@@ -174,26 +174,22 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 			convertAndRun();
 	});
 
-	panel.addButton("Stop", "Stop the Sofa simulation", [this](){ 
-		if (m_execution) 
-			m_execution->stop(); 
-		m_execution.reset(); 
-	});
+	panel.addButton("Stop", "Stop the Sofa simulation", [this]() { stopExecution(); });
 
 	MeshDocument::initUI(gui);
 }
 
-void Document::initOpenGL()
+void SGADocument::initOpenGL()
 {
 	MeshDocument::initOpenGL();
 }
 
-void Document::resize(int width, int height)
+void SGADocument::resize(int width, int height)
 {
 	MeshDocument::resize(width, height);
 }
 
-void Document::render()
+void SGADocument::render()
 {
 	if (m_execution)
 	{
@@ -204,12 +200,12 @@ void Document::render()
 	MeshDocument::render();
 }
 
-bool Document::mouseEvent(const MouseEvent& event)
+bool SGADocument::mouseEvent(const MouseEvent& event)
 {
 	return MeshDocument::mouseEvent(event);
 }
 
-SGANode::SPtr Document::createNode(const std::string& name, SGANode::Type nodeType, GraphNode* parent, int position)
+SGANode::SPtr SGADocument::createNode(const std::string& name, SGANode::Type nodeType, GraphNode* parent, int position)
 {
 	auto node = SGANode::create();
 	node->name = name;
@@ -224,7 +220,7 @@ SGANode::SPtr Document::createNode(const std::string& name, SGANode::Type nodeTy
 	return node;
 }
 
-GraphNode::SPtr Document::createNode(const std::string& typeName, const std::string& id)
+GraphNode::SPtr SGADocument::createNode(const std::string& typeName, const std::string& id)
 {
 	auto& names = sgaNodeTypeNames();
 	auto it = std::find(names.begin(), names.end(), typeName);
@@ -239,8 +235,10 @@ GraphNode::SPtr Document::createNode(const std::string& typeName, const std::str
 	return node;
 }
 
-Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
+SGADocument::ObjectPropertiesPtr SGADocument::objectProperties(GraphNode* baseItem)
 {
+	stopExecution();
+
 	auto sgaNode = dynamic_cast<SGANode*>(baseItem);
 	if (sgaNode)
 		return createSGAObjectProperties(sgaNode->sgaDefinition);
@@ -256,12 +254,12 @@ Document::ObjectPropertiesPtr Document::objectProperties(GraphNode* baseItem)
 	return properties;
 }
 
-void Document::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr ptr, bool accepted)
+void SGADocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr ptr, bool accepted)
 {
 	MeshDocument::closeObjectProperties(baseItem, ptr, accepted);
 }
 
-void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
+void SGADocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 {
 	auto parent = baseItem->parent;
 	auto meshNode = dynamic_cast<MeshNode*>(baseItem);
@@ -341,7 +339,7 @@ void Document::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	}
 }
 
-void Document::importMesh()
+void SGADocument::importMesh()
 {
 	auto path = m_gui->getOpenFileName("Import mesh", "", "Supported files (*.3ds *.ac *.ase *.blend *.dae *.ifc *.lwo *.lws *.lxo *.ms3d *.obj *.ply *.stl *.x *.xgl *.zgl");
 	if (path.empty())
@@ -352,7 +350,7 @@ void Document::importMesh()
 	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 }
 
-void Document::addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
+void SGADocument::addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
 {
 	auto dlg = m_gui->createDialog("Add SGA " + SGATypeName(type) + " object");
 	auto& panel = dlg->content();
@@ -376,7 +374,7 @@ void Document::addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType t
 	}
 }
 
-void Document::prepareSGAObjectsLists()
+void SGADocument::prepareSGAObjectsLists()
 {
 	const int nbSGATypes = 5;
 	m_sgaObjectsLabels.resize(nbSGATypes);
@@ -393,7 +391,7 @@ void Document::prepareSGAObjectsLists()
 	}
 }
 
-void Document::createSGAGraphImages()
+void SGADocument::createSGAGraphImages()
 {
 	m_graphSGAImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffdedea4 }))); // SGA_Root
 	m_graphSGAImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffbebada }))); // SGA_Physics
@@ -402,7 +400,7 @@ void Document::createSGAGraphImages()
 	m_graphSGAImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xfffdb462 }))); // SGA_Modifier
 }
 
-void Document::convertAndRun()
+void SGADocument::convertAndRun()
 {
 	auto root = m_graph.root();
 	if (!getChild(root, SGANode::Type::SGA_Root))
@@ -418,4 +416,11 @@ void Document::convertAndRun()
 	}
 	else
 		m_execution.reset();
+}
+
+void SGADocument::stopExecution()
+{
+	if (m_execution) 
+		m_execution->stop(); 
+	m_execution.reset(); 
 }

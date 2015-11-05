@@ -63,7 +63,7 @@ struct CreationContext
 	std::string name;
 	sga::ObjectWrapper parent;
 	bool hasSGAParent = false;
-	simplerender::Model::SPtr model;
+	simplerender::Mesh::SPtr model;
 	sga::Transformation transformation;
 	sga::Vec3d boundingBox[2]; // min & max
 	int modifierIndex = 0;
@@ -229,7 +229,7 @@ void SGAExecution::convertObject(MeshNode* item, sgaExec::CreationContext& conte
 
 void SGAExecution::convertMesh(MeshNode* item, sgaExec::CreationContext& context)
 {
-	context.model = std::make_shared<simplerender::Model>(*item->model);
+	context.model = std::make_shared<simplerender::Mesh>(*item->model);
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa

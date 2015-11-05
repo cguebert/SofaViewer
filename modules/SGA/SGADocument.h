@@ -29,10 +29,10 @@ struct SimulationProperties
 
 //****************************************************************************//
 
-class Document : public MeshDocument
+class SGADocument : public MeshDocument
 {
 public:
-	Document(const std::string& type);
+	SGADocument(const std::string& type);
 
 	bool loadFile(const std::string& path) override;
 	bool saveFile(const std::string& path) override;
@@ -56,6 +56,7 @@ public:
 protected:
 	void importMesh();
 	void convertAndRun();
+	void stopExecution();
 	
 	void addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type);
 
@@ -75,11 +76,11 @@ protected:
 	SimulationProperties m_simulationProperties;
 };
 
-inline Graph& Document::graph()
+inline Graph& SGADocument::graph()
 { return m_graph; }
 
-inline const std::vector<std::string>& Document::SGAObjectsLabels(sga::ObjectDefinition::ObjectType type)
+inline const std::vector<std::string>& SGADocument::SGAObjectsLabels(sga::ObjectDefinition::ObjectType type)
 { return m_sgaObjectsLabels[static_cast<int>(type)]; }
 
-inline const std::string& Document::SGAObjectId(sga::ObjectDefinition::ObjectType type, int index)
+inline const std::string& SGADocument::SGAObjectId(sga::ObjectDefinition::ObjectType type, int index)
 { return m_sgaObjectsIds[static_cast<int>(type)][index]; }

@@ -20,7 +20,7 @@ struct aiMesh;
 
 namespace simplerender
 {
-class Model;
+class Mesh;
 class Scene;
 }
 
@@ -61,7 +61,7 @@ class MeshImport
 {
 public:
 	MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph);
-	std::vector<simplerender::Model*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new models
+	std::vector<simplerender::Mesh*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new models
 	
 private:
 	void parseScene(const aiScene* scene);
@@ -74,5 +74,5 @@ private:
 	simplerender::Scene& m_scene;
 	Graph& m_graph;
 	std::vector<std::pair<int, int>> m_modelsIndices; // Mesh id in Assimp scene -> Model id
-	std::vector<simplerender::Model*> m_newModels;
+	std::vector<simplerender::Mesh*> m_newModels;
 };

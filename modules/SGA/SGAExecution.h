@@ -54,7 +54,7 @@ private:
 
 	struct UpdateModelStruct
 	{
-		simplerender::Model::SPtr model;
+		simplerender::Mesh::SPtr model;
 		sfe::Data verticesData, normalsData;
 	};
 	std::vector<UpdateModelStruct> m_updateModelsStructs;

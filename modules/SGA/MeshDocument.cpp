@@ -205,7 +205,7 @@ GraphNode::SPtr MeshDocument::createNode(const std::string& typeName, const std:
 
 	if (meshType == MeshNode::Type::Mesh)
 	{
-		auto model = std::make_shared<simplerender::Model>();
+		auto model = std::make_shared<simplerender::Mesh>();
 		m_scene.addModel(model);
 		node->model = model;
 		m_newModels.push_back(node->model.get());
@@ -380,7 +380,7 @@ void MeshDocument::removeUnusedMeshes()
 {
 	// Get the list of the instances
 	auto instanceNodes = getNodes(m_rootNode.get(), MeshNode::Type::Instance);
-	std::vector<simplerender::Model*> instancedModels;
+	std::vector<simplerender::Mesh*> instancedModels;
 	for (auto& instanceNode : instanceNodes)
 	{
 		auto node = dynamic_cast<MeshNode*>(instanceNode);
@@ -394,7 +394,7 @@ void MeshDocument::removeUnusedMeshes()
 		instancedModels.erase(lastInstanced, instancedModels.end());
 
 	// Test if a model is used
-	auto isUnused = [&instancedModels](const simplerender::Model::SPtr& model){
+	auto isUnused = [&instancedModels](const simplerender::Mesh::SPtr& model){
 		auto modelPtr = model.get();
 		return instancedModels.end() == std::find(instancedModels.begin(), instancedModels.end(), modelPtr);
 	};

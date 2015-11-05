@@ -27,9 +27,9 @@ inline glm::vec3 convert(aiVector3D v)
 	return glm::vec3{ v.x, v.y, v.z };
 }
 
-std::shared_ptr<simplerender::Model> createModel(const aiMesh* mesh)
+std::shared_ptr<simplerender::Mesh> createModel(const aiMesh* mesh)
 {
-	auto model = std::make_shared<simplerender::Model>();
+	auto model = std::make_shared<simplerender::Mesh>();
 	model->m_vertices.reserve(mesh->mNumVertices);
 	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
 		model->m_vertices.push_back(convert(mesh->mVertices[j]));
@@ -63,7 +63,7 @@ MeshImport::MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& gra
 {
 }
 
-std::vector<simplerender::Model*> MeshImport::importMeshes(const std::string& filePath)
+std::vector<simplerender::Mesh*> MeshImport::importMeshes(const std::string& filePath)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filePath,

@@ -23,10 +23,10 @@ using TexCoords = std::vector < glm::vec2 >;
 
 using IdList = std::vector < int >;
 
-class Model
+class Mesh
 {
 public:
-	using SPtr = std::shared_ptr<Model>;
+	using SPtr = std::shared_ptr<Mesh>;
 
 	void init();
 	void prepareBuffers();
@@ -55,7 +55,7 @@ public:
 	ShaderProgram m_program;
 };
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model);
-std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model, const glm::mat4& transformation);
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model);
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model, const glm::mat4& transformation);
 
 } // namespace simplerender

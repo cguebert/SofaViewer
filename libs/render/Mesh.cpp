@@ -1,4 +1,4 @@
-#include <render/Model.h>
+#include <render/Mesh.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -6,7 +6,7 @@
 namespace simplerender
 {
 
-void Model::init()
+void Mesh::init()
 {
 	mergeIndices();
 	prepareBuffers();
@@ -15,7 +15,7 @@ void Model::init()
 	initShader();
 }
 
-void Model::prepareBuffers()
+void Mesh::prepareBuffers()
 {
 	auto vertSize = m_vertices.size();
 
@@ -67,7 +67,7 @@ void Model::prepareBuffers()
 	glBindVertexArray(0); // Unbind the VAO
 }
 
-void Model::mergeIndices()
+void Mesh::mergeIndices()
 {
 	auto tSize = m_triangles.size(), qSize = m_quads.size();
 	auto total = tSize + qSize * 2;
@@ -81,7 +81,7 @@ void Model::mergeIndices()
 	}
 }
 
-void Model::updatePositions()
+void Mesh::updatePositions()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, m_verticesVBO);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, 3 * sizeof(float) * m_vertices.size(), &m_vertices[0]);
@@ -93,7 +93,7 @@ void Model::updatePositions()
 	}
 }
 
-void Model::updateIndices()
+void Mesh::updateIndices()
 {
 	if (!m_mergedTriangles.empty())
 	{
@@ -113,12 +113,12 @@ void Model::updateIndices()
 	}
 }
 
-void Model::initShader()
+void Mesh::initShader()
 {
 
 }
 
-void Model::render()
+void Mesh::render()
 {
 	glBindVertexArray(m_VAO);
 
@@ -128,7 +128,7 @@ void Model::render()
 		glDrawElements(GL_LINES, m_edges.size() * 2, GL_UNSIGNED_INT, nullptr);
 }
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model)
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model)
 {
 	glm::vec3 vMin, vMax;
 	for(int i = 0; i < 3; ++i)
@@ -149,7 +149,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model)
 	return std::make_pair(vMin, vMax);
 }
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Model& model, const glm::mat4& transformation)
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model, const glm::mat4& transformation)
 {
 	glm::vec3 vMin, vMax;
 	for(int i = 0; i < 3; ++i)

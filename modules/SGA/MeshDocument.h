@@ -30,7 +30,7 @@ public:
 
 	glm::mat4 transformationMatrix; // Root & Node & Instance (Read only)
 	TransformationComponents transformationComponents; // Root & Node
-	simplerender::Model::SPtr model; // Mesh & Instance
+	simplerender::Mesh::SPtr model; // Mesh & Instance
 	int meshId = -1; // Instance
 };
 
@@ -83,7 +83,7 @@ protected:
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
 	std::vector<int> m_graphMeshImages;
-	std::vector<simplerender::Model*> m_newModels;
+	std::vector<simplerender::Mesh*> m_newModels;
 };
 
 inline Graph& MeshDocument::graph()
