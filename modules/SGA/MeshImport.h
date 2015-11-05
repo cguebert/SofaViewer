@@ -61,18 +61,22 @@ class MeshImport
 {
 public:
 	MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph);
-	std::vector<simplerender::Mesh*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new models
+	std::vector<simplerender::Mesh*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new meshes
 	
 private:
 	void parseScene(const aiScene* scene);
 	void parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, MeshNode* parent);
 	void parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, MeshNode* parent);
 
-	int modelIndex(int meshId);
+	void addMeshes(const aiScene* scene);
+	void addMaterials(const aiScene* scene);
+
+	int meshIndex(int meshId);
+	int materialIndex(int materialId);
 
 	MeshDocument* m_document;
 	simplerender::Scene& m_scene;
 	Graph& m_graph;
-	std::vector<std::pair<int, int>> m_modelsIndices; // Mesh id in Assimp scene -> Model id
-	std::vector<simplerender::Mesh*> m_newModels;
+	std::vector<std::pair<int, int>> m_meshesIndices, m_materialIndices; // Id in Assimp scene -> Id in our scene
+	std::vector<simplerender::Mesh*> m_newMeshes;
 };

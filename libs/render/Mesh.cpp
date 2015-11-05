@@ -45,7 +45,7 @@ void Mesh::prepareBuffers()
 		glEnableVertexAttribArray(1);
 
 		// Texture coordinates
-		if (m_hasTexture && !m_texCoords.empty())
+		if (!m_texCoords.empty())
 		{
 			glGenBuffers(1, &m_texCoordsVBO);
 			glBindBuffer(GL_ARRAY_BUFFER, m_texCoordsVBO);
@@ -128,7 +128,7 @@ void Mesh::render()
 		glDrawElements(GL_LINES, m_edges.size() * 2, GL_UNSIGNED_INT, nullptr);
 }
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model)
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh)
 {
 	glm::vec3 vMin, vMax;
 	for(int i = 0; i < 3; ++i)
@@ -137,7 +137,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model)
 		vMax[i] = -std::numeric_limits<float>::max();
 	}
 
-	for(const auto& vertex : model.m_vertices)
+	for(const auto& vertex : mesh.m_vertices)
 	{
 		for(int i = 0; i < 3; ++i)
 		{
@@ -149,7 +149,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model)
 	return std::make_pair(vMin, vMax);
 }
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model, const glm::mat4& transformation)
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh, const glm::mat4& transformation)
 {
 	glm::vec3 vMin, vMax;
 	for(int i = 0; i < 3; ++i)
@@ -158,7 +158,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model, const glm::mat4& 
 		vMax[i] = -std::numeric_limits<float>::max();
 	}
 
-	for(const auto& vertex : model.m_vertices)
+	for(const auto& vertex : mesh.m_vertices)
 	{
 		auto vtransformed = transformation * glm::vec4(vertex, 1);
 		for(int i = 0; i < 3; ++i)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <render/Mesh.h>
+#include <render/Material.h>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/detail/type_mat4x4.hpp>
@@ -11,7 +12,8 @@ namespace simplerender
 class Scene
 {
 public:
-	using Models = std::vector<Mesh::SPtr>;
+	using Meshes = std::vector<Mesh::SPtr>;
+	using Materials = std::vector<Material::SPtr>;
 	using ModelInstance = std::pair<glm::mat4, Mesh::SPtr>;
 	using ModelInstances = std::vector<ModelInstance>;
 
@@ -19,9 +21,13 @@ public:
 	void resize(int width, int height);
 	void render();
 
-	void addModel(Mesh::SPtr model);
-	Models& models();
-	const Models& models() const;
+	void addMesh(Mesh::SPtr mesh);
+	Meshes& meshes();
+	const Meshes& meshes() const;
+
+	void addMaterial(Material::SPtr material);
+	Materials& materials();
+	const Materials& materials() const;
 
 	void addInstance(const ModelInstance& instance);
 	ModelInstances& instances();
@@ -43,9 +49,10 @@ protected:
 	};
 
 	void prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader);
-	ProgramStruct& selectProgram(const Mesh::SPtr model);
+	ProgramStruct& selectProgram(const Mesh::SPtr mesh);
 
-	Models m_models;
+	Meshes m_meshes;
+	Materials m_materials;
 	ModelInstances m_instances;
 
 	glm::mat4 m_modelview, m_projection;
@@ -61,14 +68,23 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene);
 
 //****************************************************************************//
 
-inline void Scene::addModel(Mesh::SPtr model)
-{ m_models.push_back(model); }
+inline void Scene::addMesh(Mesh::SPtr mesh)
+{ m_meshes.push_back(mesh); }
 
-inline Scene::Models& Scene::models()
-{ return m_models; }
+inline Scene::Meshes& Scene::meshes()
+{ return m_meshes; }
 
-inline const Scene::Models& Scene::models() const
-{ return m_models; }
+inline const Scene::Meshes& Scene::meshes() const
+{ return m_meshes; }
+
+inline void Scene::addMaterial(Material::SPtr material)
+{ m_materials.push_back(material); }
+
+inline Scene::Materials& Scene::materials()
+{ return m_materials; }
+
+inline const Scene::Materials& Scene::materials() const
+{ return m_materials; }
 
 inline void Scene::addInstance(const ModelInstance& instance)
 { m_instances.push_back(instance); }

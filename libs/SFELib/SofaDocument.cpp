@@ -63,14 +63,14 @@ void SofaDocument::resize(int width, int height)
 
 void SofaDocument::render()
 {
-	for (auto model : m_newModels)
-		model->init();
-	m_newModels.clear();
+	for (auto mesh : m_newMeshes)
+		mesh->init();
+	m_newMeshes.clear();
 
 	if(m_updateObjects)
 	{
-		for(auto model : m_scene.models())
-			model->updatePositions();
+		for(auto mesh : m_scene.meshes())
+			mesh->updatePositions();
 		m_updateObjects = false;
 	}
 
@@ -127,42 +127,42 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	if (!sofaModel.d_vertices || !sofaModel.d_normals)
 		return sofaModel;
 
-	auto model = std::make_shared<simplerender::Mesh>();
-	sofaModel.d_vertices.get(model->m_vertices);
-	sofaModel.d_normals.get(model->m_normals);
+	auto mesh = std::make_shared<simplerender::Mesh>();
+	sofaModel.d_vertices.get(mesh->m_vertices);
+	sofaModel.d_normals.get(mesh->m_normals);
 
 	// Get the constant information (topology and color)
 	// Triangles
 	auto trianglesData = visualModel.data("triangles");
 	if (trianglesData)
-		trianglesData.get(model->m_triangles);
+		trianglesData.get(mesh->m_triangles);
 
 	// Quads
 	auto quadsData = visualModel.data("quads");
 	if (quadsData)
-		quadsData.get(model->m_quads);
+		quadsData.get(mesh->m_quads);
 
-	if (model->m_triangles.empty() && model->m_quads.empty())
+	if (mesh->m_triangles.empty() && mesh->m_quads.empty())
 		return sofaModel;
 
 	// The diffuse color
 	auto matData = visualModel.data("material");
 	std::string material;
 	matData.get(material);
-	model->m_color = getColor(material);
+	mesh->m_color = getColor(material);
 
 	// The texture
-/*	model->texFileName = getTexture(visualModel, material);
+/*	mesh->texFileName = getTexture(visualModel, material);
 
 	// Texture coordinates
-	if (!model->texFileName.empty())
+	if (!mesh->texFileName.empty())
 	{
 		auto texCoords = visualModel.data("texcoords");
-		if (texCoords)	texCoords.get(model->texCoords);
+		if (texCoords)	texCoords.get(mesh->texCoords);
 	}
 */
-	sofaModel.model = model;
-	m_newModels.push_back(model);
+	sofaModel.mesh = mesh;
+	m_newMeshes.push_back(mesh);
 	return sofaModel;
 }
 
@@ -178,8 +178,8 @@ void SofaDocument::parseScene()
 	{
 		auto sofaModel = createSofaModel(visualModel);
 
-		if (sofaModel.model)
-			m_scene.addModel(sofaModel.model);
+		if (sofaModel.mesh)
+			m_scene.addMesh(sofaModel.mesh);
 		m_sofaModels.push_back(sofaModel);
 	}
 }
@@ -195,8 +195,8 @@ void SofaDocument::updateObjects()
 {
 	for(auto sofaModel : m_sofaModels)
 	{
-		sofaModel.d_vertices.get(sofaModel.model->m_vertices);
-		sofaModel.d_normals.get(sofaModel.model->m_normals);
+		sofaModel.d_vertices.get(sofaModel.mesh->m_vertices);
+		sofaModel.d_normals.get(sofaModel.mesh->m_normals);
 	}
 }
 

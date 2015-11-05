@@ -63,7 +63,7 @@ struct CreationContext
 	std::string name;
 	sga::ObjectWrapper parent;
 	bool hasSGAParent = false;
-	simplerender::Mesh::SPtr model;
+	simplerender::Mesh::SPtr mesh;
 	sga::Transformation transformation;
 	sga::Vec3d boundingBox[2]; // min & max
 	int modifierIndex = 0;
@@ -155,7 +155,7 @@ void SGAExecution::parseNode(GraphNode* baseNode, sgaExec::CreationContext& cont
 	if (!meshNode)
 		return;
 
-	if (meshNode->model) // Instance or Mesh
+	if (meshNode->mesh) // Instance or Mesh
 		convertObject(meshNode, context);
 	else if (meshNode->nodeType == MeshNode::Type::Node || meshNode->nodeType == MeshNode::Type::Root)
 	{
@@ -211,12 +211,12 @@ void SGAExecution::convertObject(MeshNode* item, sgaExec::CreationContext& conte
 		context.updateTransformation();
 		auto visuMesh = createSofaObject(visualNode, context);
 
-		UpdateModelStruct updateModel;
+		UpdateMeshStruct updateMesh;
 		auto visuModel = visuMesh.sofaNode().objectOfType("State");
-		updateModel.verticesData = visuModel.data("position");
-		updateModel.normalsData = visuModel.data("normal");
-		updateModel.model = context.model;
-		m_updateModelsStructs.push_back(updateModel);
+		updateMesh.verticesData = visuModel.data("position");
+		updateMesh.normalsData = visuModel.data("normal");
+		updateMesh.mesh = context.mesh;
+		m_updateMeshesStructs.push_back(updateMesh);
 	}
 
 	auto modifiers = getModifiers(item);
@@ -229,14 +229,14 @@ void SGAExecution::convertObject(MeshNode* item, sgaExec::CreationContext& conte
 
 void SGAExecution::convertMesh(MeshNode* item, sgaExec::CreationContext& context)
 {
-	context.model = std::make_shared<simplerender::Mesh>(*item->model);
+	context.mesh = std::make_shared<simplerender::Mesh>(*item->mesh); // Copy the mesh
 	context.name = item->name;
 
 	// Get the transformation and convert it for Sofa
 	context.transformation = convertTransformation(item->transformationMatrix);
 	
 	// Update bounding box
-	auto bb = simplerender::boundingBox(*item->model);
+	auto bb = simplerender::boundingBox(*item->mesh);
 	for (int i = 0; i < 3; ++i)
 	{
 		context.boundingBox[0][i] = bb.first[i];
@@ -283,21 +283,21 @@ void SGAExecution::fillProperties(SGANode* item, sgaExec::CreationContext& conte
 		}
 		else if (prop.id() == "vertices")
 		{
-			prop.set(context.model->m_vertices);
+			prop.set(context.mesh->m_vertices);
 		}
 		else if (prop.id() == "edges")
 		{
-			prop.set(context.model->m_edges);
+			prop.set(context.mesh->m_edges);
 		}
 		else if (prop.id() == "triangles")
 		{
-			prop.set(context.model->m_triangles);
+			prop.set(context.mesh->m_triangles);
 		}
 		else if (prop.id() == "topologyType")
 		{
 			int type = -1;
-			if (!context.model->m_triangles.empty()) type = 2;
-			else if (!context.model->m_edges.empty()) type = 1;
+			if (!context.mesh->m_triangles.empty()) type = 2;
+			else if (!context.mesh->m_edges.empty()) type = 1;
 
 			if (type != -1) prop.set(type);
 		}
@@ -353,13 +353,13 @@ void SGAExecution::run(CallbackFunc updateViewFunc)
 {
 	m_sofaSimulation.init();
 
-	m_originModels = m_scene.models();
+	m_originMeshes = m_scene.meshes();
 	m_originInstances = m_scene.instances();
-	m_scene.models().clear();
+	m_scene.meshes().clear();
 	m_scene.instances().clear();
 
-	for (auto& modelUdpate : m_updateModelsStructs)
-		m_scene.addModel(modelUdpate.model);
+	for (auto& meshUdpate : m_updateMeshesStructs)
+		m_scene.addMesh(meshUdpate.mesh);
 
 	m_updateViewFunc = updateViewFunc;
 	m_sofaSimulation.setAnimate(true);
@@ -369,19 +369,20 @@ void SGAExecution::stop()
 {
 	m_sofaSimulation.setAnimate(false, true);
 
-	m_scene.models() = m_originModels;
+	m_scene.meshes() = m_originMeshes;
 	m_scene.instances() = m_originInstances;
 
-	m_updateModelsStructs.clear();
+	m_updateMeshesStructs.clear();
 	m_updateViewFunc();
 }
 
 void SGAExecution::render()
 {
-	if (!m_modelsInitialized)
+	if (!m_meshesInitialized)
 	{
-		for (auto& model : m_scene.models())
-			model->init();
+		for (auto& mesh : m_scene.meshes())
+			mesh->init();
+	//	m_meshesInitialized = true;
 	}
 
 	m_scene.render();
@@ -389,11 +390,12 @@ void SGAExecution::render()
 
 void SGAExecution::postStep()
 {
-	for (auto& modelUpdate : m_updateModelsStructs)
+	for (auto& meshUpdate : m_updateMeshesStructs)
 	{
-		modelUpdate.verticesData.get(modelUpdate.model->m_vertices);
-		modelUpdate.normalsData.get(modelUpdate.model->m_normals);
-		modelUpdate.model->updatePositions();
+		meshUpdate.verticesData.get(meshUpdate.mesh->m_vertices);
+		meshUpdate.normalsData.get(meshUpdate.mesh->m_normals);
+		if (m_meshesInitialized)
+			meshUpdate.mesh->updatePositions();
 	}
 
 	m_updateViewFunc();

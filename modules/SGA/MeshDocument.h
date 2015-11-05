@@ -22,7 +22,7 @@ class MeshNode : public GraphNode
 {
 public:
 	using SPtr = std::shared_ptr<MeshNode>;
-	enum class Type { Root, Node, Mesh, Instance };
+	enum class Type { Root, Node, Mesh, Material, Instance };
 
 	static SPtr create() { return std::make_shared<MeshNode>(); }
 
@@ -30,8 +30,9 @@ public:
 
 	glm::mat4 transformationMatrix; // Root & Node & Instance (Read only)
 	TransformationComponents transformationComponents; // Root & Node
-	simplerender::Mesh::SPtr model; // Mesh & Instance
-	int meshId = -1; // Instance
+	simplerender::Mesh::SPtr mesh; // Mesh & Instance
+	simplerender::Material::SPtr material; // Material & Instance
+	int meshId = -1, materialId = -1; // Instance
 };
 
 //****************************************************************************//
@@ -83,7 +84,7 @@ protected:
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
 	std::vector<int> m_graphMeshImages;
-	std::vector<simplerender::Mesh*> m_newModels;
+	std::vector<simplerender::Mesh*> m_newMeshes;
 };
 
 inline Graph& MeshDocument::graph()

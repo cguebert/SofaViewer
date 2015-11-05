@@ -36,7 +36,7 @@ namespace
 
 const std::vector<std::string>& meshNodeTypeNames()
 {
-	static std::vector<std::string> typesNames = { "Root", "Node", "Mesh", "Instance" };
+	static std::vector<std::string> typesNames = { "Root", "Node", "Mesh", "Material", "Instance" };
 	return typesNames;
 }
 
@@ -147,7 +147,7 @@ MeshDocument::MeshDocument(const std::string& type)
 bool MeshDocument::loadFile(const std::string& path)
 {
 	MeshImport importer(this, m_scene, m_graph);
-	m_newModels = importer.importMeshes(path);
+	m_newMeshes = importer.importMeshes(path);
 	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 	return true;
 }
@@ -178,9 +178,9 @@ void MeshDocument::resize(int width, int height)
 
 void MeshDocument::render()
 {
-	for (auto model : m_newModels)
-		model->init();
-	m_newModels.clear();
+	for (auto mesh : m_newMeshes)
+		mesh->init();
+	m_newMeshes.clear();
 
 	m_scene.render();
 }
@@ -218,10 +218,10 @@ GraphNode::SPtr MeshDocument::createNode(const std::string& typeName, const std:
 
 	if (meshType == MeshNode::Type::Mesh)
 	{
-		auto model = std::make_shared<simplerender::Mesh>();
-		m_scene.addModel(model);
-		node->model = model;
-		m_newModels.push_back(node->model.get());
+		auto mesh = std::make_shared<simplerender::Mesh>();
+		m_scene.addMesh(mesh);
+		node->mesh = mesh;
+		m_newMeshes.push_back(node->mesh.get());
 	}
 
 	return node;
@@ -261,14 +261,28 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 
 	case MeshNode::Type::Mesh:
 	{
-		auto model = item->model;
-		if (model)
+		auto mesh = item->mesh;
+		if (mesh)
 		{
-			properties->createPropertyAndWrapper("vertices", model->m_vertices);
-			properties->createPropertyAndWrapper("edges", model->m_edges);
-			properties->createPropertyAndWrapper("triangles", model->m_triangles);
-			properties->createPropertyAndWrapper("normals", model->m_normals);
-			properties->createPropertyAndWrapper("color", model->m_color);
+			properties->createPropertyAndWrapper("vertices", mesh->m_vertices);
+			properties->createPropertyAndWrapper("edges", mesh->m_edges);
+			properties->createPropertyAndWrapper("triangles", mesh->m_triangles);
+			properties->createPropertyAndWrapper("normals", mesh->m_normals);
+			properties->createPropertyAndWrapper("color", mesh->m_color);
+		}
+		break;
+	}
+
+	case MeshNode::Type::Material:
+	{
+		auto material = item->material;
+		if (material)
+		{
+			properties->createPropertyAndWrapper("diffuse", material->diffuse);
+			properties->createPropertyAndWrapper("ambient", material->ambient);
+			properties->createPropertyAndWrapper("specular", material->specular);
+			properties->createPropertyAndWrapper("emissive", material->emissive);
+			properties->createPropertyAndWrapper("shininess", material->shininess);
 		}
 		break;
 	}
@@ -329,6 +343,7 @@ void MeshDocument::createGraphImages()
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createDiskImage(0xffdedede))); // Root
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createDiskImage(0xffdedede))); // Node
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff00daff }))); // Mesh
+	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffffa4a4 }))); // Material
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
 }
 
@@ -355,9 +370,9 @@ void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformati
 	else if (item->nodeType == MeshNode::Type::Instance)
 	{
 		item->transformationMatrix = transformation; // Global transformation
-		auto model = m_scene.models()[item->meshId];
-		item->model = model;
-		m_scene.addInstance({ glm::transpose(transformation), model });
+		auto mesh = m_scene.meshes()[item->meshId];
+		item->mesh = mesh;
+		m_scene.addInstance({ glm::transpose(transformation), mesh });
 	}
 
 	for (auto child : item->children)
@@ -393,37 +408,37 @@ void MeshDocument::removeUnusedMeshes()
 {
 	// Get the list of the instances
 	auto instanceNodes = getNodes(m_rootNode.get(), MeshNode::Type::Instance);
-	std::vector<simplerender::Mesh*> instancedModels;
+	std::vector<simplerender::Mesh*> instancedMeshes;
 	for (auto& instanceNode : instanceNodes)
 	{
 		auto node = dynamic_cast<MeshNode*>(instanceNode);
-		instancedModels.push_back(node->model.get());
+		instancedMeshes.push_back(node->mesh.get());
 	}
 
-	// Create a unique list of used models
-	std::sort(instancedModels.begin(), instancedModels.end());
-	auto lastInstanced = std::unique(instancedModels.begin(), instancedModels.end());
-	if (lastInstanced != instancedModels.end())
-		instancedModels.erase(lastInstanced, instancedModels.end());
+	// Create a unique list of used meshes
+	std::sort(instancedMeshes.begin(), instancedMeshes.end());
+	auto lastInstanced = std::unique(instancedMeshes.begin(), instancedMeshes.end());
+	if (lastInstanced != instancedMeshes.end())
+		instancedMeshes.erase(lastInstanced, instancedMeshes.end());
 
-	// Test if a model is used
-	auto isUnused = [&instancedModels](const simplerender::Mesh::SPtr& model){
-		auto modelPtr = model.get();
-		return instancedModels.end() == std::find(instancedModels.begin(), instancedModels.end(), modelPtr);
+	// Test if a mesh is used
+	auto isUnused = [&instancedMeshes](const simplerender::Mesh::SPtr& mesh){
+		auto meshPtr = mesh.get();
+		return instancedMeshes.end() == std::find(instancedMeshes.begin(), instancedMeshes.end(), meshPtr);
 	};
-	auto& models = m_scene.models();
-	auto last = std::remove_if(models.begin(), models.end(), isUnused);
+	auto& meshes = m_scene.meshes();
+	auto last = std::remove_if(meshes.begin(), meshes.end(), isUnused);
 
-	// Iterate over unused models
-	if (last != models.end())
+	// Iterate over unused meshes
+	if (last != meshes.end())
 	{
 		auto meshNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Mesh));
-		for (auto it = last, itEnd = models.end(); it != itEnd; ++it)
+		for (auto it = last, itEnd = meshes.end(); it != itEnd; ++it)
 		{
 			// If there is a mesh node in the graph, remove it
-			auto model = *it;
-			auto itMesh = std::find_if(meshNodes.begin(), meshNodes.end(), [&model](MeshNode* node){
-				return node->model == model;
+			auto mesh = *it;
+			auto itMesh = std::find_if(meshNodes.begin(), meshNodes.end(), [&mesh](MeshNode* node){
+				return node->mesh == mesh;
 			});
 
 			if (itMesh != meshNodes.end())
@@ -433,7 +448,7 @@ void MeshDocument::removeUnusedMeshes()
 			}
 		}
 
-		// Modifiy the scene's models list
-		models.erase(last, models.end());
+		// Modifiy the scene's meshes list
+		meshes.erase(last, meshes.end());
 	}
 }

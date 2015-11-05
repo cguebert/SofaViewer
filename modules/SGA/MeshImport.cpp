@@ -27,31 +27,61 @@ inline glm::vec3 convert(aiVector3D v)
 	return glm::vec3{ v.x, v.y, v.z };
 }
 
-std::shared_ptr<simplerender::Mesh> createModel(const aiMesh* mesh)
+simplerender::Mesh::SPtr createMesh(const aiMesh* input)
 {
-	auto model = std::make_shared<simplerender::Mesh>();
-	model->m_vertices.reserve(mesh->mNumVertices);
-	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-		model->m_vertices.push_back(convert(mesh->mVertices[j]));
+	auto mesh = std::make_shared<simplerender::Mesh>();
+	mesh->m_vertices.reserve(input->mNumVertices);
+	for (unsigned int j = 0; j < input->mNumVertices; ++j)
+		mesh->m_vertices.push_back(convert(input->mVertices[j]));
 
-	if (mesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE)
+	if (input->mPrimitiveTypes == aiPrimitiveType_TRIANGLE)
 	{
-		model->m_triangles.reserve(mesh->mNumFaces);
-		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-			model->m_triangles.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1], mesh->mFaces[j].mIndices[2] });
+		mesh->m_triangles.reserve(input->mNumFaces);
+		for (unsigned int j = 0; j < input->mNumFaces; ++j)
+			mesh->m_triangles.push_back({ input->mFaces[j].mIndices[0], input->mFaces[j].mIndices[1], input->mFaces[j].mIndices[2] });
 	}
-	else if (mesh->mPrimitiveTypes == aiPrimitiveType_LINE)
+	else if (input->mPrimitiveTypes == aiPrimitiveType_LINE)
 	{
-		model->m_edges.reserve(mesh->mNumFaces);
-		for (unsigned int j = 0; j < mesh->mNumFaces; ++j)
-			model->m_edges.push_back({ mesh->mFaces[j].mIndices[0], mesh->mFaces[j].mIndices[1] });
+		mesh->m_edges.reserve(input->mNumFaces);
+		for (unsigned int j = 0; j < input->mNumFaces; ++j)
+			mesh->m_edges.push_back({ input->mFaces[j].mIndices[0], input->mFaces[j].mIndices[1] });
 	}
 
-	model->m_normals.reserve(mesh->mNumVertices);
-	for (unsigned int j = 0; j < mesh->mNumVertices; ++j)
-		model->m_normals.push_back(convert(mesh->mNormals[j]));
+	mesh->m_normals.reserve(input->mNumVertices);
+	for (unsigned int j = 0; j < input->mNumVertices; ++j)
+		mesh->m_normals.push_back(convert(input->mNormals[j]));
 
-	return model;
+	return mesh;
+}
+
+inline simplerender::Material::Color convert(const aiColor3D& c)
+{
+	return simplerender::Material::Color(c.r, c.g, c.b, 1.0f);
+}
+
+simplerender::Material::SPtr createMaterial(const aiMaterial* input)
+{
+	auto material = std::make_shared<simplerender::Material>();
+
+	aiColor3D color (0.f,0.f,0.f);
+	float floatValue;
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_COLOR_DIFFUSE, color))
+		material->diffuse = convert(color);
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_COLOR_AMBIENT, color))
+		material->ambient = convert(color);
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_COLOR_SPECULAR, color))
+		material->specular = convert(color);
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_COLOR_EMISSIVE, color))
+		material->emissive = convert(color);
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_SHININESS, floatValue))
+		material->shininess = floatValue;
+
+	return material;
 }
 
 }
@@ -74,7 +104,7 @@ std::vector<simplerender::Mesh*> MeshImport::importMeshes(const std::string& fil
 	if (scene)
 		parseScene(scene);
 
-	return m_newModels;
+	return m_newMeshes;
 }
 
 void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, MeshNode* parent)
@@ -93,37 +123,22 @@ void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm:
 
 void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const glm::mat4& transformation, MeshNode* parent)
 {
-	const auto mesh = scene->mMeshes[id];
-	const auto modelId = modelIndex(id);
-	if (modelId < 0)
+	const auto inMesh = scene->mMeshes[id];
+	const auto meshId = meshIndex(id);
+	if (meshId < 0)
 		return;
 
-	auto n = m_document->createNode(mesh->mName.C_Str(), MeshNode::Type::Instance, parent);
-	n->meshId = modelId;
-	n->model = m_scene.models()[modelId];
+	auto n = m_document->createNode(inMesh->mName.C_Str(), MeshNode::Type::Instance, parent);
+	n->meshId = meshId;
+	n->mesh = m_scene.meshes()[meshId];
 	n->transformationMatrix = transformation;
-	m_scene.addInstance({ glm::transpose(transformation), n->model });
+	m_scene.addInstance({ glm::transpose(transformation), n->mesh });
 }
 
 void MeshImport::parseScene(const aiScene* scene)
 {
-	// Adding meshes
-	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
-	{
-		const auto& mesh = scene->mMeshes[i];
-		if (!mesh->HasPositions() || !mesh->HasFaces() || !mesh->HasNormals() || 
-			(mesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && mesh->mPrimitiveTypes != aiPrimitiveType_LINE))
-			continue;
-
-		auto node = m_document->createNode(mesh->mName.length ? mesh->mName.C_Str() : "mesh " + std::to_string(i), MeshNode::Type::Mesh, m_graph.root());
-
-		auto model = createModel(mesh);
-		node->model = model;
-		int index = m_scene.models().size();
-		m_scene.addModel(model);
-		m_modelsIndices.emplace_back(i, index);
-		m_newModels.push_back(model.get());
-	}
+	addMeshes(scene);
+	addMaterials(scene);
 
 	// Adding graph
 	glm::mat4 transformation;
@@ -131,12 +146,61 @@ void MeshImport::parseScene(const aiScene* scene)
 	parseNode(scene, scene->mRootNode, transformation, root);
 }
 
-int MeshImport::modelIndex(int meshId)
+void MeshImport::addMeshes(const aiScene* scene)
 {
-	for (const auto& model : m_modelsIndices)
+	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
-		if (model.first == meshId)
-			return model.second;
+		const auto inMesh = scene->mMeshes[i];
+		if (!inMesh->HasPositions() || !inMesh->HasFaces() || !inMesh->HasNormals() || 
+			(inMesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && inMesh->mPrimitiveTypes != aiPrimitiveType_LINE))
+			continue;
+
+		auto node = m_document->createNode(inMesh->mName.length ? inMesh->mName.C_Str() : "mesh " + std::to_string(i), MeshNode::Type::Mesh, m_graph.root());
+
+		auto mesh = createMesh(inMesh);
+		node->mesh = mesh;
+		int index = m_scene.meshes().size();
+		m_scene.addMesh(mesh);
+		m_meshesIndices.emplace_back(i, index);
+		m_newMeshes.push_back(mesh.get());
+	}
+}
+
+void MeshImport::addMaterials(const aiScene* scene)
+{
+	for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
+	{
+		const auto inMaterial = scene->mMaterials[i];
+
+		aiString name;
+		inMaterial->Get(AI_MATKEY_NAME,name);
+
+		auto node = m_document->createNode(name.length ? name.C_Str() : "material " + std::to_string(i), MeshNode::Type::Material, m_graph.root());
+		auto material = createMaterial(inMaterial);
+		node->material = material;
+		int index = m_scene.materials().size();
+		m_scene.addMaterial(material);
+		m_materialIndices.emplace_back(i, index);
+	}
+}
+
+int MeshImport::meshIndex(int meshId)
+{
+	for (const auto& mesh : m_meshesIndices)
+	{
+		if (mesh.first == meshId)
+			return mesh.second;
+	}
+
+	return -1;
+}
+
+int MeshImport::materialIndex(int materialId)
+{
+	for (const auto& material : m_materialIndices)
+	{
+		if (material.first == materialId)
+			return material.second;
 	}
 
 	return -1;

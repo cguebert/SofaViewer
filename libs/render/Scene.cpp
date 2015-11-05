@@ -16,8 +16,8 @@ void Scene::initOpenGL()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	for(auto& model : m_models)
-		model->init();
+	for(auto& mesh : m_meshes)
+		mesh->init();
 
 	auto bb = boundingBox(*this);
 	m_min = bb.first; m_max = bb.second;
@@ -67,7 +67,7 @@ void Scene::render()
 	{
 		glm::mat4 modelviewProjection = m_projection * m_modelview;
 		
-		for (const auto& object : m_models)
+		for (const auto& object : m_meshes)
 		{
 			const auto& prog = selectProgram(object);
 			prog.program.use();
@@ -116,16 +116,16 @@ void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const ch
 	ps.texLoc = prog.uniformLocation("texture");
 }
 
-Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr model)
+Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh)
 {
-	if (!model->m_mergedTriangles.empty())
+	if (!mesh->m_mergedTriangles.empty())
 		return m_trianglesProg;
 	return m_linesProg;
 }
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 {
-	if (scene.models().empty())
+	if (scene.meshes().empty())
 		return std::make_pair(glm::vec3(-5, -5, -5), glm::vec3(5, 5, 5));
 
 	glm::vec3 vMin, vMax;
@@ -137,7 +137,7 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 
 	if (scene.instances().empty())
 	{
-		for (const auto& model : scene.models())
+		for (const auto& model : scene.meshes())
 		{
 			auto bb = boundingBox(*model.get());
 			for (int i = 0; i < 3; ++i)

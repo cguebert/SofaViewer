@@ -50,7 +50,7 @@ bool Document::loadFile(const std::string& path)
 		// Initializes the scene
 		m_simulation.init();
 
-		// Create the models for rendering
+		// Create the meshes for rendering
 		parseScene();
 
 		setupCallbacks();

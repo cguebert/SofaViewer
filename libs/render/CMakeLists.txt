@@ -4,6 +4,7 @@ set(PROJECT_NAME "SimpleRender")
 project(${PROJECT_NAME})
 
 set(HEADER_FILES
+	Material.h
 	Mesh.h
 	Scene.h
 	Shader.h
@@ -11,6 +12,7 @@ set(HEADER_FILES
 )
 
 set(SOURCE_FILES
+	Material.cpp
 	Mesh.cpp
 	Scene.cpp
 	Shader.cpp

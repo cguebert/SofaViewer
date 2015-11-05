@@ -44,8 +44,6 @@ public:
 	Quads m_quads;
 
 	TexCoords m_texCoords;
-	unsigned int  m_texture;
-	bool m_hasTexture = false;
 
 	glm::vec4 m_color = { 1, 1, 1, 1 };
 
@@ -55,7 +53,7 @@ public:
 	ShaderProgram m_program;
 };
 
-std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model);
-std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& model, const glm::mat4& transformation);
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh);
+std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh, const glm::mat4& transformation);
 
 } // namespace simplerender

@@ -49,16 +49,16 @@ private:
 	using DeferredCreation = std::pair<std::shared_ptr<sgaExec::CreationContext>, std::vector<SGANode*>>;
 	std::vector<DeferredCreation> m_deferredCreations;
 
-	simplerender::Scene::Models m_originModels;
+	simplerender::Scene::Meshes m_originMeshes;
 	simplerender::Scene::ModelInstances m_originInstances;
 
-	struct UpdateModelStruct
+	struct UpdateMeshStruct
 	{
-		simplerender::Mesh::SPtr model;
+		simplerender::Mesh::SPtr mesh;
 		sfe::Data verticesData, normalsData;
 	};
-	std::vector<UpdateModelStruct> m_updateModelsStructs;
+	std::vector<UpdateMeshStruct> m_updateMeshesStructs;
 	CallbackFunc m_updateViewFunc;
-	bool m_modelsInitialized = false;
+	bool m_meshesInitialized = false;
 	sfe::CallbackHandle m_stepCallbackHandle;
 };

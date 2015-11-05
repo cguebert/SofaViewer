@@ -45,7 +45,7 @@ protected:
 
 	struct SofaModel
 	{
-		simplerender::Mesh::SPtr model;
+		simplerender::Mesh::SPtr mesh;
 		sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
 		sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 	};
@@ -66,7 +66,7 @@ protected:
 	std::chrono::high_resolution_clock::time_point m_fpsStart;
 
 	std::vector<SofaModel> m_sofaModels;
-	std::vector<simplerender::Mesh::SPtr> m_newModels;
+	std::vector<simplerender::Mesh::SPtr> m_newMeshes;
 };
 
 inline Graph& SofaDocument::graph()
