@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+class GraphNode;
 class ObjectProperties;
 
 namespace simplegui
@@ -81,10 +82,12 @@ public:
 class CORE_API SimpleGUI
 {
 public:
-	virtual ~SimpleGUI();
-
 	enum class MenuType : unsigned char
 	{ File, Tools, View, Help };
+
+	using ObjectPropertiesPair = std::pair<GraphNode*, std::shared_ptr<ObjectProperties>>;
+
+	virtual ~SimpleGUI();
 
 	virtual Menu& getMenu(MenuType type) = 0;
 
@@ -99,7 +102,9 @@ public:
 
 	virtual void updateView() = 0; // Update the OpenGL view
 
-	virtual void closePropertiesDialog(ObjectProperties* objProp) = 0;
+	virtual void closePropertiesDialog(GraphNode* node) = 0;
+	virtual void closeAllPropertiesDialogs() = 0;
+	virtual std::vector<ObjectPropertiesPair> getOpenedPropertiesDialogs() = 0;
 
 	virtual Settings& settings() = 0;
 };

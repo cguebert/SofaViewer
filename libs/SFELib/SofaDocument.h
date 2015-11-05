@@ -10,7 +10,6 @@
 #include "GraphImages.h"
 
 #include <chrono>
-#include <mutex>
 
 class SofaDocument : public BaseDocument
 {
@@ -28,7 +27,6 @@ public:
 	Graph& graph() override;
 
 	ObjectPropertiesPtr objectProperties(GraphNode* item) override;
-	void closeObjectProperties(GraphNode* item, ObjectPropertiesPtr ptr, bool accepted) override;
 
 protected:
 	void parseScene();
@@ -62,8 +60,6 @@ protected:
 	std::vector<sfe::CallbackHandle> m_sfeCallbacks;
 	GraphImages m_graphImages;
 	bool m_updateObjects = false;
-	std::vector<ObjectPropertiesPtr> m_openedObjectProperties;
-	std::mutex m_openedObjectsPropertiesMutex;
 
 	bool m_singleStep = false;
 	int m_statusFPS = -1, m_fpsCount = 0;

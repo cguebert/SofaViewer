@@ -402,6 +402,8 @@ void SGADocument::createSGAGraphImages()
 
 void SGADocument::convertAndRun()
 {
+	m_gui->closeAllPropertiesDialogs();
+
 	auto root = m_graph.root();
 	if (!getChild(root, SGANode::Type::SGA_Root))
 		addSGANode(root, sga::ObjectDefinition::ObjectType::RootObject);

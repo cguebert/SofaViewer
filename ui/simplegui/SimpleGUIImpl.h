@@ -3,6 +3,7 @@
 #include <core/SimpleGUI.h>
 
 #include <memory>
+#include <mutex>
 #include <vector>
 
 class BaseDocument;
@@ -42,7 +43,9 @@ public:
 	void setDocument(std::shared_ptr<BaseDocument> doc);
 
 	void openPropertiesDialog(GraphNode* item);
-	void closePropertiesDialog(ObjectProperties* objProp) override;
+	void closePropertiesDialog(GraphNode* node) override;
+	void closeAllPropertiesDialogs() override;
+	std::vector<ObjectPropertiesPair> getOpenedPropertiesDialogs() override;
 	void dialogFinished(PropertiesDialog* dialog, int result);
 
 protected:
@@ -52,7 +55,6 @@ protected:
 	using MenuImplPtr = std::shared_ptr<MenuImpl>;
 	using PanelImplPtr = std::shared_ptr<PanelImpl>;
 	using SettingsImplPtr = std::shared_ptr<SettingsImpl>;
-	using PropertiesDialogPair = std::pair<GraphNode*, PropertiesDialog*>;
 
 	QMainWindow* m_mainWindow;
 	QWidget* m_mainView;
@@ -64,6 +66,7 @@ protected:
 	std::vector<QLabel*> m_statusBarLabels;
 	std::vector<MenuImplPtr> m_menus;
 	std::vector<DialogImplPtr> m_dialogs;
-	std::vector<PropertiesDialogPair> m_propertiesDialogs;
+	std::vector<PropertiesDialog*> m_propertiesDialogs;
+	std::mutex m_propertiesDialogsMutex; // Because the properties dialog can be modified from another thread
 	std::shared_ptr<BaseDocument> m_document;
 };

@@ -67,8 +67,9 @@ void SimpleGUIImpl::clear()
 		dialog->close();
 	m_dialogs.clear();
 
+	std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
 	for (auto dialog : m_propertiesDialogs)
-		dialog.second->deleteLater();
+		dialog->deleteLater();
 	m_propertiesDialogs.clear();
 }
 
@@ -112,14 +113,16 @@ void SimpleGUIImpl::updateView()
 
 void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
 {
+	std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
 	auto uniqueId = item->uniqueId;
-	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialogPair& p){
-		return p.first->uniqueId == uniqueId;
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [uniqueId](const PropertiesDialog* dlg){
+		return dlg->graphNode()->uniqueId == uniqueId;
 	});
 	if (it != m_propertiesDialogs.end()) // Show existing dialog
 	{
-		it->second->activateWindow();
-		it->second->raise();
+		auto dlg = *it;
+		dlg->activateWindow();
+		dlg->raise();
 		return;
 	}
 
@@ -129,26 +132,57 @@ void SimpleGUIImpl::openPropertiesDialog(GraphNode* item)
 	{
 		PropertiesDialog* dlg = new PropertiesDialog(properties, item, m_mainWindow);
 		QObject::connect(dlg, &QDialog::finished, [this, dlg](int result) { dialogFinished(dlg, result); });
-		m_propertiesDialogs.emplace_back(item, dlg);
+		m_propertiesDialogs.push_back(dlg);
 		dlg->show();
 	}
 }
 
-void SimpleGUIImpl::closePropertiesDialog(ObjectProperties* objProp)
+void SimpleGUIImpl::closePropertiesDialog(GraphNode* node)
 {
-	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [objProp](const PropertiesDialogPair& p){
-		return p.second->objectProperties().get() == objProp;
-	});
+	PropertiesDialog* dlg = nullptr;
+	{
+		std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
+		auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [node](const PropertiesDialog* dlg) {
+			return dlg->graphNode() == node;
+		});
 
-	if (it != m_propertiesDialogs.end())
-		it->second->reject();
+		if (it != m_propertiesDialogs.end())
+			dlg = *it;
+	}
+
+	if(dlg)
+		dlg->reject();
+}
+
+void SimpleGUIImpl::closeAllPropertiesDialogs()
+{
+	std::vector<PropertiesDialog*> dlgs;
+	{
+		std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
+		dlgs = m_propertiesDialogs;
+		m_propertiesDialogs.clear();
+	}
+
+	for (auto dlg : dlgs)
+		dlg->reject();
+}
+
+std::vector<simplegui::SimpleGUI::ObjectPropertiesPair> SimpleGUIImpl::getOpenedPropertiesDialogs()
+{
+	std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
+	std::vector<ObjectPropertiesPair> pairs;
+	for (auto dlg : m_propertiesDialogs)
+		pairs.emplace_back(dlg->graphNode(), dlg->objectProperties());
+	return pairs;
 }
 
 void SimpleGUIImpl::dialogFinished(PropertiesDialog* dialog, int result)
 {
 	m_document->closeObjectProperties(dialog->graphNode(), dialog->objectProperties(), result == QDialog::Accepted);
-	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dialog](const PropertiesDialogPair& p){
-		return p.second == dialog;
+
+	std::lock_guard<std::mutex> lock(m_propertiesDialogsMutex);
+	auto it = std::find_if(m_propertiesDialogs.begin(), m_propertiesDialogs.end(), [dialog](const PropertiesDialog* dlg){
+		return dlg == dialog;
 	});
 	if (it != m_propertiesDialogs.end())
 		m_propertiesDialogs.erase(it);

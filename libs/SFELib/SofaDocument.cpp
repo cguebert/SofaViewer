@@ -301,24 +301,9 @@ ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)
 
 	ObjectProperties::SPtr properties;
 	if(item->isObject)
-		properties = createSofaObjectProperties(item->object);
+		return createSofaObjectProperties(item->object);
 	else
-		properties = createSofaObjectProperties(item->node);
-
-	{
-		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-		m_openedObjectProperties.push_back(properties);
-	}
-	return properties;
-}
-
-void SofaDocument::closeObjectProperties(GraphNode* /*item*/, ObjectPropertiesPtr properties, bool /*accepted*/)
-{
-	if(!m_openedObjectProperties.empty())
-	{
-		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-		m_openedObjectProperties.erase(std::remove(m_openedObjectProperties.begin(), m_openedObjectProperties.end(), properties));
-	}
+		return createSofaObjectProperties(item->node);
 }
 
 void SofaDocument::singleStep()
@@ -342,9 +327,7 @@ void SofaDocument::resetSimulation()
 	bool animating = m_simulation.isAnimating();
 	if(animating)
 		m_simulation.setAnimate(false, true); // We want to wait until the current step has finished
-	auto objProps = m_openedObjectProperties;
-	for(auto objProp : objProps)
-		m_gui->closePropertiesDialog(objProp.get());
+	m_gui->closeAllPropertiesDialogs();
 	m_simulation.reset();
 	createGraph();
 	m_fpsCount = 1;
@@ -356,15 +339,10 @@ void SofaDocument::resetSimulation()
 
 void SofaDocument::updateProperties()
 {
-	std::vector<ObjectPropertiesPtr> opened;
+	auto dialogs = m_gui->getOpenedPropertiesDialogs();
+	for(auto& dlg : dialogs)
 	{
-		std::lock_guard<std::mutex> lock(m_openedObjectsPropertiesMutex);
-		opened = m_openedObjectProperties;
-	}
-
-	for(auto& op : opened)
-	{
-		op->updateProperties();
-		op->modified();
+		dlg.second->updateProperties();
+		dlg.second->modified();
 	}
 }
