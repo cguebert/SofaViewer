@@ -159,9 +159,9 @@ void SGAExecution::parseNode(GraphNode* baseNode, sgaExec::CreationContext& cont
 		convertObject(meshNode, context);
 	else if (meshNode->nodeType == MeshNode::Type::Node || meshNode->nodeType == MeshNode::Type::Root)
 	{
-		context.globalTransformationMatrix = meshNode->transformationMatrix;
+		context.globalTransformationMatrix = meshNode->transformationMatrix * context.localTransformationMatrix;
 		context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
-		context.localTransformationMatrix = meshNode->transformationMatrix * context.localTransformationMatrix;
+		context.localTransformationMatrix = meshNode->transformationMatrix;
 		context.localTransformation = convertTransformation(context.localTransformationMatrix);
 
 		sgaExec::CreationContext tmpContext = context;
@@ -263,6 +263,7 @@ void SGAExecution::fillProperties(SGANode* item, sgaExec::CreationContext& conte
 			case ObjectType::VisualObject:		name += "_Visu";	break;
 			case ObjectType::CollisionObject:	name += "_Collis";	break;
 			}
+			prop.set(name);
 		}
 		else if (prop.id() == "dataPath")
 		{

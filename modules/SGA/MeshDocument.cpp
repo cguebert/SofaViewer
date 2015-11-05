@@ -99,11 +99,24 @@ TransformationComponents toTransformationComponents(const glm::mat4& matrix)
 {
 	TransformationComponents transformation;
 	auto modelTrans = glm::transpose(matrix);
-	glm::vec3 scale, translation, skew;
+	glm::vec3 scale = { 1, 1, 1 }, translation, skew;
 	glm::vec4 perspective;
 	glm::quat orientation;
 	if (glm::decompose(modelTrans, scale, orientation, translation, skew, perspective))
 	{
+		// I have wrong values for the orientation, so I recompute them in an other way
+		// First removing the scaling
+		for (int i = 0; i < 3; ++i)
+		{
+			if (scale[i])
+			{
+				for (int j = 0; j < 3; ++j)
+					modelTrans[i][j] /= scale[i];
+			}
+				
+		}
+		// Then using the conversion inside the quaternion constructor
+		orientation = glm::quat(modelTrans);
 		glm::vec3 rotation = glm::degrees(glm::eulerAngles(orientation));
 		transformation = { translation, rotation, scale };
 	}
@@ -337,11 +350,11 @@ void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformati
 	{
 		glm::mat4 transMat = toTransformationMatrix(item->transformationComponents);
 		accTrans = transMat * transformation;
-		item->transformationMatrix = transMat;
+		item->transformationMatrix = transMat; // Local transformation
 	}
 	else if (item->nodeType == MeshNode::Type::Instance)
 	{
-		item->transformationMatrix = transformation;
+		item->transformationMatrix = transformation; // Global transformation
 		auto model = m_scene.models()[item->meshId];
 		item->model = model;
 		m_scene.addInstance({ glm::transpose(transformation), model });

@@ -263,38 +263,39 @@ void SGADocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 {
 	auto parent = baseItem->parent;
 	auto meshNode = dynamic_cast<MeshNode*>(baseItem);
-	if (!meshNode)
-		return;
+	if (meshNode)
+	{
 
-	switch (meshNode->nodeType)
-	{
-	case MeshNode::Type::Root:
-	{
-		menu.addItem("Set SGA root node", "Change the type of the Sofa simulation", [meshNode, this]() { addSGANode(meshNode, sga::ObjectDefinition::ObjectType::RootObject); });
-		return;
-	}
-
-	case MeshNode::Type::Node:
-	{
-		menu.addItem("Add node", "Add a new child node", [meshNode, this]() { addNode(meshNode); });
-		menu.addItem("Remove node", "Remove this node", [meshNode, this]() { removeNode(meshNode); });
-		menu.addSeparator();
-		menu.addItem("Add mesh instance", "Add a new mesh instance", [meshNode, this]() { addInstance(meshNode); });
-		return;
-	}
-
-	case MeshNode::Type::Instance:
-	{
-		menu.addItem("Remove instance", "Remove this mesh instance", [meshNode, this]() { removeNode(meshNode); });
-		menu.addSeparator();
-		for (auto type : { sga::ObjectDefinition::ObjectType::PhysicsObject, sga::ObjectDefinition::ObjectType::CollisionObject, sga::ObjectDefinition::ObjectType::VisualObject })
+		switch (meshNode->nodeType)
 		{
-			bool present = (getChild(meshNode, SGAToNodeType(type)) != nullptr);
-			auto label = (present ? "Modify " : "Add ") + SGATypeName(type);
-			menu.addItem(label, label + (present ? " for" : " to") + " this object", [this, meshNode, type]() { addSGANode(meshNode, type); });
+		case MeshNode::Type::Root:
+		{
+			menu.addItem("Set SGA root node", "Change the type of the Sofa simulation", [meshNode, this]() { addSGANode(meshNode, sga::ObjectDefinition::ObjectType::RootObject); });
+			return;
 		}
-		return;
-	}
+
+		case MeshNode::Type::Node:
+		{
+			menu.addItem("Add node", "Add a new child node", [meshNode, this]() { addNode(meshNode); });
+			menu.addItem("Remove node", "Remove this node", [meshNode, this]() { removeNode(meshNode); });
+			menu.addSeparator();
+			menu.addItem("Add mesh instance", "Add a new mesh instance", [meshNode, this]() { addInstance(meshNode); });
+			return;
+		}
+
+		case MeshNode::Type::Instance:
+		{
+			menu.addItem("Remove instance", "Remove this mesh instance", [meshNode, this]() { removeNode(meshNode); });
+			menu.addSeparator();
+			for (auto type : { sga::ObjectDefinition::ObjectType::PhysicsObject, sga::ObjectDefinition::ObjectType::CollisionObject, sga::ObjectDefinition::ObjectType::VisualObject })
+			{
+				bool present = (getChild(meshNode, SGAToNodeType(type)) != nullptr);
+				auto label = (present ? "Modify " : "Add ") + SGATypeName(type);
+				menu.addItem(label, label + (present ? " for" : " to") + " this object", [this, meshNode, type]() { addSGANode(meshNode, type); });
+			}
+			return;
+		}
+		}
 	}
 
 	auto sgaNode = dynamic_cast<SGANode*>(baseItem);
