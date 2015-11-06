@@ -20,6 +20,10 @@ class MainWindow : public QMainWindow
 public:
 	MainWindow(QWidget *parent = nullptr);
 
+	void dropEvent(QDropEvent* event);
+	void dragEnterEvent(QDragEnterEvent *event);
+	void closeEvent(QCloseEvent* event);
+
 private:
 	void newDoc();
 	void open();
@@ -39,7 +43,6 @@ private:
 	void readSettings();
 	void writeSettings();
 	bool okToContinue();
-	void closeEvent(QCloseEvent* event);
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
 

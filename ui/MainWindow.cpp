@@ -64,6 +64,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	setWindowIcon(QIcon(":/share/icons/icon.png"));
 	setCurrentFile("");
+	setAcceptDrops(true);
 
 	readSettings();
 
@@ -143,6 +144,20 @@ void MainWindow::createMenus()
 	m_helpMenu->addSeparator();
 	m_helpMenu->addAction(m_aboutAction);
 	m_helpMenu->addAction(m_aboutQtAction);
+}
+
+void MainWindow::dropEvent(QDropEvent* event)
+{
+	auto path = event->mimeData()->urls().first().toLocalFile();
+	event->acceptProposedAction();
+	if (!path.isEmpty() && okToContinue())
+		loadFile(path);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+	if (event->mimeData()->hasUrls())
+		event->acceptProposedAction();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
