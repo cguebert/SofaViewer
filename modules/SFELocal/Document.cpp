@@ -67,9 +67,9 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 
 	// Menu actions
 	auto& menu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
-	menu.addItem("Sofa paths", "", [this](){ modifyDataRepository(); } );
-	menu.addItem("Launch Server", "", [this](){ launchServer(); } );
-	menu.addItem("Stop Server", "", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
+	menu.addItem("Sofa paths", "Modify the directories where Sofa will look for meshes and textures", [this](){ modifyDataRepository(); } );
+	menu.addItem("Launch Server", "Launch a SFE server", [this](){ launchServer(); } );
+	menu.addItem("Stop Server", "Stop the SFE server", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
 }
 
 void Document::modifyDataRepository()
