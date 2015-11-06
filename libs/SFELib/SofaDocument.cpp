@@ -10,6 +10,7 @@
 #include <sfe/Helpers.h>
 #include <sfe/DataTypeTrait.h>
 
+#include <cctype>
 #include <iostream>
 #include <future>
 
@@ -82,19 +83,38 @@ bool SofaDocument::mouseEvent(const MouseEvent& event)
 	return m_mouseManipulator.mouseEvent(event);
 }
 
+void parseColor(std::istream& input, glm::vec4& color)
+{
+	for (int i = 0; i < 4; ++i)
+		input >> color[i];
+}
+
 // Helper function to parse the material (a string) and extract the diffuse color
 // The syntax of the material string is: MaterialName, Diffuse, DiffuseActive, DifuseColor(R,G,B,A), ...
-glm::vec4 getColor(const std::string& material)
+simplerender::Material::SPtr parseMaterial(const std::string& materialText)
 {
-	std::string dummy;
+	auto material = std::make_shared<simplerender::Material>();
+	std::istringstream in(materialText);
+	std::string dummy, element;
 	int active;
-	std::istringstream ss(material);
-	ss >> dummy >> dummy >> active;
-	glm::vec4 color;
-	for (int i = 0; i < 4; ++i)
-		ss >> color[i];
+	in >> dummy;
 
-	return color;
+	for (unsigned int i=0; i<7; ++i)
+    {
+        in  >>  element;
+		std::transform(element.begin(), element.end(), element.begin(), std::tolower);
+
+        if      (element == "diffuse")   { in  >> active; parseColor(in, material->diffuse);   }
+        else if (element == "ambient")   { in  >> active; parseColor(in, material->ambient);   }
+        else if (element == "specular")  { in  >> active; parseColor(in, material->specular);  }
+        else if (element == "emissive")  { in  >> active; parseColor(in, material->emissive);  }
+        else if (element == "shininess") { in  >> active; in >> material->shininess; }
+		else if (element == "texture")   { std::getline(in, material->textureFilename); }
+		else if (element == "bump")      { std::getline(in, dummy); }
+    }
+	parseColor(in, material->diffuse);
+
+	return material;
 }
 
 std::string trim(const std::string& str)
@@ -128,6 +148,9 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 		return sofaModel;
 
 	auto mesh = std::make_shared<simplerender::Mesh>();
+	sofaModel.mesh = mesh;
+	m_newMeshes.push_back(mesh);
+
 	sofaModel.d_vertices.get(mesh->m_vertices);
 	sofaModel.d_normals.get(mesh->m_normals);
 
@@ -145,24 +168,20 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	if (mesh->m_triangles.empty() && mesh->m_quads.empty())
 		return sofaModel;
 
-	// The diffuse color
+	// The material
 	auto matData = visualModel.data("material");
-	std::string material;
-	matData.get(material);
-	mesh->m_color = getColor(material);
+	std::string materialText;
+	matData.get(materialText);
+	auto material = parseMaterial(materialText);
+	sofaModel.material = material;
+	m_scene.addMaterial(material);
 
-	// The texture
-/*	mesh->texFileName = getTexture(visualModel, material);
-
-	// Texture coordinates
-	if (!mesh->texFileName.empty())
-	{
-		auto texCoords = visualModel.data("texcoords");
-		if (texCoords)	texCoords.get(mesh->texCoords);
-	}
-*/
-	sofaModel.mesh = mesh;
-	m_newMeshes.push_back(mesh);
+	// Create an instance to put together the mesh and its material
+	auto instance = std::make_shared<simplerender::ModelInstance>();
+	instance->mesh = mesh;
+	instance->material = material;
+	m_scene.addInstance(instance);
+	
 	return sofaModel;
 }
 

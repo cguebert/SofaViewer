@@ -63,42 +63,28 @@ void Scene::render()
 	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	if (m_instances.empty())
+	for (const auto& instance : m_instances)
 	{
-		glm::mat4 modelviewProjection = m_projection * m_modelview;
-		
-		for (const auto& object : m_meshes)
-		{
-			const auto& prog = selectProgram(object);
-			prog.program.use();
+		const auto& mesh = instance->mesh;
+		if (!mesh)
+			continue;
 
-			if (prog.mvLoc != -1) 
-				glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(m_modelview));
-			glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
+		const auto& transformation = instance->transformation;
+		const Material* material = instance->material.get();
+		if (!material)
+			material = &defaultMaterial;
+		const auto& prog = selectProgram(mesh);
+		prog.program.use();
 
-			glUniform4fv(prog.colLoc, 1, &object->m_color[0]);
+		glm::mat4 modelview = m_modelview * transformation;
+		glm::mat4 modelviewProjection = m_projection * modelview;
+		if (prog.mvLoc != -1)
+			glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
+		glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
 
-			object->render();
-		}
-	}
-	else
-	{
-		for (const auto& instance : m_instances)
-		{
-			const auto& object = instance.second;
-			const auto& prog = selectProgram(object);
-			prog.program.use();
+		glUniform4fv(prog.colLoc, 1, &material->diffuse[0]);
 
-			glm::mat4 modelview = m_modelview * instance.first;
-			glm::mat4 modelviewProjection = m_projection * modelview;
-			if (prog.mvLoc != -1)
-				glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
-			glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
-
-			glUniform4fv(prog.colLoc, 1, &object->m_color[0]);
-
-			object->render();
-		}
+		mesh->render();
 	}
 }
 
@@ -125,7 +111,17 @@ Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh)
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 {
-	if (scene.meshes().empty())
+	bool hasInstances = false;
+	for (const auto& instance : scene.instances())
+	{
+		if (instance->mesh)
+		{
+			hasInstances = true;
+			break;
+		}
+	}
+
+	if (!hasInstances)
 		return std::make_pair(glm::vec3(-5, -5, -5), glm::vec3(5, 5, 5));
 
 	glm::vec3 vMin, vMax;
@@ -135,28 +131,16 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)
 		vMax[i] = -std::numeric_limits<float>::max();
 	}
 
-	if (scene.instances().empty())
+	for (const auto& instance : scene.instances())
 	{
-		for (const auto& model : scene.meshes())
+		if (!instance->mesh)
+			continue;
+
+		auto bb = boundingBox(*instance->mesh.get(), instance->transformation);
+		for (int i = 0; i < 3; ++i)
 		{
-			auto bb = boundingBox(*model.get());
-			for (int i = 0; i < 3; ++i)
-			{
-				vMin[i] = std::min(vMin[i], bb.first[i]);
-				vMax[i] = std::max(vMax[i], bb.second[i]);
-			}
-		}
-	}
-	else
-	{
-		for (const auto& instance : scene.instances())
-		{
-			auto bb = boundingBox(*instance.second.get(), instance.first);
-			for (int i = 0; i < 3; ++i)
-			{
-				vMin[i] = std::min(vMin[i], bb.first[i]);
-				vMax[i] = std::max(vMax[i], bb.second[i]);
-			}
+			vMin[i] = std::min(vMin[i], bb.first[i]);
+			vMax[i] = std::max(vMax[i], bb.second[i]);
 		}
 	}
 

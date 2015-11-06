@@ -46,6 +46,7 @@ protected:
 	struct SofaModel
 	{
 		simplerender::Mesh::SPtr mesh;
+		simplerender::Material::SPtr material;
 		sfe::Object m_sofaObject; // Proxy to the Sofa object in the simulation
 		sfe::Data d_vertices, d_normals; // Proxies to access the fields we need in the Sofa object
 	};

@@ -65,13 +65,13 @@ std::vector<MeshNode*> convertToMeshNodes(const graph::GraphNodes& nodes)
 	return meshNodes;
 }
 
-std::vector<std::string> getMeshesNames(GraphNode* root)
+std::vector<std::string> getNames(GraphNode* root, MeshNode::Type type)
 {
-	auto meshNodes = getNodes(root, MeshNode::Type::Mesh);
+	auto nodes = getNodes(root, type);
 
 	std::vector<std::string> names;
-	for (auto& mesh : meshNodes)
-		names.push_back(mesh->name);
+	for (auto& node : nodes)
+		names.push_back(node->name);
 	return names;
 }
 
@@ -91,6 +91,14 @@ std::string createNewName(GraphNode* root, MeshNode::Type type, const std::strin
 	}
 
 	return name;
+}
+
+template <class C, class T>
+void removeValue(C& container, const T& val)
+{
+	auto it = std::find(container.begin(), container.end(), val);
+	if (it != container.end())
+		container.erase(it);
 }
 
 }
@@ -223,6 +231,18 @@ GraphNode::SPtr MeshDocument::createNode(const std::string& typeName, const std:
 		node->mesh = mesh;
 		m_newMeshes.push_back(node->mesh.get());
 	}
+	else if (meshType == MeshNode::Type::Material)
+	{
+		auto material = std::make_shared<simplerender::Material>();
+		m_scene.addMaterial(material);
+		node->material = material;
+	}
+	else if (meshType == MeshNode::Type::Instance)
+	{
+		auto instance = std::make_shared<simplerender::ModelInstance>();
+		m_scene.addInstance(instance);
+		node->instance = instance;
+	}
 
 	return node;
 }
@@ -268,7 +288,6 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createPropertyAndWrapper("edges", mesh->m_edges);
 			properties->createPropertyAndWrapper("triangles", mesh->m_triangles);
 			properties->createPropertyAndWrapper("normals", mesh->m_normals);
-			properties->createPropertyAndWrapper("color", mesh->m_color);
 		}
 		break;
 	}
@@ -290,7 +309,8 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 	case MeshNode::Type::Instance:
 	{
 		properties->addProperty(property::createRefProperty("name", item->name));
-		properties->addProperty(property::createRefProperty("mesh id", item->meshId, meta::Enum(getMeshesNames(m_rootNode.get()))));
+		properties->addProperty(property::createRefProperty("mesh id", item->meshId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Mesh))));
+		properties->addProperty(property::createRefProperty("material id", item->materialId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Material))));
 		properties->createPropertyAndWrapper("transformation", item->transformationMatrix).first->setReadOnly(true);
 		break;
 	}
@@ -306,7 +326,7 @@ void MeshDocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPt
 		return;
 
 	if (item->nodeType == MeshNode::Type::Root || item->nodeType == MeshNode::Type::Node || item->nodeType == MeshNode::Type::Instance)
-		updateInstances();
+		updateInstances(item);
 }
 
 void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
@@ -332,7 +352,7 @@ void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 
 	case MeshNode::Type::Instance:
 	{
-		menu.addItem("Remove instance", "Remove this mesh instance", [item, this]() { removeNode(item); updateInstances(); });
+		menu.addItem("Remove instance", "Remove this mesh instance", [item, this]() { removeInstance(item); });
 		return;
 	}
 	}
@@ -345,13 +365,6 @@ void MeshDocument::createGraphImages()
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff00daff }))); // Mesh
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffffa4a4 }))); // Material
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
-}
-
-void MeshDocument::updateInstances()
-{
-	m_scene.instances().clear();
-	glm::mat4 transformation;
-	updateInstances(dynamic_cast<MeshNode*>(m_graph.root()), transformation);
 }
 
 void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformation)
@@ -369,10 +382,14 @@ void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformati
 	}
 	else if (item->nodeType == MeshNode::Type::Instance)
 	{
-		item->transformationMatrix = transformation; // Global transformation
-		auto mesh = m_scene.meshes()[item->meshId];
+		auto mesh = item->meshId != -1 ? m_scene.meshes()[item->meshId] : nullptr;
+		auto material = item->materialId != -1 ? m_scene.materials()[item->materialId] : nullptr;
 		item->mesh = mesh;
-		m_scene.addInstance({ glm::transpose(transformation), mesh });
+		item->material = material;
+		item->transformationMatrix = transformation; // Global transformation
+		item->instance->mesh = mesh;
+		item->instance->material = material;
+		item->instance->transformation = glm::transpose(transformation);
 	}
 
 	for (auto child : item->children)
@@ -390,13 +407,23 @@ void MeshDocument::addNode(MeshNode* parent)
 
 void MeshDocument::removeNode(MeshNode* item)
 {
-	if(item && item->parent)
+	if(item->parent)
 		m_graph.removeChild(item->parent, item);
 }
 
 void MeshDocument::addInstance(MeshNode* parent)
 {
-	createNode(createNewName(m_rootNode.get(), MeshNode::Type::Instance, "Instance "), MeshNode::Type::Instance, parent);
+	auto node = createNode(createNewName(m_rootNode.get(), MeshNode::Type::Instance, "Instance "), MeshNode::Type::Instance, parent);
+	auto instance = std::make_shared<simplerender::ModelInstance>();
+	node->instance = instance;
+	m_scene.addInstance(instance);
+}
+
+void MeshDocument::removeInstance(MeshNode* item)
+{
+	auto instances = m_scene.instances();
+	removeValue(instances, item->instance);
+	removeNode(item);
 }
 
 void MeshDocument::removeDuplicateMeshes()

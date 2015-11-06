@@ -45,8 +45,6 @@ public:
 
 	TexCoords m_texCoords;
 
-	glm::vec4 m_color = { 1, 1, 1, 1 };
-
 	Triangles m_mergedTriangles; // With the quads
 	unsigned int  m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
 

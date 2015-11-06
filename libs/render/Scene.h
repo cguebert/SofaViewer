@@ -9,27 +9,34 @@
 namespace simplerender
 {
 
+struct ModelInstance
+{
+	using SPtr = std::shared_ptr<ModelInstance>;
+	glm::mat4 transformation;
+	Mesh::SPtr mesh;
+	Material::SPtr material;
+};
+
 class Scene
 {
 public:
 	using Meshes = std::vector<Mesh::SPtr>;
 	using Materials = std::vector<Material::SPtr>;
-	using ModelInstance = std::pair<glm::mat4, Mesh::SPtr>;
-	using ModelInstances = std::vector<ModelInstance>;
+	using ModelInstances = std::vector<ModelInstance::SPtr>;
 
 	void initOpenGL();
 	void resize(int width, int height);
 	void render();
 
-	void addMesh(Mesh::SPtr mesh);
+	void addMesh(const Mesh::SPtr& mesh);
 	Meshes& meshes();
 	const Meshes& meshes() const;
 
-	void addMaterial(Material::SPtr material);
+	void addMaterial(const Material::SPtr& material);
 	Materials& materials();
 	const Materials& materials() const;
 
-	void addInstance(const ModelInstance& instance);
+	void addInstance(const ModelInstance::SPtr& instance);
 	ModelInstances& instances();
 	const ModelInstances& instances() const;
 
@@ -53,7 +60,7 @@ protected:
 
 	Meshes m_meshes;
 	Materials m_materials;
-	ModelInstances m_instances;
+	ModelInstances m_instances; // Only this list is used during rendering, the meshes and materials lists are here for convenience
 
 	glm::mat4 m_modelview, m_projection;
 	glm::vec3 m_min, m_max, m_center, m_size;
@@ -62,13 +69,14 @@ protected:
 	glm::vec3 m_translation = { 0.f, 0.f, 0.f };
 
 	ProgramStruct m_trianglesProg, m_linesProg;
+	Material defaultMaterial;
 };
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene);
 
 //****************************************************************************//
 
-inline void Scene::addMesh(Mesh::SPtr mesh)
+inline void Scene::addMesh(const Mesh::SPtr& mesh)
 { m_meshes.push_back(mesh); }
 
 inline Scene::Meshes& Scene::meshes()
@@ -77,7 +85,7 @@ inline Scene::Meshes& Scene::meshes()
 inline const Scene::Meshes& Scene::meshes() const
 { return m_meshes; }
 
-inline void Scene::addMaterial(Material::SPtr material)
+inline void Scene::addMaterial(const Material::SPtr& material)
 { m_materials.push_back(material); }
 
 inline Scene::Materials& Scene::materials()
@@ -86,7 +94,7 @@ inline Scene::Materials& Scene::materials()
 inline const Scene::Materials& Scene::materials() const
 { return m_materials; }
 
-inline void Scene::addInstance(const ModelInstance& instance)
+inline void Scene::addInstance(const ModelInstance::SPtr& instance)
 { m_instances.push_back(instance); }
 
 inline Scene::ModelInstances& Scene::instances()

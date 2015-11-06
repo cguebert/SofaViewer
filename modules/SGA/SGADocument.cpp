@@ -151,7 +151,9 @@ bool SGADocument::loadFile(const std::string& path)
 
 	m_rootNode = node;
 	m_graph.setRoot(m_rootNode);
-	updateInstances();
+	auto meshRoot = dynamic_cast<MeshNode*>(node.get());
+	if(meshRoot)
+		updateInstances(meshRoot);
 	return true;
 }
 

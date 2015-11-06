@@ -28,10 +28,11 @@ public:
 
 	Type nodeType;
 
-	glm::mat4 transformationMatrix; // Root & Node & Instance (Read only)
+	glm::mat4 transformationMatrix; // Root & Node & Instance (Read only). This is for visualization only, row major.
 	TransformationComponents transformationComponents; // Root & Node
 	simplerender::Mesh::SPtr mesh; // Mesh & Instance
 	simplerender::Material::SPtr material; // Material & Instance
+	simplerender::ModelInstance::SPtr instance; // Instance
 	int meshId = -1, materialId = -1; // Instance
 };
 
@@ -69,12 +70,12 @@ public:
 protected:
 	void createGraphImages();
 
-	void updateInstances();
-	void updateInstances(MeshNode* item, const glm::mat4& transformation);
+	void updateInstances(MeshNode* item, const glm::mat4& transformation = glm::mat4());
 
 	void addNode(MeshNode* parent);
 	void removeNode(MeshNode* item);
 	void addInstance(MeshNode* parent);
+	void removeInstance(MeshNode* item);
 
 	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;
