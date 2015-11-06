@@ -60,6 +60,6 @@ private:
 	};
 	std::vector<UpdateModelStruct> m_updateModelStructs;
 	CallbackFunc m_updateViewFunc;
-	bool m_meshesInitialized = false;
+	bool m_meshesInitialized = false, m_updateMeshes = false;
 	sfe::CallbackHandle m_stepCallbackHandle;
 };

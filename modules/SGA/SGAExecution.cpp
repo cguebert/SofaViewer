@@ -390,7 +390,13 @@ void SGAExecution::render()
 	{
 		for (auto& model : m_updateModelStructs)
 			model.mesh->init();
-	//	m_meshesInitialized = true;
+		m_meshesInitialized = true;
+	}
+	else if(m_updateMeshes)
+	{
+		for (auto& model : m_updateModelStructs)
+			model.mesh->updatePositions();
+		m_updateMeshes = false;
 	}
 
 	m_scene.render();
@@ -402,9 +408,8 @@ void SGAExecution::postStep()
 	{
 		modelUpdate.verticesData.get(modelUpdate.mesh->m_vertices);
 		modelUpdate.normalsData.get(modelUpdate.mesh->m_normals);
-		if (m_meshesInitialized)
-			modelUpdate.mesh->updatePositions();
 	}
 
+	m_updateMeshes = true;
 	m_updateViewFunc();
 }
