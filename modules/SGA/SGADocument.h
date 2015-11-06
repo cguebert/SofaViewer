@@ -56,6 +56,7 @@ public:
 protected:
 	void importMesh();
 	void convertAndRun();
+	void convertAndExport();
 	void stopExecution();
 	
 	void addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type);

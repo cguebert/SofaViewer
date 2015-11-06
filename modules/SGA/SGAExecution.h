@@ -23,6 +23,7 @@ public:
 	~SGAExecution();
 
 	bool convert(const SimulationProperties& simuProp, GraphNode* root);
+	void exportScene(const std::string& path); // After conversion
 
 	void run(CallbackFunc updateViewFunc);
 	void stop();

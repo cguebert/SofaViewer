@@ -143,11 +143,14 @@ bool SGAExecution::convert(const SimulationProperties& simuProp, GraphNode* root
 	parseNode(root, context);
 	postObjectsCreation();
 
-	std::ofstream out("ExportSofaScene.scn");
+	return true;
+}
+
+void SGAExecution::exportScene(const std::string& path)
+{
+	std::ofstream out(path);
 	out << "<?xml version=\"1.0\"?>\n";
 	m_sofaSimulation.root().exportXML(out);
-
-	return true;
 }
 
 void SGAExecution::parseNode(GraphNode* baseNode, sgaExec::CreationContext& context)

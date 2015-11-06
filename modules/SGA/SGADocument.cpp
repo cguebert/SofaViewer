@@ -168,6 +168,7 @@ void SGADocument::initUI(simplegui::SimpleGUI& gui)
 	m_gui = &gui;
 	auto& toolsMenu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
 	toolsMenu.addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
+	toolsMenu.addItem("Export Sofa scene", "Convert to a Sofa simulation and export it", [this](){ convertAndExport(); });
 	toolsMenu.addSeparator();
 
 	auto& panel = m_gui->buttonsPanel();
@@ -421,6 +422,24 @@ void SGADocument::convertAndRun()
 	}
 	else
 		m_execution.reset();
+}
+
+void SGADocument::convertAndExport()
+{
+	m_gui->closeAllPropertiesDialogs();
+
+	auto root = m_graph.root();
+	if (!getChild(root, SGANode::Type::SGA_Root))
+		addSGANode(root, sga::ObjectDefinition::ObjectType::RootObject);
+
+	auto path = m_gui->getSaveFileName("Sofa scene exportation", "ExportSofaScene.scn", "Sofa scenes (*.scn)");
+	if (path.empty())
+		return;
+
+	std::string dataPath = modulePath();
+	SGAExecution execution(m_scene, m_sgaFactory, dataPath);
+	if (execution.convert(m_simulationProperties, m_rootNode.get()))
+		execution.exportScene(path);
 }
 
 void SGADocument::stopExecution()
