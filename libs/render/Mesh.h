@@ -1,7 +1,5 @@
 #pragma once
 
-#include <render/Shader.h>
-
 #include <glm/glm.hpp>
 
 #include <array>
@@ -46,10 +44,10 @@ public:
 	TexCoords m_texCoords;
 
 	Triangles m_mergedTriangles; // With the quads
-	unsigned int  m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
-
-	ShaderProgram m_program;
+	unsigned int m_VAO, m_verticesVBO, m_normalsVBO, m_texCoordsVBO, m_indicesEBO;
 };
+
+bool operator==(const Mesh& lhs, const Mesh& rhs);
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh);
 std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh, const glm::mat4& transformation);

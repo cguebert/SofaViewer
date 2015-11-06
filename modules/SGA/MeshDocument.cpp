@@ -101,6 +101,16 @@ void removeValue(C& container, const T& val)
 		container.erase(it);
 }
 
+template <class C, class T>
+int indexOf(C& container, const T& val)
+{
+	auto it = std::find(container.begin(), container.end(), val);
+	if (it == container.end())
+		return -1;
+	else
+		return std::distance(container.begin(), it);
+}
+
 }
 
 TransformationComponents toTransformationComponents(const glm::mat4& matrix)
@@ -321,12 +331,15 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 
 void MeshDocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPtr ptr, bool accepted)
 {
+	if (!accepted)
+		return;
+
 	auto item = dynamic_cast<MeshNode*>(baseItem);
 	if (!item)
 		return;
 
 	if (item->nodeType == MeshNode::Type::Root || item->nodeType == MeshNode::Type::Node || item->nodeType == MeshNode::Type::Instance)
-		updateInstances(item);
+		updateNodes(item);
 }
 
 void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
@@ -367,17 +380,20 @@ void MeshDocument::createGraphImages()
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
 }
 
-void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformation)
+void MeshDocument::updateNodes(MeshNode* item, const glm::mat4* transformation)
 {
-	auto accTrans = transformation;
+	glm::mat4 accTrans;
+	if(transformation)
+		accTrans = *transformation;
+
 	if (item->nodeType == MeshNode::Type::Root)
 	{
-		accTrans = item->transformationMatrix * transformation;
+		accTrans = item->transformationMatrix * accTrans;
 	}
 	else if(item->nodeType == MeshNode::Type::Node)
 	{
 		glm::mat4 transMat = toTransformationMatrix(item->transformationComponents);
-		accTrans = transMat * transformation;
+		accTrans = transMat * accTrans;
 		item->transformationMatrix = transMat; // Local transformation
 	}
 	else if (item->nodeType == MeshNode::Type::Instance)
@@ -386,17 +402,21 @@ void MeshDocument::updateInstances(MeshNode* item, const glm::mat4& transformati
 		auto material = item->materialId != -1 ? m_scene.materials()[item->materialId] : nullptr;
 		item->mesh = mesh;
 		item->material = material;
-		item->transformationMatrix = transformation; // Global transformation
+		if (transformation)
+		{
+			item->transformationMatrix = *transformation; // Global transformation
+			item->instance->transformation = glm::transpose(*transformation);
+		}
 		item->instance->mesh = mesh;
 		item->instance->material = material;
-		item->instance->transformation = glm::transpose(transformation);
+		
 	}
 
 	for (auto child : item->children)
 	{
 		auto node = dynamic_cast<MeshNode*>(child.get());
 		if (node)
-			updateInstances(node, accTrans);
+			updateNodes(node, &accTrans);
 	}
 }
 
@@ -428,19 +448,76 @@ void MeshDocument::removeInstance(MeshNode* item)
 
 void MeshDocument::removeDuplicateMeshes()
 {
-	
+	using MeshPtr = simplerender::Mesh::SPtr;
+	std::vector<MeshPtr> usedMeshes, duplicatedMeshes;
+	using Remplacement = std::pair<MeshPtr, MeshPtr>;
+	std::vector<Remplacement> replacements;
+
+	// Find duplicated meshes
+	for (auto& mesh : m_scene.meshes())
+	{
+		bool ignore = false;
+		for (auto usedMesh : usedMeshes)
+		{
+			if (*mesh == *usedMesh)
+			{
+				ignore = true;
+				duplicatedMeshes.push_back(mesh);
+				replacements.emplace_back(mesh, usedMesh);
+			}
+		}
+
+		if (!ignore)
+			usedMeshes.push_back(mesh);
+	}
+
+	// Test if we have something to modify
+	if (duplicatedMeshes.empty())
+		return;
+
+	// Modify the scene
+	m_scene.meshes() = usedMeshes;
+
+	// Remove the duplicated meshes nodes present in the graph
+	auto meshNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Mesh));
+	for (auto& meshNode : meshNodes)
+	{
+		auto mesh = meshNode->mesh;
+		auto itMesh = std::find(duplicatedMeshes.begin(), duplicatedMeshes.end(), mesh);
+
+		if (itMesh != duplicatedMeshes.end())
+			m_graph.removeChild(meshNode->parent, meshNode);
+	}
+
+	// Modify the instances
+	auto instanceNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Instance));
+	for (auto& instanceNode : instanceNodes)
+	{
+		auto instance = instanceNode->instance.get();
+		if (!instance)
+			continue;
+		auto mesh = instance->mesh;
+		auto it = std::find_if(replacements.begin(), replacements.end(), [mesh](const Remplacement& r) {
+			return r.first == mesh;
+		});
+
+		if (it != replacements.end())
+		{
+			auto mesh = it->second;
+			instance->mesh = mesh;
+			instanceNode->mesh = mesh;
+			instanceNode->meshId = indexOf(m_scene.meshes(), mesh);
+		}
+	}
 }
 
 void MeshDocument::removeUnusedMeshes()
 {
 	// Get the list of the instances
-	auto instanceNodes = getNodes(m_rootNode.get(), MeshNode::Type::Instance);
+	auto instanceNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Instance));
 	std::vector<simplerender::Mesh*> instancedMeshes;
 	for (auto& instanceNode : instanceNodes)
-	{
-		auto node = dynamic_cast<MeshNode*>(instanceNode);
-		instancedMeshes.push_back(node->mesh.get());
-	}
+		instancedMeshes.push_back(instanceNode->mesh.get());
 
 	// Create a unique list of used meshes
 	std::sort(instancedMeshes.begin(), instancedMeshes.end());

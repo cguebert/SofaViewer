@@ -149,6 +149,16 @@ std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh)
 	return std::make_pair(vMin, vMax);
 }
 
+bool operator==(const Mesh& lhs, const Mesh& rhs)
+{
+	return (lhs.m_vertices == rhs.m_vertices)
+		&& (lhs.m_normals == rhs.m_normals)
+		&& (lhs.m_edges == rhs.m_edges)
+		&& (lhs.m_triangles == rhs.m_triangles)
+		&& (lhs.m_quads == rhs.m_quads)
+		&& (lhs.m_texCoords == rhs.m_texCoords);
+}
+
 std::pair<glm::vec3, glm::vec3> boundingBox(const Mesh& mesh, const glm::mat4& transformation)
 {
 	glm::vec3 vMin, vMax;

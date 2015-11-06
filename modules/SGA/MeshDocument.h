@@ -70,7 +70,7 @@ public:
 protected:
 	void createGraphImages();
 
-	void updateInstances(MeshNode* item, const glm::mat4& transformation = glm::mat4());
+	void updateNodes(MeshNode* item, const glm::mat4* transformation = nullptr);
 
 	void addNode(MeshNode* parent);
 	void removeNode(MeshNode* item);

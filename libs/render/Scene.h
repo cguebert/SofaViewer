@@ -2,6 +2,7 @@
 
 #include <render/Mesh.h>
 #include <render/Material.h>
+#include <render/Shader.h>
 
 #include <glm/gtc/quaternion.hpp>
 #include <glm/detail/type_mat4x4.hpp>

@@ -125,18 +125,13 @@ void MeshImport::parseMeshInstance(const aiScene* scene, unsigned int id, const 
 {
 	const auto inMesh = scene->mMeshes[id];
 	const auto meshId = meshIndex(id);
-	if (meshId < 0)
-		return;
-
 	const auto materialId = materialIndex(inMesh->mMaterialIndex);
-	if (materialId < 0)
-		return;
 
 	auto n = m_document->createNode(inMesh->mName.C_Str(), MeshNode::Type::Instance, parent);
 	n->meshId = meshId;
 	n->materialId = materialId;
-	n->mesh = m_scene.meshes()[meshId];
-	n->material = m_scene.materials()[materialId];
+	n->mesh = meshId != -1 ? m_scene.meshes()[meshId] : nullptr;
+	n->material = materialId != -1 ? m_scene.materials()[materialId] : nullptr;
 	n->transformationMatrix = transformation;
 	n->instance = std::make_shared<simplerender::ModelInstance>();
 	n->instance->transformation = glm::transpose(transformation);
