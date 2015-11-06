@@ -141,7 +141,7 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	if(tmp.empty())
 		sofaModel.d_vertices = posData;
 	else
-		sofaModel.d_vertices = posData;
+		sofaModel.d_vertices = vertData;
 	sofaModel.d_normals = visualModel.data("normal");
 
 	if (!sofaModel.d_vertices || !sofaModel.d_normals)

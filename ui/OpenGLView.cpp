@@ -35,7 +35,7 @@ void OpenGLView::initializeGL()
 void OpenGLView::resizeGL(int w, int h)
 {
 	m_width = w; m_height = h;
-	if(m_document)
+	if(m_document && m_documentInitialized)
 		m_document->resize(w, h);
 }
 
