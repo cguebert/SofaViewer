@@ -158,6 +158,7 @@ namespace property
 	struct SingleValueCreator
 	{
 		using PropertyValueType = T;
+		static const bool canUseReference = true;
 
 		template <class U>
 		static Property::ValuePtr create(U&& val)
@@ -170,6 +171,7 @@ namespace property
 	struct SingleArrayCreator
 	{
 		using PropertyValueType = VectorWrapper<CopyVectorType<T>>;
+		static const bool canUseReference = false;
 
 		template <class U>
 		static Property::ValuePtr create(U&& val)
@@ -193,6 +195,7 @@ namespace property
 	struct DoubleArrayCreator
 	{
 		using PropertyValueType = VectorWrapper<CopyVectorType<T>>;
+		static const bool canUseReference = false;
 
 		template <class U>
 		static Property::ValuePtr create(U&& val)
@@ -220,6 +223,7 @@ namespace property
 	struct ArraysVectorCreator
 	{
 		using PropertyValueType = VectorWrapper<CopyVectorType<T>>;
+		static const bool canUseReference = false;
 
 		template <class U>
 		static Property::ValuePtr create(U&& val)
@@ -247,7 +251,7 @@ namespace property
 	struct CopyValueCreator<T, false, false, fixed> : SingleValueCreator<T>{}; // Single values and VectorWrapper
 
 	template <class T>
-	struct CopyValueCreator<T, true, false, false> : SingleValueCreator<T>{}; // Vector of single values
+	struct CopyValueCreator<T, true, false, false> : SingleValueCreator<T>{}; // Vector of single values. TODO: what of other containers than std::vector?
 
 	template <class T>
 	struct CopyValueCreator<T, true, false, true> : SingleArrayCreator<T>{};
@@ -308,6 +312,7 @@ namespace property
 		
 	public:
 		using property_type = typename CopyValueCreator<value_type, extend0, extend1, fixed>::PropertyValueType;
+		static const bool canUseReference = CopyValueCreator<value_type, extend0, extend1, fixed>::canUseReference;
 	};
 
 	template <class T>
@@ -325,12 +330,6 @@ namespace property
 
 	//****************************************************************************//
 
-	template <class T>
-	Property::ValuePtr createCopyValue(T&& val)
-	{
-		return details::createValueCopy(std::forward<T>(val));
-	}
-
 	template <class T, class... MetaArgs>
 	Property::ValuePtr createCopyValue(T&& val, MetaArgs&&... meta)
 	{
@@ -339,12 +338,6 @@ namespace property
 		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->baseMetaContainer());
 		metaContainer.add(std::forward<MetaArgs>(meta)...);
 		return valuePtr;
-	}
-
-	template <class T>
-	Property::ValuePtr createRefValue(T& val)
-	{
-		return std::make_shared<PropertyRefValue<T>>(val);
 	}
 
 	template <class T, class... MetaArgs>
@@ -357,24 +350,10 @@ namespace property
 
 	//****************************************************************************//
 
-	template <class T>
-	Property::SPtr createCopyProperty(const std::string& name, T&& val)
-	{
-		auto value = createCopyValue(std::forward<T>(val));
-		return std::make_shared<Property>(name, value);
-	}
-
 	template <class T, class... MetaArgs>
 	Property::SPtr createCopyProperty(const std::string& name, T&& val, MetaArgs&&... meta)
 	{
 		auto value = createCopyValue(std::forward<T>(val), std::forward<MetaArgs>(meta)...);
-		return std::make_shared<Property>(name, value);
-	}
-
-	template <class T>
-	Property::SPtr createRefProperty(const std::string& name, T& val)
-	{
-		auto value = createRefValue(val);
 		return std::make_shared<Property>(name, value);
 	}
 
@@ -410,6 +389,48 @@ namespace property
 	{
 		using property_type = details::PropertyValueType<T>::property_type;
 		return std::make_shared<ValueRefWrapper<T, property_type>>(value, property);
+	}
+
+	//****************************************************************************//
+
+	namespace details
+	{
+		template <class T, bool ref>
+		struct PropertyCreator;
+
+		template <class T>
+		struct PropertyCreator<T, true>
+		{
+			template<class... MetaArgs>
+			static Property::SPtr createProperty(const std::string& name, T& val, MetaArgs&&... meta)
+			{ return createRefProperty(name, val, std::forward<MetaArgs>(meta)...); }
+		};
+
+		template <class T>
+		struct PropertyCreator<T, false>
+		{
+			template<class... MetaArgs>
+			static Property::SPtr createProperty(const std::string& name, T& val, MetaArgs&&... meta)
+			{ return createCopyProperty(name, val, std::forward<MetaArgs>(meta)...); }
+		};
+	}
+
+	// For simple types, only create a ref property
+	// For more complex types, create a copy property and a ValueRefWrapper
+	template <class T, class... MetaArgs>
+	std::pair<Property::SPtr, BaseValueWrapper::SPtr> createRefPropertyWrapperPair(const std::string& name, T& val, MetaArgs&&... meta)
+	{
+		const bool canUseReference = details::PropertyValueType<T>::canUseReference;
+		auto prop = details::PropertyCreator<T, canUseReference>::createProperty(name, val, std::forward<MetaArgs>(meta)...);
+		if (canUseReference)
+		{
+			return { prop, nullptr };
+		}
+		else
+		{
+			auto wrapper = property::createValueRefWrapper(val, prop);
+			return { prop, wrapper };
+		}
 	}
 
 }

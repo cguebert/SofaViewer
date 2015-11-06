@@ -268,60 +268,60 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 	{
 	case MeshNode::Type::Root:
 	{
-		properties->createPropertyAndWrapper("translation", item->transformationComponents.translation);
-		properties->createPropertyAndWrapper("rotation", item->transformationComponents.rotation);
-		properties->createPropertyAndWrapper("scale", item->transformationComponents.scale);
+		properties->createRefProperty("translation", item->transformationComponents.translation);
+		properties->createRefProperty("rotation", item->transformationComponents.rotation);
+		properties->createRefProperty("scale", item->transformationComponents.scale);
 
 		auto bb = simplerender::boundingBox(m_scene);
 		auto sceneSize = bb.second - bb.first;
-		auto sizeProp = property::createCopyProperty("Scene size", sceneSize);
-		sizeProp->setReadOnly(true);
-		properties->addProperty(sizeProp);
+		properties->createCopyProperty("Scene size", sceneSize)->setReadOnly(true);
 		break;
 	}
 
 	case MeshNode::Type::Node:
 	{
-		properties->addProperty(property::createRefProperty("name", item->name));
-		properties->createPropertyAndWrapper("translation", item->transformationComponents.translation);
-		properties->createPropertyAndWrapper("rotation", item->transformationComponents.rotation);
-		properties->createPropertyAndWrapper("scale", item->transformationComponents.scale);
+		properties->createRefProperty("name", item->name);
+		properties->createRefProperty("translation", item->transformationComponents.translation);
+		properties->createRefProperty("rotation", item->transformationComponents.rotation);
+		properties->createRefProperty("scale", item->transformationComponents.scale);
 		break;
 	}
 
 	case MeshNode::Type::Mesh:
 	{
+		properties->createRefProperty("name", item->name);
 		auto mesh = item->mesh;
 		if (mesh)
 		{
-			properties->createPropertyAndWrapper("vertices", mesh->m_vertices);
-			properties->createPropertyAndWrapper("edges", mesh->m_edges);
-			properties->createPropertyAndWrapper("triangles", mesh->m_triangles);
-			properties->createPropertyAndWrapper("normals", mesh->m_normals);
+			properties->createRefProperty("vertices", mesh->m_vertices);
+			properties->createRefProperty("edges", mesh->m_edges);
+			properties->createRefProperty("triangles", mesh->m_triangles);
+			properties->createRefProperty("normals", mesh->m_normals);
 		}
 		break;
 	}
 
 	case MeshNode::Type::Material:
 	{
+		properties->createRefProperty("name", item->name);
 		auto material = item->material;
 		if (material)
 		{
-			properties->createPropertyAndWrapper("diffuse", material->diffuse);
-			properties->createPropertyAndWrapper("ambient", material->ambient);
-			properties->createPropertyAndWrapper("specular", material->specular);
-			properties->createPropertyAndWrapper("emissive", material->emissive);
-			properties->createPropertyAndWrapper("shininess", material->shininess);
+			properties->createRefProperty("diffuse", material->diffuse);
+			properties->createRefProperty("ambient", material->ambient);
+			properties->createRefProperty("specular", material->specular);
+			properties->createRefProperty("emissive", material->emissive);
+			properties->createRefProperty("shininess", material->shininess);
 		}
 		break;
 	}
 
 	case MeshNode::Type::Instance:
 	{
-		properties->addProperty(property::createRefProperty("name", item->name));
-		properties->addProperty(property::createRefProperty("mesh id", item->meshId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Mesh))));
-		properties->addProperty(property::createRefProperty("material id", item->materialId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Material))));
-		properties->createPropertyAndWrapper("transformation", item->transformationMatrix).first->setReadOnly(true);
+		properties->createRefProperty("name", item->name);
+		properties->createRefProperty("mesh id", item->meshId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Mesh)));
+		properties->createRefProperty("material id", item->materialId, meta::Enum(getNames(m_rootNode.get(), MeshNode::Type::Material)));
+		properties->createRefProperty("transformation", item->transformationMatrix)->setReadOnly(true);
 		break;
 	}
 	}

@@ -24,14 +24,24 @@ public:
 	using ValueWrapperList = std::vector<BaseValueWrapper::SPtr>;
 	const ValueWrapperList& valueWrappers();
 
-	template <class T>
-	std::pair<Property::SPtr, BaseValueWrapper::SPtr> createPropertyAndWrapper(const std::string& name, T& val)
+	/// Helper method to create a property that will directly modify the value passed (don't pass temporaries!)
+	/// Will create a ValueWrapper if the value passed is too complex to be used directly
+	template <class T, class... MetaArgs>
+	Property::SPtr createRefProperty(const std::string& name, T& val, MetaArgs&&... meta) 
 	{
-		auto prop = property::createCopyProperty(name, val);
-		auto wrapper = property::createValueRefWrapper(val, prop);
+		auto propWrapperPair = property::createRefPropertyWrapperPair(name, val, std::forward<MetaArgs>(meta)...);
+		addProperty(propWrapperPair.first);
+		if(propWrapperPair.second)
+			addValueWrapper(propWrapperPair.second);
+		return propWrapperPair.first;
+	}
+
+	template <class T, class... MetaArgs>
+	Property::SPtr createCopyProperty(const std::string& name, T&& val, MetaArgs&&... meta) /// Helper method to create a property that will copy the value passed (can give temporaries)
+	{
+		auto prop = property::createCopyProperty(name, std::forward<T>(val), std::forward<MetaArgs>(meta)...);
 		addProperty(prop);
-		addValueWrapper(wrapper);
-		return { prop, wrapper };
+		return prop;
 	}
 
 	void applyProperties(); /// Save the properties

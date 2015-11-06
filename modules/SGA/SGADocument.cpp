@@ -250,8 +250,8 @@ SGADocument::ObjectPropertiesPtr SGADocument::objectProperties(GraphNode* baseIt
 	auto meshNode = dynamic_cast<MeshNode*>(baseItem);
 	if (meshNode && meshNode->nodeType == MeshNode::Type::Root)
 	{
-		properties->createPropertyAndWrapper("gravity", m_simulationProperties.gravity).first->setGroup("SGA");
-		properties->createPropertyAndWrapper("timestep", m_simulationProperties.timestep).first->setGroup("SGA");
+		properties->createRefProperty("gravity", m_simulationProperties.gravity)->setGroup("SGA");
+		properties->createRefProperty("timestep", m_simulationProperties.timestep)->setGroup("SGA");
 	}
 
 	return properties;

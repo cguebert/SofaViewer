@@ -113,6 +113,8 @@ private:
 		doAdd(std::forward<Args>(args)...);
 	}
 
+	void doAdd() {} // Empty parameter pack
+
 	template <class T>
 	void doAdd(T&& prop)
 	{
