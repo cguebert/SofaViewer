@@ -3,9 +3,20 @@
 #include <core/PropertiesUtils.h>
 
 #include <iostream>
+#include <sstream>
 
 namespace
 {
+
+std::vector<std::string> split(const std::string& text, char delim) 
+{
+	std::vector<std::string> tokens;
+    std::stringstream ss(text);
+    std::string item;
+    while (std::getline(ss, item, delim))
+        tokens.push_back(item);
+    return tokens;
+}
 
 bool isHidden(const std::string& name)
 {
@@ -61,14 +72,35 @@ Property::SPtr createProperty(sga::Property sgaProp)
 	return std::make_shared<Property>(name, false, help, group);
 }
 
-template <class T>
-BaseValueWrapper::SPtr createWrapper(sga::Property sgaProp)
+template<class T>
+void addMeta(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
+{
+	const auto& attributes = sgaProp.attributes();
+	auto& metaContainer = dynamic_cast<meta::MetaContainer<T>&>(valuePtr->baseMetaContainer());
+
+	auto minIt = attributes.find("min"), maxIt = attributes.find("max");
+	if (minIt != attributes.end() || maxIt != attributes.end())
+	{
+		float minVal = minIt != attributes.end() ? std::stof(minIt->second) : std::numeric_limits<float>::min();
+		float maxVal = maxIt != attributes.end() ? std::stof(maxIt->second) : std::numeric_limits<float>::max();
+		metaContainer.add(meta::Range(minVal, maxVal));
+	}
+}
+
+template<>
+void addMeta<std::string>(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
+{}
+
+template <class T, class... MetaArgs>
+BaseValueWrapper::SPtr createWrapper(sga::Property sgaProp, MetaArgs&&... meta)
 {
 	auto prop = createProperty(sgaProp);
 
 	T val;
 	sgaProp.get(val);
-	prop->setValue(property::createCopyValue(std::move(val)));
+	auto value = property::createCopyValue(std::move(val), std::forward<MetaArgs>(meta)...);
+	addMeta<T>(sgaProp, value);
+	prop->setValue(value);
 
 	return std::make_shared<PropertyWrapper<T>>(sgaProp, prop);
 }
@@ -86,9 +118,28 @@ BaseValueWrapper::SPtr createVectorWrapper(sga::Property sgaProp, bool fixedSize
 	WrapperType wrapper(std::move(val));
 	wrapper.setFixedSize(fixedSize);
 	wrapper.setColumnCount(columnCount);
-	prop->setValue(property::createCopyValue(std::move(wrapper)));
+	auto value = property::createCopyValue(std::move(wrapper));
+//	addMeta<WrapperType>(sgaProp, value);
+	prop->setValue(value);
 
 	return std::make_shared<VectorPropertyWrapper<WrapperType>>(sgaProp, prop);
+}
+
+BaseValueWrapper::SPtr createEnumProperty(sga::Property sgaProp)
+{
+	const auto& attributes = sgaProp.attributes();
+	auto valuesIt = attributes.find("values");
+	if (valuesIt != attributes.end())
+	{
+		auto valuesText = valuesIt->second;
+		if(valuesText.empty())
+			return createWrapper<int>(sgaProp);
+
+		auto values = split(valuesText, ';');
+		return createWrapper<int>(sgaProp, meta::Enum(values));
+	}
+	else
+		return createWrapper<int>(sgaProp);
 }
 
 void addProperty(ObjectProperties::SPtr properties, sga::Property sgaProp)
@@ -103,8 +154,8 @@ void addProperty(ObjectProperties::SPtr properties, sga::Property sgaProp)
 	case sgaPropType::Int:		wrapper = createWrapper<int>(sgaProp);			break;
 	case sgaPropType::Float:	wrapper = createWrapper<float>(sgaProp);		break;
 	case sgaPropType::String:	wrapper = createWrapper<std::string>(sgaProp);	break;
-	case sgaPropType::Bool:		wrapper = createWrapper<int>(sgaProp);			break;
-	case sgaPropType::Enum:		wrapper = createWrapper<int>(sgaProp);			break;
+	case sgaPropType::Bool:		wrapper = createWrapper<int>(sgaProp, meta::Checkbox());		break;
+	case sgaPropType::Enum:		wrapper = createEnumProperty(sgaProp);			break;
 	case sgaPropType::Vector_Int:	wrapper = createVectorWrapper<int>(sgaProp, false, 1);		break;
 	case sgaPropType::Vector_Float:	wrapper = createVectorWrapper<float>(sgaProp, false, 1);	break;
 	case sgaPropType::Vector_Bool:	wrapper = createVectorWrapper<int>(sgaProp, false, 1);		break;

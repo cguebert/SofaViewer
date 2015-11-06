@@ -61,6 +61,8 @@ protected:
 class BasePropertyValue
 {
 public:
+	using SPtr = std::shared_ptr<BasePropertyValue>;
+
 	virtual ~BasePropertyValue() {}
 	virtual std::type_index type() const = 0;
 	virtual bool validate() = 0; // Applies meta::Validators, returns true if the value has been modified
