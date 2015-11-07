@@ -29,6 +29,7 @@ Document::Document(const std::string& type)
 
 Document::~Document()
 {
+	m_server.stopServer();
 	m_simulation.clear(); // Free the simulation
 }
 
@@ -69,7 +70,7 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	auto& menu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
 	menu.addItem("Sofa paths", "Modify the directories where Sofa will look for meshes and textures", [this](){ modifyDataRepository(); } );
 	menu.addItem("Launch Server", "Launch a SFE server", [this](){ launchServer(); } );
-	menu.addItem("Stop Server", "Stop the SFE server", [this](){ m_communication.closeCommunication(); m_serverRunning = false; });
+	menu.addItem("Stop Server", "Stop the SFE server", [this](){ m_server.stopServer(); });
 }
 
 void Document::modifyDataRepository()
@@ -88,32 +89,9 @@ void Document::modifyDataRepository()
 	}
 }
 
-void connectionFunc(int socket, bool readOnly)
-{
-	auto com = std::make_shared<sfecom::Communication>(socket);
-	com->setTcpNoDelay(true);
-
-	{
-		sfes::Server server(com);
-		server.setReadOnly(readOnly);
-		server.defaultMessageLoop();
-	}
-}
-
-void acceptFunc(sfecom::Communication* com, bool readOnly)
-{
-	while (true)
-	{
-		int socket = com->acceptConnection();
-		if (socket < 0)
-			return;
-		std::thread(connectionFunc, socket, readOnly).detach();
-	}
-}
-
 void Document::launchServer()
 {
-	if (m_serverRunning)
+	if (m_server.isRunning())
 		return;
 
 	auto dialog = m_gui->createDialog("Launch SFE Server");
@@ -127,9 +105,5 @@ void Document::launchServer()
 	panel.addProperty(readOnlyProp);
 
 	if (dialog->exec())
-	{
-		m_serverRunning = m_communication.createServer(port);
-
-		std::thread(acceptFunc, &m_communication, readOnly != 0).detach();
-	}
+		m_server.launchServer(port, readOnly == 1);
 }

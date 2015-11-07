@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SFELib/SofaDocument.h>
-#include <sfe/Communication.h>
+#include <sfe/SFEServer.h>
 
 class Document : public SofaDocument
 {
@@ -16,6 +16,5 @@ protected:
 	void modifyDataRepository();
 	void launchServer();
 
-	sfecom::Communication m_communication;
-	bool m_serverRunning = false;
+	sfes::SFEServer m_server;
 };
