@@ -34,9 +34,18 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 		if (!m_simulation)
 			return;
 
+		auto helper = sfe::getClientSpecificHelper(m_simulation);
+		auto callback = helper->addCallback(sfec::ClientSpecificHelper::CallbackType::Shutdown, [this]() { serverShutdown(); });
+		m_sfeCallbacks.push_back(callback);
+
 		SofaDocument::initUI(gui);
 		parseScene();
 		setupCallbacks();
 		createGraph();
 	}
+}
+
+void Document::serverShutdown()
+{
+	m_graph.setRoot(nullptr);
 }

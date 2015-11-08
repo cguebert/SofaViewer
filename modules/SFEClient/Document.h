@@ -10,5 +10,5 @@ public:
 
 	void initUI(simplegui::SimpleGUI& gui) override;
 
-protected:
+	void serverShutdown();
 };
