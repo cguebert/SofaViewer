@@ -312,6 +312,7 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createRefProperty("specular", material->specular);
 			properties->createRefProperty("emissive", material->emissive);
 			properties->createRefProperty("shininess", material->shininess);
+			properties->createRefProperty("texture", material->textureFilename, meta::File());
 		}
 		break;
 	}

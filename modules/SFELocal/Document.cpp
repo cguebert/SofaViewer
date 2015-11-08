@@ -80,7 +80,7 @@ void Document::modifyDataRepository()
 
 	auto helper = m_simulation.getHelper();
 	std::vector<std::string> paths = helper->dataRepositoryPaths();
-	panel.addProperty(property::createRefProperty("Paths", paths));
+	panel.addProperty(property::createRefProperty("Paths", paths, meta::Directory()));
 
 	if(dialog->exec())
 	{

@@ -177,16 +177,29 @@ struct CORE_API Range : public Validator
 
 //****************************************************************************//
 
-struct CORE_API Checkbox : public Widget
+struct CORE_API Checkbox : public Widget // For int
 {
 	Checkbox() : Widget("checkbox") {}
 };
 
-struct CORE_API Enum : public Widget
+struct CORE_API Enum : public Widget // For int & string
 {
 	Enum(const std::vector<std::string>& values) : Widget("enum"), values(values) {}
 
 	std::vector<std::string> values;
+};
+
+struct CORE_API Directory : public Widget // For string
+{
+	Directory() : Widget("directory") {}
+};
+
+struct CORE_API File : public Widget // For stirng
+{
+	File() : Widget("file") {}
+	File(const std::string& filter) : Widget("file"), filter(filter) {}
+
+	std::string filter;
 };
 
 } // namespace meta
