@@ -6,36 +6,7 @@
 #include <QAbstractTableModel>
 #include <QObject>
 
-// This is how the table model will access the values, without knowing their type
-class BaseTableValueAccessor
-{
-public:
-	virtual int rowCount() const = 0;
-	virtual int columnCount() const = 0;
-	virtual bool fixed() const = 0;
-	virtual QVariant data(int row, int column) const = 0;
-	virtual void setData(int row, int column, QVariant value) = 0;
-	virtual void resize(int nb) = 0;
-};
-
-class BaseTableWidgetContainer : public QObject
-{
-	Q_OBJECT
-public slots:
-	virtual void resizeValue() {}
-	virtual void toggleView(bool) {}
-};
-
-template <class T>
-QVariant toVariant(const T& value)
-{ return QVariant(value); }
-
-template <class T>
-T fromVariant(const QVariant& data)
-{ return data.value<T>(); }
-
-// Specialization for each supported types
-template <class T> class TableValueAccessor; // Don't forget to implement value/setValue
+class BaseTableValueAccessor;
 
 // Table model for property widgets for lists of values
 class TablePropertyModel : public QAbstractTableModel

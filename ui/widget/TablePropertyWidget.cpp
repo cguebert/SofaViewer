@@ -8,8 +8,44 @@
 
 #include <cassert>
 
+namespace
+{
+
 template <class T>
-class TableWidgetContainer : public BaseTableWidgetContainer
+QVariant toVariant(const T& value)
+{ return QVariant(value); }
+
+template <class T>
+T fromVariant(const QVariant& data)
+{ return data.value<T>(); }
+
+template <>
+QVariant toVariant(const std::string& value)
+{ return QVariant(value.c_str()); }
+
+template <>
+std::string fromVariant(const QVariant& data)
+{ return data.toString().toStdString(); }
+
+}
+
+// This is how the table model will access the values, without knowing their type
+class BaseTableValueAccessor
+{
+public:
+	virtual int rowCount() const = 0;
+	virtual int columnCount() const = 0;
+	virtual bool fixed() const = 0;
+	virtual QVariant data(int row, int column) const = 0;
+	virtual void setData(int row, int column, QVariant value) = 0;
+	virtual void resize(int nb) = 0;
+};
+
+// Specialization for each supported types
+template <class T> class TableValueAccessor; // Don't forget to implement value/setValue
+
+template <class T>
+class TableWidgetContainer
 {
 protected:
 	using value_type = T;
@@ -28,7 +64,7 @@ public:
 		auto value = parent->property()->value<value_type>();
 		m_accessor = std::make_shared<TableValueAccessor<value_type>>(value->value());
 		m_model = new TablePropertyModel(m_view, m_accessor);
-		connect(m_model, &TablePropertyModel::modified, parent, &BasePropertyWidget::setWidgetDirty);
+		QObject::connect(m_model, &TablePropertyModel::modified, parent, &BasePropertyWidget::setWidgetDirty);
 		m_view->setModel(m_model);
 
 		if(m_accessor->fixed())
@@ -60,16 +96,16 @@ public:
 			layout->setContentsMargins(0, 0, 0, 0);
 
 			auto topLayout = new QHBoxLayout;
-			m_toggleButton = new QPushButton(tr("show"));
+			m_toggleButton = new QPushButton(QPushButton::tr("show"));
 			m_toggleButton->setCheckable(true);
-			connect(m_toggleButton, &QPushButton::toggled, this, &BaseTableWidgetContainer::toggleView);
+			QObject::connect(m_toggleButton, &QPushButton::toggled, [this](bool toggled) { toggleView(toggled); });
 			topLayout->addWidget(m_toggleButton);
 
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
-			connect(m_spinBox, &QSpinBox::editingFinished, this, &BaseTableWidgetContainer::resizeValue);
-			connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
+			QObject::connect(m_spinBox, &QSpinBox::editingFinished, [this]() { resizeValue(); });
+			QObject::connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(m_spinBox, 1);
 
 			layout->addLayout(topLayout);
@@ -94,15 +130,15 @@ public:
 	{
 		v = m_accessor->value();
 	}
-	void resizeValue() override
+	void resizeValue()
 	{
 		int nb = m_spinBox->value();
 		m_model->resizeValue(nb);
 	}
-	void toggleView(bool show) override
+	void toggleView(bool show)
 	{
 		m_view->setVisible(show);
-		m_toggleButton->setText(show ? tr("hide") : tr("show"));
+		m_toggleButton->setText(show ? QPushButton::tr("hide") : QPushButton::tr("show"));
 	}
 };
 
@@ -129,7 +165,7 @@ QVariant TablePropertyModel::data(const QModelIndex& index, int role) const
 	if (!index.isValid())
 		return QVariant();
 
-	if (role != Qt::DisplayRole)
+	if (role != Qt::DisplayRole && role != Qt::EditRole)
 		return QVariant();
 
 	return m_accessor->data(index.row(), index.column());
@@ -187,16 +223,6 @@ void TablePropertyModel::endReset()
 {
 	endResetModel();
 }
-
-/*****************************************************************************/
-
-template <>
-QVariant toVariant(const std::string& value)
-{ return QVariant(value.c_str()); }
-
-template <>
-std::string fromVariant(const QVariant& data)
-{ return data.toString().toStdString(); }
 
 /*****************************************************************************/
 
