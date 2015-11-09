@@ -48,10 +48,9 @@ void PanelImpl::addProperty(Property::SPtr property,
 
 	if(!property->name().empty())
 	{
-		auto containerLayout = new QHBoxLayout;
+		auto containerLayout = new QFormLayout;
 		auto label = new QLabel(property->name().c_str());
-		containerLayout->addWidget(label);
-		containerLayout->addWidget(widget);
+		containerLayout->addRow(QString::fromStdString(property->name()), widget);
 		m_layout->addLayout(containerLayout, row, column, rowSpan, columnSpan);
 	}
 	else

@@ -145,13 +145,14 @@ public:
 		else if (m_formLayout)
 			return; // No need to recreate the same widgets
 
+		m_scrollArea->setVisible(false);
 		m_propertyWidgets.clear();
 		
 		if (m_formLayout)
 			QWidget().setLayout(m_formLayout); // Free the form layout and everything in it
 		
 		m_formLayout = new QFormLayout;
-		m_formLayout->setContentsMargins(2, 2, 2, 2);
+		m_formLayout->setContentsMargins(3, 3, 3, 3);
 
 		auto name = m_property->name();
 		const auto& metaProperties = m_propertyValue->metaContainer().properties();
@@ -170,10 +171,10 @@ public:
 			m_formLayout->addRow(QString::number(i), propWidget->createWidgets());
 		}
 
-		m_scrollArea->setMinimumHeight(std::min(200, 10 + nb * 25));
 		auto scrollAreaWidget = new QWidget;
 		scrollAreaWidget->setLayout(m_formLayout);
 		m_scrollArea->setWidget(scrollAreaWidget);
+		m_scrollArea->setVisible(true);
 	}
 	void toggleView(bool show)
 	{

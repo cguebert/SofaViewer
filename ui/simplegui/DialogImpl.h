@@ -18,6 +18,7 @@ public:
 	simplegui::Panel& content() override;
 	bool exec() override;
 	void show(simplegui::BoolCallbackFunc finishedCallback) override;
+	void setMinimumSize(int width, int height) override;
 
 	void close();
 	void setFinishedCallback(simplegui::CallbackFunc finishedCallback);

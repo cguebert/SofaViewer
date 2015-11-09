@@ -39,6 +39,7 @@ public:
 	virtual ~Dialog();
 
 	virtual Panel& content() = 0; // Add buttons and property widgets
+	virtual void setMinimumSize(int width, int height) = 0; // If you want to enlarge the default size
 	virtual bool exec() = 0; // Modal dialog (blocks, then returns true if "Ok" was pressed)
 	virtual void show(BoolCallbackFunc finishedCallback) = 0; // Modeless dialog (doesn't block). The callback is triggered when the user closes the dialog (true if clicked on Ok)
 };

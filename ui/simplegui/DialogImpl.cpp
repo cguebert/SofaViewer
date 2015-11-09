@@ -47,6 +47,11 @@ void DialogImpl::show(simplegui::BoolCallbackFunc finishedCallback)
 	m_dialog->show();
 }
 
+void DialogImpl::setMinimumSize(int width, int height)
+{
+	m_dialog->setMinimumSize(width, height);
+}
+
 void DialogImpl::close()
 {
 	m_dialog->reject();

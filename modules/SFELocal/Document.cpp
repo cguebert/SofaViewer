@@ -81,6 +81,7 @@ void Document::modifyDataRepository()
 	auto helper = m_simulation.getHelper();
 	std::vector<std::string> paths = helper->dataRepositoryPaths();
 	panel.addProperty(property::createRefProperty("Paths", paths, meta::Directory()));
+	dialog->setMinimumSize(400, 150);
 
 	if(dialog->exec())
 	{
