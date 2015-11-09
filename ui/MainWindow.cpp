@@ -287,7 +287,7 @@ bool MainWindow::saveAs()
 	auto filters = DocumentFactory::instance().saveFilesFilter(m_document.get());
 	QString fileName = QFileDialog::getSaveFileName(this,
 							   tr("Save Document"), ".",
-							   filters.c_str());
+							   QString::fromStdString(filters));
 	if (fileName.isEmpty())
 		return false;
 
@@ -343,7 +343,7 @@ void MainWindow::open()
 		auto filters = DocumentFactory::instance().loadFilesFilter();
 		QString fileName = QFileDialog::getOpenFileName(this,
 								   tr("Open Document"), ".",
-								   filters.c_str());
+								   QString::fromStdString(filters));
 		if (!fileName.isEmpty())
 			loadFile(fileName);
 	}
@@ -381,7 +381,7 @@ void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
 
 	if (m_document)
 	{
-		m_saveFilter = DocumentFactory::instance().saveFilesFilter(m_document.get()).c_str();
+		m_saveFilter = QString::fromStdString(DocumentFactory::instance().saveFilesFilter(m_document.get()));
 		bool canSave = !m_saveFilter.isEmpty();
 		m_saveAction->setEnabled(canSave);
 		m_saveAsAction->setEnabled(canSave);

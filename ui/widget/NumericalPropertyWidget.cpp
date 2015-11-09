@@ -84,7 +84,7 @@ public:
 		if (enumMeta)
 		{
 			for (const auto& v : enumMeta->values)
-				m_enumValues.push_back(v.c_str());
+				m_enumValues.push_back(QString::fromStdString(v));
 		}
 		m_comboBox->addItems(m_enumValues);
 

@@ -33,7 +33,7 @@ simplegui::Panel& SimpleGUIImpl::buttonsPanel()
 
 int SimpleGUIImpl::addStatusBarZone(const std::string& text)
 {
-	auto label = new QLabel(text.c_str());
+	auto label = new QLabel(QString::fromStdString(text));
 	label->setAlignment(Qt::AlignLeft);
 	label->setMinimumSize(label->sizeHint());
 
@@ -45,7 +45,7 @@ int SimpleGUIImpl::addStatusBarZone(const std::string& text)
 
 void SimpleGUIImpl::setStatusBarText(int id, const std::string& text)
 {
-	m_statusBarLabels[id]->setText(text.c_str());
+	m_statusBarLabels[id]->setText(QString::fromStdString(text));
 }
 
 void SimpleGUIImpl::clear()
@@ -97,12 +97,20 @@ simplegui::Dialog::SPtr SimpleGUIImpl::createDialog(const std::string& title)
 
 std::string SimpleGUIImpl::getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters)
 {
-	return QFileDialog::getOpenFileName(m_mainWindow, caption.c_str(), path.c_str(), filters.c_str()).toStdString();
+	return QFileDialog::getOpenFileName(m_mainWindow, 
+		QString::fromStdString(caption), 
+		QString::fromStdString(path), 
+		QString::fromStdString(filters)
+		).toStdString();
 }
 
 std::string SimpleGUIImpl::getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters)
 {
-	return QFileDialog::getSaveFileName(m_mainWindow, caption.c_str(), path.c_str(), filters.c_str()).toStdString();
+	return QFileDialog::getSaveFileName(m_mainWindow, 
+		QString::fromStdString(caption), 
+		QString::fromStdString(path), 
+		QString::fromStdString(filters)
+		).toStdString();
 }
 
 void SimpleGUIImpl::updateView()

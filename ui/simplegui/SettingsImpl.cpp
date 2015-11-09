@@ -15,22 +15,22 @@ void SettingsImpl::setDocumentType(const std::string& type)
 	m_documentType = type;
 
 	if(!type.empty())
-		m_settings->beginGroup(type.c_str());
+		m_settings->beginGroup(QString::fromStdString(type));
 }
 
 void SettingsImpl::set(const std::string& name, int val)
 {
-	m_settings->setValue(name.c_str(), val);
+	m_settings->setValue(QString::fromStdString(name), val);
 }
 
 void SettingsImpl::set(const std::string& name, double val)
 {
-	m_settings->setValue(name.c_str(), val);
+	m_settings->setValue(QString::fromStdString(name), val);
 }
 
 void SettingsImpl::set(const std::string& name, const std::string& val)
 {
-	m_settings->setValue(name.c_str(), val.c_str());
+	m_settings->setValue(QString::fromStdString(name), val.c_str());
 }
 
 void SettingsImpl::set(const std::string& name, const std::vector<int>& val)
@@ -38,7 +38,7 @@ void SettingsImpl::set(const std::string& name, const std::vector<int>& val)
 	QList<QVariant> list;
 	for(const auto& v : val)
 		list.push_back(v);
-	m_settings->setValue(name.c_str(), list);
+	m_settings->setValue(QString::fromStdString(name), list);
 }
 
 void SettingsImpl::set(const std::string& name, const std::vector<double>& val)
@@ -46,7 +46,7 @@ void SettingsImpl::set(const std::string& name, const std::vector<double>& val)
 	QList<QVariant> list;
 	for(const auto& v : val)
 		list.push_back(v);
-	m_settings->setValue(name.c_str(), list);
+	m_settings->setValue(QString::fromStdString(name), list);
 }
 
 void SettingsImpl::set(const std::string& name, const std::vector<std::string>& val)
@@ -54,12 +54,12 @@ void SettingsImpl::set(const std::string& name, const std::vector<std::string>& 
 	QList<QVariant> list;
 	for(const auto& v : val)
 		list.push_back(v.c_str());
-	m_settings->setValue(name.c_str(), list);
+	m_settings->setValue(QString::fromStdString(name), list);
 }
 
 bool SettingsImpl::get(const std::string& name, int& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 
@@ -70,7 +70,7 @@ bool SettingsImpl::get(const std::string& name, int& val)
 
 bool SettingsImpl::get(const std::string& name, double& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 
@@ -81,7 +81,7 @@ bool SettingsImpl::get(const std::string& name, double& val)
 
 bool SettingsImpl::get(const std::string& name, std::string& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 
@@ -91,7 +91,7 @@ bool SettingsImpl::get(const std::string& name, std::string& val)
 
 bool SettingsImpl::get(const std::string& name, std::vector<int>& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 
@@ -110,7 +110,7 @@ bool SettingsImpl::get(const std::string& name, std::vector<int>& val)
 
 bool SettingsImpl::get(const std::string& name, std::vector<double>& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 
@@ -129,7 +129,7 @@ bool SettingsImpl::get(const std::string& name, std::vector<double>& val)
 
 bool SettingsImpl::get(const std::string& name, std::vector<std::string>& val)
 {
-	auto var = m_settings->value(name.c_str());
+	auto var = m_settings->value(QString::fromStdString(name));
 	if(!var.isValid())
 		return false;
 

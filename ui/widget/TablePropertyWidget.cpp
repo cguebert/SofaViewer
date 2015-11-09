@@ -21,7 +21,7 @@ T fromVariant(const QVariant& data)
 
 template <>
 QVariant toVariant(const std::string& value)
-{ return QVariant(value.c_str()); }
+{ return QVariant(QString::fromStdString(value)); }
 
 template <>
 std::string fromVariant(const QVariant& data)

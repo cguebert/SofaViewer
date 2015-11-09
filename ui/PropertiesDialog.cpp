@@ -15,7 +15,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 {
 	setMinimumSize(300, 200);
 	resize(500, 600);
-	setWindowTitle(m_objectProperties->name().c_str());
+	setWindowTitle(QString::fromStdString(m_objectProperties->name()));
 	setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
 	auto tabWidget = new QTabWidget;
@@ -65,7 +65,7 @@ PropertiesDialog::PropertiesDialog(std::shared_ptr<ObjectProperties> objectPrope
 	// Group the widgets and add them to the dialog
 	for(const auto& group : propertyGroups)
 	{
-		QString name = group.first.c_str();
+		QString name = QString::fromStdString(group.first);
 		if(name.isEmpty())
 			name = "Property";
 
@@ -113,7 +113,7 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter b
 		auto layout = new QVBoxLayout;
 		layout->setContentsMargins(5, 5, 5, 5);
 		groupBox->setLayout(layout);
-		QString title = prop.property->name().c_str();
+		QString title = QString::fromStdString(prop.property->name());
 		groupBox->setTitle(title);
 		layout->addWidget(prop.widget->createWidgets());
 		scrollLayout->addWidget(groupBox);

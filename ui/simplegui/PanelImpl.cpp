@@ -20,8 +20,8 @@ simplegui::Button::SPtr PanelImpl::addButton(const std::string& name, const std:
 							 int row, int column,
 							 int rowSpan, int columnSpan)
 {
-	auto button = new QPushButton(name.c_str());
-	button->setStatusTip(help.c_str());
+	auto button = new QPushButton(QString::fromStdString(name));
+	button->setStatusTip(QString::fromStdString(help));
 
 	QObject::connect(button, &QPushButton::clicked, callback);
 	if(row < 0)
@@ -53,7 +53,7 @@ void PanelImpl::addProperty(Property::SPtr property,
 	if(!property->name().empty())
 	{
 		auto containerLayout = new QFormLayout;
-		auto label = new QLabel(property->name().c_str());
+		auto label = new QLabel(QString::fromStdString(property->name()));
 		containerLayout->addRow(QString::fromStdString(property->name()), widget);
 		m_layout->addLayout(containerLayout, row, column, rowSpan, columnSpan);
 	}

@@ -10,7 +10,7 @@ DialogImpl::DialogImpl(QWidget* parent, const std::string& title)
 	, m_dialogPanel(std::make_shared<PanelImpl>(parent, m_panelLayout))
 {
 	m_dialog->setWindowFlags(m_dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-	m_dialog->setWindowTitle(title.c_str());
+	m_dialog->setWindowTitle(QString::fromStdString(title));
 }
 
 simplegui::Panel& DialogImpl::content()

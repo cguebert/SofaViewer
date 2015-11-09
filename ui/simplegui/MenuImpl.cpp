@@ -17,8 +17,8 @@ MenuImpl::~MenuImpl()
 
 simplegui::Button::SPtr MenuImpl::addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback)
 {
-	auto action = new QAction(name.c_str(), m_menu);
-	action->setStatusTip(help.c_str());
+	auto action = new QAction(QString::fromStdString(name), m_menu);
+	action->setStatusTip(QString::fromStdString(help));
 	if (m_freeActions)
 		m_actions.push_back(action);
 
@@ -30,7 +30,7 @@ simplegui::Button::SPtr MenuImpl::addItem(const std::string& name, const std::st
 
 simplegui::Menu& MenuImpl::addMenu(const std::string& name)
 {
-	auto menu = m_menu->addMenu(name.c_str());
+	auto menu = m_menu->addMenu(QString::fromStdString(name));
 	auto menuImpl = std::make_shared<MenuImpl>(menu);
 	m_subMenus.push_back(menuImpl);
 	return *menuImpl;

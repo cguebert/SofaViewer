@@ -101,10 +101,10 @@ QVariant GraphModel::data(const QModelIndex& index, int role) const
 		{
 			if(index.column())
 				return QVariant();
-			return QVariant(item->name.c_str());
+			return QVariant(QString::fromStdString(item->name));
 		}
 
-		QString name = QString(item->type.c_str()) + "  " + item->name.c_str();
+		QString name = QString::fromStdString(item->type) + "  " + QString::fromStdString(item->name);
 		return QVariant(name);
 	}
 	else if(role == Qt::DecorationRole)

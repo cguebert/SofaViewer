@@ -21,7 +21,7 @@ public:
 	}
 	void readFromProperty(const value_type& v)
 	{
-		QString text = v.c_str();
+		QString text = QString::fromStdString(v);
 		if (m_lineEdit->text() != text)
 			m_lineEdit->setText(text);
 	}
@@ -72,7 +72,7 @@ public:
 	}
 	void readFromProperty(const value_type& v)
 	{
-		QString text = v.c_str();
+		QString text = QString::fromStdString(v);
 		if (m_lineEdit->text() != text)
 			m_lineEdit->setText(text);
 	}
@@ -127,7 +127,7 @@ public:
 	}
 	void readFromProperty(const value_type& v)
 	{
-		QString text = v.c_str();
+		QString text = QString::fromStdString(v);
 		if (m_lineEdit->text() != text)
 			m_lineEdit->setText(text);
 	}
@@ -154,7 +154,7 @@ public:
 		if (enumMeta)
 		{
 			for (const auto& v : enumMeta->values)
-				m_enumValues.push_back(v.c_str());
+				m_enumValues.push_back(QString::fromStdString(v));
 		}
 		m_comboBox->addItems(m_enumValues);
 
@@ -165,7 +165,7 @@ public:
 	void readFromProperty(const value_type& v)
 	{
 		QSignalBlocker block(m_comboBox);
-		QString text = v.c_str();
+		QString text = QString::fromStdString(v);
 		if (m_comboBox->currentText() != text)
 			m_comboBox->setCurrentText(text);
 	}
