@@ -31,16 +31,21 @@ const BasePropertyWidgetCreator* PropertyWidgetFactory::creator(const std::type_
 
 	const auto& map = mapIt->second;
 
-	// Special case : for lists and animations, we use the same PropertyWidget which will create other ones later
 	if(map.size() == 1)
 		return map.begin()->second->creator.get();
 
-	auto it = map.find(widgetName);
-	if(it == map.end())	// If the custom widget doesn't exist, first look for a generic one
-		it = map.find("generic");
-
-	if(it == map.end())	// Then use the default one
+	PropertyWidgetEntryMap::const_iterator it;
+	if (widgetName.empty())
 		it = map.find("default");
+	else
+	{
+		it = map.find(widgetName);
+		if (it == map.end())	// If the custom widget doesn't exist, first look for a generic one
+			it = map.find("generic");
+
+		if (it == map.end())	// Then use the default one
+			it = map.find("default");
+	}
 
 	// If a default one doesn't exist, we don't know which one to use
 	if(it != map.end())

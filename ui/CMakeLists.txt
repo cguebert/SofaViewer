@@ -39,6 +39,7 @@ set(SOURCE_FILES
 	simplegui/PanelImpl.cpp
 	simplegui/SettingsImpl.cpp
 	simplegui/SimpleGUIImpl.cpp
+	widget/ListPropertyWidget.cpp
 	widget/NumericalPropertyWidget.cpp
 	widget/PropertyWidget.cpp
 	widget/PropertyWidgetFactory.cpp

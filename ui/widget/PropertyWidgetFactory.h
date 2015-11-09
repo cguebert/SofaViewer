@@ -27,8 +27,9 @@ public:
 	class PropertyWidgetEntry
 	{
 	public:
-		PropertyWidgetEntry()
-			: type(typeid(int)) {}
+		using SPtr = std::shared_ptr<PropertyWidgetEntry>;
+
+		PropertyWidgetEntry() : type(typeid(int)) {}
 
 		std::type_index type;
 		std::string widgetName;
@@ -43,8 +44,8 @@ public:
 	std::unique_ptr<BasePropertyWidget> create(std::shared_ptr<Property> property, QWidget* parent) const;
 
 protected:
-	typedef std::shared_ptr<PropertyWidgetEntry> PropertyWidgetEntryPtr;
-	typedef std::map<std::type_index, std::map<std::string, PropertyWidgetEntryPtr>> RegistryMap;
+	using PropertyWidgetEntryMap = std::map<std::string, PropertyWidgetEntry::SPtr>;
+	typedef std::map<std::type_index, PropertyWidgetEntryMap> RegistryMap;
 	RegistryMap registry;
 
 	template<class T> friend class RegisterWidget;
@@ -56,9 +57,7 @@ class PropertyWidgetCreator : public BasePropertyWidgetCreator
 {
 public:
 	virtual std::unique_ptr<BasePropertyWidget> create(std::shared_ptr<Property> property, QWidget* parent) const
-	{
-		return std::make_unique<T>(property, parent);
-	}
+	{ return std::make_unique<T>(property, parent); }
 };
 
 template <class T>

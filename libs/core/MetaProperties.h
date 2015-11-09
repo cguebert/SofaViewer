@@ -41,6 +41,8 @@ struct CORE_API Validator : public MetaProperty
 class CORE_API BaseMetaContainer
 {
 public:
+	using Properties = std::vector<MetaProperty::SPtr>;
+
 	virtual ~BaseMetaContainer() {}
 
 	template <class T>
@@ -55,6 +57,10 @@ public:
 		m_properties.push_back(ptr);
 	}
 
+	// No treatment is done to this property when inserting. Use it only to pass data to the widgets
+	void addExisting(MetaProperty::SPtr prop)
+	{ m_properties.push_back(prop); }
+
 	template <class T> T* get() const
 	{
 		for (auto& prop : m_properties)
@@ -67,8 +73,11 @@ public:
 		return nullptr;
 	}
 
+	const Properties& properties() const
+	{ return m_properties; }
+
 protected:
-	std::vector<MetaProperty::SPtr> m_properties;
+	Properties m_properties;
 };
 
 template <class prop_type, class value_type, bool isValidator>
