@@ -3,7 +3,6 @@
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
-#include <core/SimpleGUI.h>
 
 #include <sfe/sofaFrontEndLocal.h>
 #include <sfe/Server.h>
@@ -34,18 +33,19 @@ void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 	m_gui = &gui;
 
 	// Buttons box
-	m_gui->buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
+	m_animateButton = m_gui->buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
 		m_simulation.setAnimate(!animating);
 	});
-	m_gui->buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
+	m_animateButton->setCheckable(true);
+	m_stepButton = m_gui->buttonsPanel().addButton("Step", "Do a single step of the simulation", [this](){ singleStep(); }, 0, 1);
 
-	m_gui->buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
+	m_resetButton = m_gui->buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
 	auto prop = property::createCopyProperty("Dt", 0.02f);
 	m_gui->buttonsPanel().addProperty(prop, 1, 1);
 
-	m_gui->buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
+	m_updateGraphButton = m_gui->buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
 
 	// Status bar
 	m_statusFPS = m_gui->addStatusBarZone("FPS: 9999.9"); // Reasonable width for the fps counter
@@ -310,6 +310,8 @@ void SofaDocument::postStep()
 	updateObjects();
 	m_updateObjects = true; // We have to modify the buffers in the correct thread
 	m_gui->updateView();
+
+	m_animateButton->setChecked(m_simulation.isAnimating());
 }
 
 ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)

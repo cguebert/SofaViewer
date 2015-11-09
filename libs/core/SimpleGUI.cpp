@@ -3,6 +3,10 @@
 namespace simplegui
 {
 
+Button::~Button() 
+{
+}
+
 Panel::~Panel() 
 {
 }

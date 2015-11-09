@@ -1,4 +1,6 @@
 #include <ui/simplegui/PanelImpl.h>
+#include <ui/simplegui/ButtonImpl.h>
+
 #include <ui/widget/PropertyWidget.h>
 #include <ui/widget/PropertyWidgetFactory.h>
 
@@ -13,7 +15,7 @@ PanelImpl::PanelImpl(QWidget* parent, QGridLayout* layout)
 
 }
 
-void PanelImpl::addButton(const std::string& name, const std::string& help,
+simplegui::Button::SPtr PanelImpl::addButton(const std::string& name, const std::string& help,
 							 simplegui::CallbackFunc callback,
 							 int row, int column,
 							 int rowSpan, int columnSpan)
@@ -26,6 +28,8 @@ void PanelImpl::addButton(const std::string& name, const std::string& help,
 		row = m_layout->count() ? m_layout->rowCount() : 0;
 
 	m_layout->addWidget(button, row, column, rowSpan, columnSpan);
+
+	return std::make_shared<PushButton_ButtonImpl>(button);
 }
 
 void PanelImpl::addProperty(Property::SPtr property,

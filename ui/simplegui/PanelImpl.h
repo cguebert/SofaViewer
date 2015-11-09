@@ -14,7 +14,7 @@ class PanelImpl : public simplegui::Panel
 public:
 	PanelImpl(QWidget* parent, QGridLayout* layout);
 
-	void addButton(const std::string& name, const std::string& help,
+	simplegui::Button::SPtr addButton(const std::string& name, const std::string& help,
 				   simplegui::CallbackFunc callback,
 				   int row, int column,
 				   int rowSpan, int columnSpan) override;

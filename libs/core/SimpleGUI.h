@@ -15,12 +15,36 @@ namespace simplegui
 using CallbackFunc = std::function<void()>;
 using BoolCallbackFunc = std::function<void(bool)>;
 
+class CORE_API Button
+{
+public:
+	using SPtr = std::shared_ptr<Button>;
+	virtual ~Button();
+
+	virtual std::string title() const = 0;
+	virtual void setTitle(const std::string& title) = 0;
+
+	virtual std::string help() const = 0;
+	virtual void setHelp(const std::string& help) = 0;
+
+	virtual bool checkable() const = 0;
+	virtual void setCheckable(bool checkable) = 0;
+
+	virtual bool checked() const = 0;
+	virtual void setChecked(bool checked) = 0;
+
+	virtual bool enabled() const = 0;
+	virtual void setEnabled(bool enabled) = 0;
+};
+
+/******************************************************************************/
+
 class CORE_API Panel
 {
 public:
 	virtual ~Panel();
 
-	virtual void addButton(const std::string& name, const std::string& help,
+	virtual Button::SPtr addButton(const std::string& name, const std::string& help,
 						   CallbackFunc callback,
 						   int row = -1, int column = 0,
 						   int rowSpan = 1, int columnSpan = 1) = 0;
@@ -51,7 +75,7 @@ class CORE_API Menu
 public:
 	virtual ~Menu();
 
-	virtual void addItem(const std::string& name, const std::string& help, CallbackFunc callback) = 0;
+	virtual Button::SPtr addItem(const std::string& name, const std::string& help, CallbackFunc callback) = 0;
 	virtual Menu& addMenu(const std::string& name) = 0;
 	virtual void addSeparator() = 0;
 };

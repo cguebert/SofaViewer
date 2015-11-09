@@ -2,7 +2,6 @@
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
-#include <core/SimpleGUI.h>
 
 #include <sfe/sofaFrontEndClient.h>
 
@@ -48,4 +47,9 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 void Document::serverShutdown()
 {
 	m_graph.setRoot(nullptr);
+
+	m_animateButton->setEnabled(false);
+	m_stepButton->setEnabled(false);
+	m_resetButton->setEnabled(false);
+	m_updateGraphButton->setEnabled(false);
 }

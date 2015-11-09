@@ -3,6 +3,8 @@
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
 #include <core/MouseManipulator.h>
+#include <core/SimpleGUI.h>
+
 #include <render/Scene.h>
 
 #include <sfe/Simulation.h>
@@ -68,6 +70,8 @@ protected:
 
 	std::vector<SofaModel> m_sofaModels;
 	std::vector<simplerender::Mesh::SPtr> m_newMeshes;
+
+	simplegui::Button::SPtr m_animateButton, m_stepButton, m_resetButton, m_updateGraphButton;
 };
 
 inline Graph& SofaDocument::graph()

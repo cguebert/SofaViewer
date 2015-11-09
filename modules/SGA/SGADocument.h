@@ -2,6 +2,8 @@
 
 #include "MeshDocument.h"
 
+#include <core/SimpleGUI.h>
+
 #include <sga/ObjectFactory.h>
 
 class SGAExecution;
@@ -58,6 +60,7 @@ protected:
 	void convertAndRun();
 	void convertAndExport();
 	void stopExecution();
+	void runClicked();
 	
 	void addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type);
 
@@ -75,6 +78,8 @@ protected:
 
 	std::shared_ptr<SGAExecution> m_execution;
 	SimulationProperties m_simulationProperties;
+
+	simplegui::Button::SPtr m_runButton;
 };
 
 inline Graph& SGADocument::graph()

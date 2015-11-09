@@ -2,7 +2,6 @@
 
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
-#include <core/SimpleGUI.h>
 
 #include <sfe/sofaFrontEndLocal.h>
 #include <sfe/Helpers.h>

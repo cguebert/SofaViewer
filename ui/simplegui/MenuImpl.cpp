@@ -1,4 +1,5 @@
 #include <ui/simplegui/MenuImpl.h>
+#include <ui/simplegui/ButtonImpl.h>
 
 #include <QtWidgets>
 
@@ -14,7 +15,7 @@ MenuImpl::~MenuImpl()
 		delete action;
 }
 
-void MenuImpl::addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback)
+simplegui::Button::SPtr MenuImpl::addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback)
 {
 	auto action = new QAction(name.c_str(), m_menu);
 	action->setStatusTip(help.c_str());
@@ -23,6 +24,8 @@ void MenuImpl::addItem(const std::string& name, const std::string& help, simpleg
 
 	QObject::connect(action, &QAction::triggered, callback);
 	m_menu->addAction(action);
+
+	return std::make_shared<Action_ButtonImpl>(action);
 }
 
 simplegui::Menu& MenuImpl::addMenu(const std::string& name)

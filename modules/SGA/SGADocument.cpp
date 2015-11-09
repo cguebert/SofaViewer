@@ -6,7 +6,6 @@
 #include <core/DocumentFactory.h>
 #include <core/ObjectProperties.h>
 #include <core/PropertiesUtils.h>
-#include <core/SimpleGUI.h>
 
 #include <serialization/DocXML.h>
 
@@ -172,12 +171,8 @@ void SGADocument::initUI(simplegui::SimpleGUI& gui)
 	toolsMenu.addSeparator();
 
 	auto& panel = m_gui->buttonsPanel();
-	panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ 
-		if (!m_execution)
-			convertAndRun();
-	});
-
-	panel.addButton("Stop", "Stop the Sofa simulation", [this]() { stopExecution(); });
+	m_runButton = panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ runClicked(); });
+	m_runButton->setCheckable(true);
 
 	MeshDocument::initUI(gui);
 }
@@ -447,4 +442,19 @@ void SGADocument::stopExecution()
 	if (m_execution) 
 		m_execution->stop(); 
 	m_execution.reset(); 
+}
+
+void SGADocument::runClicked()
+{
+	if (!m_execution)
+	{
+		convertAndRun();
+		if (m_execution) // Will be null if the conversion failed
+			m_runButton->setChecked(true);
+	}
+	else
+	{
+		stopExecution();
+		m_runButton->setChecked(false);
+	}
 }

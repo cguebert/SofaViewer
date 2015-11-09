@@ -16,6 +16,7 @@ set(HEADER_FILES
 	MainWindow.h
 	OpenGLView.h
 	PropertiesDialog.h
+	simplegui/ButtonImpl.h
 	simplegui/DialogImpl.h
 	simplegui/MenuImpl.h
 	simplegui/PanelImpl.h
@@ -34,6 +35,7 @@ set(SOURCE_FILES
 	MainWindow.cpp
 	OpenGLView.cpp
 	PropertiesDialog.cpp
+	simplegui/ButtonImpl.cpp
 	simplegui/DialogImpl.cpp
 	simplegui/MenuImpl.cpp
 	simplegui/PanelImpl.cpp

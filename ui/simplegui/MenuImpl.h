@@ -14,7 +14,7 @@ public:
 	MenuImpl(QMenu* menu, bool freeActions = false);
 	~MenuImpl();
 
-	void addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback) override;
+	simplegui::Button::SPtr addItem(const std::string& name, const std::string& help, simplegui::CallbackFunc callback) override;
 	simplegui::Menu& addMenu(const std::string& name) override;
 	void addSeparator() override;
 
