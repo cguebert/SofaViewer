@@ -297,6 +297,7 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createRefProperty("edges", mesh->m_edges);
 			properties->createRefProperty("triangles", mesh->m_triangles);
 			properties->createRefProperty("normals", mesh->m_normals);
+			properties->createRefProperty("UV", mesh->m_texCoords);
 		}
 		break;
 	}

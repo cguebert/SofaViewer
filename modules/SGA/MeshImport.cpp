@@ -47,6 +47,16 @@ simplerender::Mesh::SPtr createMesh(const aiMesh* input)
 			mesh->m_edges.push_back({ input->mFaces[j].mIndices[0], input->mFaces[j].mIndices[1] });
 	}
 
+	if (input->mNumUVComponents[0] == 2)
+	{
+		mesh->m_texCoords.reserve(input->mNumVertices);
+		for (unsigned int j = 0; j < input->mNumVertices; ++j)
+		{
+			auto t = input->mTextureCoords[0][j];
+			mesh->m_texCoords.push_back(glm::vec2(t.x, t.y));
+		}
+	}
+
 	mesh->m_normals.reserve(input->mNumVertices);
 	for (unsigned int j = 0; j < input->mNumVertices; ++j)
 		mesh->m_normals.push_back(convert(input->mNormals[j]));
@@ -65,6 +75,7 @@ simplerender::Material::SPtr createMaterial(const aiMaterial* input)
 
 	aiColor3D color (0.f,0.f,0.f);
 	float floatValue;
+	aiString path;
 
 	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_COLOR_DIFFUSE, color))
 		material->diffuse = convert(color);
@@ -80,6 +91,9 @@ simplerender::Material::SPtr createMaterial(const aiMaterial* input)
 
 	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_SHININESS, floatValue))
 		material->shininess = floatValue;
+
+	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), path))
+		material->textureFilename = path.C_Str();
 
 	return material;
 }

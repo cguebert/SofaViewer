@@ -28,6 +28,16 @@ namespace property
 {
 	namespace details
 	{
+
+		template <>
+		struct ArrayTraits<glm::vec2>
+		{
+			static const bool isArray = true;
+			static const bool fixed = true;
+			static const int size = 2;
+			using value_type = glm::vec2::value_type;
+		};
+
 		template <>
 		struct ArrayTraits<glm::vec3>
 		{
