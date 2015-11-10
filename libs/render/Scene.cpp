@@ -19,6 +19,9 @@ void Scene::initOpenGL()
 	for(auto& mesh : m_meshes)
 		mesh->init();
 
+	for (auto& material : m_materials)
+		material->init();
+
 	auto bb = boundingBox(*this);
 	m_min = bb.first; m_max = bb.second;
 	m_center = (m_min + m_max) / 2.f;
@@ -30,7 +33,8 @@ void Scene::initOpenGL()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
-	prepareProgram(m_trianglesProg, trianglesVertexShader, trianglesFragmentShader);
+	prepareProgram(m_trianglesColorProg, trianglesColorVertexShader, trianglesColorFragmentShader);
+	prepareProgram(m_trianglesTexturedProg, trianglesTextureVertexShader, trianglesTextureFragmentShader);
 	prepareProgram(m_linesProg, linesVertexShader, linesFragmentShader);
 }
 
@@ -73,7 +77,7 @@ void Scene::render()
 		const Material* material = instance->material.get();
 		if (!material)
 			material = &defaultMaterial;
-		const auto& prog = selectProgram(mesh);
+		const auto& prog = selectProgram(mesh, material);
 		prog.program.use();
 
 		glm::mat4 modelview = m_modelview * transformation;
@@ -84,7 +88,16 @@ void Scene::render()
 
 		glUniform4fv(prog.colLoc, 1, &material->diffuse[0]);
 
+		if (prog.texLoc != -1)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, material->textureId());
+			glUniform1i(prog.texLoc, 0);
+		}
+
 		mesh->render();
+
+		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 }
 
@@ -102,11 +115,16 @@ void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const ch
 	ps.texLoc = prog.uniformLocation("texture");
 }
 
-Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh)
+Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh, const Material* material)
 {
-	if (!mesh->m_mergedTriangles.empty())
-		return m_trianglesProg;
-	return m_linesProg;
+	if (mesh->m_mergedTriangles.empty())
+		return m_linesProg;
+
+	auto texId = material->textureId();
+	if(mesh->m_texCoords.empty() || !texId)
+		return m_trianglesColorProg;
+
+	return m_trianglesTexturedProg;
 }
 
 std::pair<glm::vec3, glm::vec3> boundingBox(const Scene& scene)

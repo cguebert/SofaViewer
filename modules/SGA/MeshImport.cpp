@@ -107,7 +107,7 @@ MeshImport::MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& gra
 {
 }
 
-std::vector<simplerender::Mesh*> MeshImport::importMeshes(const std::string& filePath)
+std::pair<MeshImport::Meshes, MeshImport::Materials> MeshImport::importMeshes(const std::string& filePath)
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filePath,
@@ -118,7 +118,7 @@ std::vector<simplerender::Mesh*> MeshImport::importMeshes(const std::string& fil
 	if (scene)
 		parseScene(scene);
 
-	return m_newMeshes;
+	return std::make_pair(m_newMeshes, m_newMaterials);
 }
 
 void MeshImport::parseNode(const aiScene* scene, const aiNode* aNode, const glm::mat4& transformation, MeshNode* parent)
@@ -200,6 +200,7 @@ void MeshImport::addMaterials(const aiScene* scene)
 		int index = m_scene.materials().size();
 		m_scene.addMaterial(material);
 		m_materialIndices.emplace_back(i, index);
+		m_newMaterials.push_back(material.get());
 	}
 }
 

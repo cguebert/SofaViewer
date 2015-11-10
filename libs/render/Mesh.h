@@ -31,7 +31,7 @@ public:
 	void updatePositions();
 	void updateIndices();
 	void mergeIndices();
-	void initShader();
+	void initTexture();
 	void render();
 
 	Vertices m_vertices;

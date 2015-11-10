@@ -86,6 +86,7 @@ protected:
 	size_t m_nextNodeId = 1;
 	std::vector<int> m_graphMeshImages;
 	std::vector<simplerender::Mesh*> m_newMeshes;
+	std::vector<simplerender::Material*> m_newMaterials;
 };
 
 inline Graph& MeshDocument::graph()

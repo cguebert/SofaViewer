@@ -9,6 +9,7 @@ set(HEADER_FILES
 	Scene.h
 	Shader.h
 	shaders.h
+	Texture.h
 )
 
 set(SOURCE_FILES
@@ -16,6 +17,7 @@ set(SOURCE_FILES
 	Mesh.cpp
 	Scene.cpp
 	Shader.cpp
+	Texture.cpp
 )
 
 add_library(${PROJECT_NAME} STATIC ${HEADER_FILES} ${SOURCE_FILES})

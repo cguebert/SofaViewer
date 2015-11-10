@@ -165,7 +165,7 @@ MeshDocument::MeshDocument(const std::string& type)
 bool MeshDocument::loadFile(const std::string& path)
 {
 	MeshImport importer(this, m_scene, m_graph);
-	m_newMeshes = importer.importMeshes(path);
+	std::tie(m_newMeshes, m_newMaterials) = importer.importMeshes(path);
 	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 	return true;
 }
@@ -199,6 +199,10 @@ void MeshDocument::render()
 	for (auto mesh : m_newMeshes)
 		mesh->init();
 	m_newMeshes.clear();
+
+	for (auto material : m_newMaterials)
+		material->init();
+	m_newMaterials.clear();
 
 	m_scene.render();
 }
@@ -342,6 +346,10 @@ void MeshDocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPt
 
 	if (item->nodeType == MeshNode::Type::Root || item->nodeType == MeshNode::Type::Node || item->nodeType == MeshNode::Type::Instance)
 		updateNodes(item);
+	else if (item->nodeType == MeshNode::Type::Mesh)
+		m_newMeshes.push_back(item->mesh.get());
+	else if (item->nodeType == MeshNode::Type::Material)
+		m_newMaterials.push_back(item->material.get());
 }
 
 void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)

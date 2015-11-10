@@ -1,4 +1,5 @@
 #include <render/Mesh.h>
+#include <render/Texture.h>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -12,7 +13,7 @@ void Mesh::init()
 	prepareBuffers();
 	updateIndices();
 	updatePositions();
-	initShader();
+	initTexture();
 }
 
 void Mesh::prepareBuffers()
@@ -113,7 +114,7 @@ void Mesh::updateIndices()
 	}
 }
 
-void Mesh::initShader()
+void Mesh::initTexture()
 {
 
 }

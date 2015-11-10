@@ -57,7 +57,7 @@ protected:
 	};
 
 	void prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader);
-	ProgramStruct& selectProgram(const Mesh::SPtr mesh);
+	ProgramStruct& selectProgram(const Mesh::SPtr mesh, const Material* material);
 
 	Meshes m_meshes;
 	Materials m_materials;
@@ -69,7 +69,7 @@ protected:
 	glm::quat m_rotation;
 	glm::vec3 m_translation = { 0.f, 0.f, 0.f };
 
-	ProgramStruct m_trianglesProg, m_linesProg;
+	ProgramStruct m_trianglesColorProg, m_trianglesTexturedProg, m_linesProg;
 	Material defaultMaterial;
 };
 

@@ -20,6 +20,7 @@ struct aiMesh;
 
 namespace simplerender
 {
+class Material;
 class Mesh;
 class Scene;
 }
@@ -70,8 +71,11 @@ namespace property
 class MeshImport
 {
 public:
+	using Meshes = std::vector<simplerender::Mesh*>;
+	using Materials = std::vector<simplerender::Material*>;
+
 	MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph);
-	std::vector<simplerender::Mesh*> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the list of the new meshes
+	std::pair<Meshes, Materials> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the lists of the new meshes and new materials
 	
 private:
 	void parseScene(const aiScene* scene);
@@ -88,5 +92,6 @@ private:
 	simplerender::Scene& m_scene;
 	Graph& m_graph;
 	std::vector<std::pair<int, int>> m_meshesIndices, m_materialIndices; // Id in Assimp scene -> Id in our scene
-	std::vector<simplerender::Mesh*> m_newMeshes;
+	Meshes m_newMeshes;
+	Materials m_newMaterials;
 };
