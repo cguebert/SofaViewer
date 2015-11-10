@@ -9,7 +9,8 @@ void Material::init()
 	if (!textureFilename.empty())
 	{
 		m_texture = std::make_shared<Texture>();
-		m_texture->load(textureFilename);
+		if (!m_texture->load(textureFilename))
+			m_texture.reset();
 	}		
 }
 

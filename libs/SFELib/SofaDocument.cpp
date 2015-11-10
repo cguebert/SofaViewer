@@ -20,6 +20,55 @@ template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
 }
 
+namespace
+{
+
+inline void parseColor(std::istream& input, glm::vec4& color)
+{
+	for (int i = 0; i < 4; ++i)
+		input >> color[i];
+}
+
+inline std::string trim(const std::string& str)
+{
+	auto first = str.find_first_not_of(" \t\n\r");
+	if (first == std::string::npos) // only whitespace
+		return "";
+	auto last = str.find_last_not_of(" \t\n\r");
+	return str.substr(first, last - first + 1);
+}
+
+// Helper function to parse the material (a string) and extract the diffuse color
+// The syntax of the material string is: MaterialName, Diffuse, DiffuseActive, DifuseColor(R,G,B,A), ...
+simplerender::Material::SPtr parseMaterial(const std::string& materialText)
+{
+	auto material = std::make_shared<simplerender::Material>();
+	std::istringstream in(materialText);
+	std::string dummy, element;
+	int active;
+	in >> dummy;
+
+	for (unsigned int i=0; i<7; ++i)
+	{
+		in  >>  element;
+		std::transform(element.begin(), element.end(), element.begin(), std::tolower);
+
+		if      (element == "diffuse")   { in  >> active; parseColor(in, material->diffuse);   }
+		else if (element == "ambient")   { in  >> active; parseColor(in, material->ambient);   }
+		else if (element == "specular")  { in  >> active; parseColor(in, material->specular);  }
+		else if (element == "emissive")  { in  >> active; parseColor(in, material->emissive);  }
+		else if (element == "shininess") { in  >> active; in >> material->shininess; }
+		else if (element == "texture")   { in  >> active; std::getline(in, material->textureFilename); }
+		else if (element == "bump")      { in  >> active; std::getline(in, dummy); }
+	}
+	material->textureFilename = trim(material->textureFilename);
+	parseColor(in, material->diffuse);
+
+	return material;
+}
+
+}
+
 SofaDocument::SofaDocument(const std::string& type, sfe::Simulation simulation)
 	: BaseDocument(type)
 	, m_mouseManipulator(m_scene)
@@ -68,6 +117,10 @@ void SofaDocument::render()
 		mesh->init();
 	m_newMeshes.clear();
 
+	for (auto material : m_newMaterials)
+		material->init();
+	m_newMaterials.clear();
+
 	if(m_updateObjects)
 	{
 		for(auto mesh : m_scene.meshes())
@@ -81,49 +134,6 @@ void SofaDocument::render()
 bool SofaDocument::mouseEvent(const MouseEvent& event)
 {
 	return m_mouseManipulator.mouseEvent(event);
-}
-
-void parseColor(std::istream& input, glm::vec4& color)
-{
-	for (int i = 0; i < 4; ++i)
-		input >> color[i];
-}
-
-// Helper function to parse the material (a string) and extract the diffuse color
-// The syntax of the material string is: MaterialName, Diffuse, DiffuseActive, DifuseColor(R,G,B,A), ...
-simplerender::Material::SPtr parseMaterial(const std::string& materialText)
-{
-	auto material = std::make_shared<simplerender::Material>();
-	std::istringstream in(materialText);
-	std::string dummy, element;
-	int active;
-	in >> dummy;
-
-	for (unsigned int i=0; i<7; ++i)
-    {
-        in  >>  element;
-		std::transform(element.begin(), element.end(), element.begin(), std::tolower);
-
-        if      (element == "diffuse")   { in  >> active; parseColor(in, material->diffuse);   }
-        else if (element == "ambient")   { in  >> active; parseColor(in, material->ambient);   }
-        else if (element == "specular")  { in  >> active; parseColor(in, material->specular);  }
-        else if (element == "emissive")  { in  >> active; parseColor(in, material->emissive);  }
-        else if (element == "shininess") { in  >> active; in >> material->shininess; }
-		else if (element == "texture")   { std::getline(in, material->textureFilename); }
-		else if (element == "bump")      { std::getline(in, dummy); }
-    }
-	parseColor(in, material->diffuse);
-
-	return material;
-}
-
-std::string trim(const std::string& str)
-{
-	auto first = str.find_first_not_of(" \t\n\r");
-	if (first == std::string::npos) // only whitespace
-		return "";
-	auto last = str.find_last_not_of(" \t\n\r");
-	return str.substr(first, last - first + 1);
 }
 
 SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
@@ -149,6 +159,7 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 
 	auto mesh = std::make_shared<simplerender::Mesh>();
 	sofaModel.mesh = mesh;
+	m_scene.addMesh(mesh);
 	m_newMeshes.push_back(mesh);
 
 	sofaModel.d_vertices.get(mesh->m_vertices);
@@ -168,6 +179,10 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	if (mesh->m_triangles.empty() && mesh->m_quads.empty())
 		return sofaModel;
 
+	auto texCoordsData = visualModel.data("texcoords");
+	if (texCoordsData)
+		texCoordsData.get(mesh->m_texCoords);
+
 	// The material
 	auto matData = visualModel.data("material");
 	std::string materialText;
@@ -175,6 +190,7 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	auto material = parseMaterial(materialText);
 	sofaModel.material = material;
 	m_scene.addMaterial(material);
+	m_newMaterials.push_back(material);
 
 	// Create an instance to put together the mesh and its material
 	auto instance = std::make_shared<simplerender::ModelInstance>();
@@ -194,13 +210,7 @@ void SofaDocument::parseScene()
 	// We look for every Sofa object inheriting from the class VisualModelImpl in the graph
 	auto visualModels = rootNode.findObjects("VisualModelImpl", {}, sfe::Node::SearchDirection::Down);
 	for (auto& visualModel : visualModels)
-	{
-		auto sofaModel = createSofaModel(visualModel);
-
-		if (sofaModel.mesh)
-			m_scene.addMesh(sofaModel.mesh);
-		m_sofaModels.push_back(sofaModel);
-	}
+		m_sofaModels.push_back(createSofaModel(visualModel));
 }
 
 void SofaDocument::setupCallbacks()

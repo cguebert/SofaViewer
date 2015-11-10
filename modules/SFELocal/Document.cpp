@@ -8,6 +8,7 @@
 #include <sfe/Server.h>
 
 #include <iostream>
+#include <fstream>
 #include <future>
 
 int SFELocalDoc = RegisterDocument<Document>("Sofa Local").setDescription("Run Sofa scenes using Sofa Front End Local")
@@ -19,6 +20,32 @@ namespace sfe
 {
 template<> struct DataTypeTrait<glm::vec2> : public ArrayTypeTrait<glm::vec2, 2>{};
 template<> struct DataTypeTrait<glm::vec3> : public ArrayTypeTrait<glm::vec3, 3>{};
+}
+
+namespace
+{
+
+bool doesFileExists(const std::string& path)
+{
+	std::ifstream file(path);
+	return file.good();
+}
+
+void modifyTexturePath(std::string& texturePath, const std::vector<std::string>& sofaPaths)
+{
+	for (const auto& sofaPath : sofaPaths)
+	{
+		std::string path = sofaPath + "/" + texturePath;
+		if (doesFileExists(path))
+		{
+			texturePath = path;
+			return;
+		}
+	}
+
+	texturePath = ""; // The texture has not been found
+}
+
 }
 
 Document::Document(const std::string& type)
@@ -52,6 +79,17 @@ bool Document::loadFile(const std::string& path)
 
 		// Create the meshes for rendering
 		parseScene();
+
+		// Modify the paths to the textures in the materials
+		if (!sofaPaths.empty())
+		{
+			for (auto& material : m_scene.materials())
+			{
+				auto& texturePath = material->textureFilename;
+				if (!texturePath.empty())
+					modifyTexturePath(texturePath, sofaPaths);
+			}
+		}
 
 		setupCallbacks();
 

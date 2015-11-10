@@ -70,6 +70,7 @@ protected:
 
 	std::vector<SofaModel> m_sofaModels;
 	std::vector<simplerender::Mesh::SPtr> m_newMeshes;
+	std::vector<simplerender::Material::SPtr> m_newMaterials;
 
 	simplegui::Button::SPtr m_animateButton, m_stepButton, m_resetButton, m_updateGraphButton;
 };
