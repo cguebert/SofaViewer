@@ -9,6 +9,8 @@
 #include <sfe/Helpers.h>
 #include <sfe/DataTypeTrait.h>
 
+#include <render/Texture.h>
+
 #include <cctype>
 #include <iostream>
 #include <future>
@@ -191,6 +193,24 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	sofaModel.material = material;
 	m_scene.addMaterial(material);
 	m_newMaterials.push_back(material);
+
+	// Loading of the texture
+	if (!material->textureFilename.empty())
+	{
+		auto helper = m_simulation.getHelper();
+		// Find the texture file
+		if (!helper->findFile(material->textureFilename))
+			material->textureFilename = ""; // Not found
+		else
+		{
+			auto contents = helper->loadFile(material->textureFilename);
+			if (!contents.empty())
+			{
+				material->texture = std::make_shared<simplerender::Texture>();
+				material->texture->loadFromMemory(contents);
+			}
+		}
+	}
 
 	// Create an instance to put together the mesh and its material
 	auto instance = std::make_shared<simplerender::ModelInstance>();

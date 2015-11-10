@@ -8,16 +8,19 @@ void Material::init()
 {
 	if (!textureFilename.empty())
 	{
-		m_texture = std::make_shared<Texture>();
-		if (!m_texture->load(textureFilename))
-			m_texture.reset();
+		texture = std::make_shared<Texture>();
+		if (!texture->loadFromFile(textureFilename))
+			texture.reset();
 	}		
+
+	if (texture)
+		texture->init();
 }
 
 unsigned int Material::textureId() const
 {
-	if (m_texture)
-		return m_texture->id();
+	if (texture)
+		return texture->id();
 	else
 		return 0;
 }

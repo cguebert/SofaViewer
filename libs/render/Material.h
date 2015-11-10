@@ -27,8 +27,7 @@ public:
 	float shininess = 45.0f;
 	std::string textureFilename;
 
-private:
-	std::shared_ptr<Texture> m_texture;
+	std::shared_ptr<Texture> texture;
 };
 
 } // namespace simplerender

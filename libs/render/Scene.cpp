@@ -16,12 +16,6 @@ void Scene::initOpenGL()
 	glewExperimental = GL_TRUE;
 	glewInit();
 
-	for(auto& mesh : m_meshes)
-		mesh->init();
-
-	for (auto& material : m_materials)
-		material->init();
-
 	auto bb = boundingBox(*this);
 	m_min = bb.first; m_max = bb.second;
 	m_center = (m_min + m_max) / 2.f;

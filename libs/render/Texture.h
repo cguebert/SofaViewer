@@ -14,14 +14,27 @@ class Texture
 {
 public:
 	~Texture();
-	bool load(const std::string& path);
+
+	void init(); // Takes the loaded image and creates an OpenGL texture
+
+	// These two methods open an image and store it in a buffer inside this class. Init must then be called (with a valid OpenGL context)
+	bool loadFromFile(const std::string& path);
+	bool loadFromMemory(const std::vector<unsigned char>& fileContents);
+
+	void setContents(const std::vector<unsigned char>& contents, int width, int height, bool hasAlpha = false);
 
 	unsigned int id() const;
 
 protected:
-
-	std::string m_texturePath;
 	unsigned int m_textureId = 0;
+
+	struct TextureContents
+	{
+		std::vector<unsigned char> contents;
+		int width = 0, height = 0;
+		bool hasAlpha = false;
+	};
+	std::unique_ptr<TextureContents> m_contents;
 };
 
 } // namespace simplerender
