@@ -64,6 +64,7 @@ protected:
 	GraphImages m_graphImages;
 	bool m_updateObjects = false;
 
+	double m_timestep = 0.02;
 	bool m_singleStep = false;
 	int m_statusFPS = -1, m_fpsCount = 0;
 	std::chrono::high_resolution_clock::time_point m_fpsStart;

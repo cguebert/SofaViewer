@@ -86,6 +86,8 @@ void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 	// Buttons box
 	m_animateButton = m_gui->buttonsPanel().addButton("Animate", "Pause or play the simulation", [this](){
 		bool animating = m_simulation.isAnimating();
+		if (!animating)
+			m_simulation.setDt(m_timestep);
 		m_simulation.setAnimate(!animating);
 	});
 	m_animateButton->setCheckable(true);
@@ -93,7 +95,8 @@ void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 
 	m_resetButton = m_gui->buttonsPanel().addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
-	auto prop = property::createCopyProperty("Dt", 0.02f);
+	auto prop = property::createRefProperty("Dt", m_timestep);
+	prop->setSaveTrigger(Property::SaveTrigger::asap);
 	m_gui->buttonsPanel().addProperty(prop, 1, 1);
 
 	m_updateGraphButton = m_gui->buttonsPanel().addButton("Update graph", "Update the graph based on the current state of the simulation", [this](){ createGraph(); }, 2, 0, 1, 2);
@@ -359,11 +362,18 @@ ObjectProperties::SPtr SofaDocument::objectProperties(GraphNode* baseItem)
 
 void SofaDocument::singleStep()
 {
+	bool animating = m_simulation.isAnimating();
+	if (animating)
+		return;
+
+	m_simulation.setDt(m_timestep);
+
 	auto start = std::chrono::high_resolution_clock::now();
 	m_singleStep = true;
 	m_simulation.step();
 	m_singleStep = false;
 	auto end = std::chrono::high_resolution_clock::now();
+
 	std::chrono::duration<double> dur = end - start;
 	auto fps = 1.0 / dur.count();
 	std::stringstream ss;

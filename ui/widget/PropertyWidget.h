@@ -18,7 +18,6 @@ public:
 		: QWidget(parent)
 		, m_property(property)
 		, m_state(State::unchanged)
-		, m_saveTrigger(SaveTrigger::action)
 	{}
 	virtual ~BasePropertyWidget() {}
 
@@ -31,9 +30,6 @@ public:
 
 	enum class Source { property, widget };
 	void resolveConflict(Source source);
-
-	enum class SaveTrigger { action, asap }; // action = when updatePropertyValue is called, asap = when the widget is modified
-	void setSaveTrigger(SaveTrigger trigger);
 
 	/// The implementation of this method holds the widget creation and the signal / slot connections.
 	virtual QWidget* createWidgets() = 0;
@@ -71,7 +67,6 @@ protected:
 
 	Property::SPtr m_property;
 	State m_state;
-	SaveTrigger m_saveTrigger;
 };
 
 /*****************************************************************************/

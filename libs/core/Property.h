@@ -25,24 +25,32 @@ public:
 			 const std::string& help = "",
 			 const std::string& group = "");
 
-	const std::string& name() const;
+	const std::string& name() const;		/// Name of the property, as shown in the UI
 	void setName(const std::string& name);
-	const std::string& help() const;
+	const std::string& help() const;		/// Description for tooltips and status bar tips
 	void setHelp(const std::string& help);
-	const std::string& group() const;
+	const std::string& group() const;		/// Regroup properties of the same group in tabs
 	void setGroup(const std::string& group);
 
-	bool readOnly() const;
+	bool readOnly() const; /// If true, show the property but disable the edition
 	void setReadOnly(bool readOnly);
 
-	std::type_index type() const;
+	/// Tells the UI when to update the property when a widget has been modified
+	enum class SaveTrigger { 
+		action, /// Wait for the dialog to be closed (properties outside of dialogs will never be updated automatically)
+		asap /// Update the property each time the widget is modified
+	};
+	SaveTrigger saveTrigger() const;
+	void setSaveTrigger(SaveTrigger trigger);
+
+	std::type_index type() const; /// Represents the type of the value
 	
-	ValuePtr value() const;
+	ValuePtr value() const;	/// Different types of containers exists for a property value, by default it contains nothing
 	template <class T> ValueTPtr<T> value() const
 	{ return std::dynamic_pointer_cast<PropertyValue<T>>(m_value); }
 	void setValue(ValuePtr value);
 
-	template <class T> T* getMeta() const
+	template <class T> T* getMeta() const /// Obtain the metaproperty of the specified type, returns null if not present
 	{
 		if (!m_value) return nullptr;
 		return m_value->baseMetaContainer().get<T>();
@@ -53,6 +61,7 @@ protected:
 	bool m_readOnly = false;
 	std::type_index m_type;
 	std::shared_ptr<BasePropertyValue> m_value;
+	SaveTrigger m_saveTrigger = SaveTrigger::action;
 };
 
 //****************************************************************************//
@@ -142,7 +151,7 @@ protected:
 
 //****************************************************************************//
 
-// Used in ObjectProperties, as a way to copy both way between a Property and a value of a compatible type
+// Used in the UI, as a way to copy both way between a Property and a value of a compatible type
 class BaseValueWrapper
 {
 public:
@@ -186,6 +195,12 @@ inline bool Property::readOnly() const
 
 inline void Property::setReadOnly(bool readOnly)
 { m_readOnly = readOnly; }
+
+inline Property::SaveTrigger Property::saveTrigger() const
+{ return m_saveTrigger; }
+
+inline void Property::setSaveTrigger(SaveTrigger trigger)
+{ m_saveTrigger = trigger; }
 
 inline std::type_index Property::type() const
 { return m_type; }

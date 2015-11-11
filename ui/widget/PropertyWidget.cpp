@@ -13,14 +13,6 @@ void BasePropertyWidget::resolveConflict(Source source)
 	setState(State::unchanged);
 }
 
-void BasePropertyWidget::setSaveTrigger(SaveTrigger trigger)
-{
-	if(trigger == SaveTrigger::asap && m_state == State::modified)
-		writeToProperty();
-
-	m_saveTrigger = trigger;
-}
-
 void BasePropertyWidget::updatePropertyValue()
 {
 	if(m_state == State::modified)
@@ -47,7 +39,7 @@ void BasePropertyWidget::setWidgetDirty()
 	if(isModified())
 	{
 		setState(State::modified);
-		if(m_saveTrigger == SaveTrigger::asap)
+		if(m_property->saveTrigger() == Property::SaveTrigger::asap)
 			updatePropertyValue();
 	}
 	else if(m_state == State::modified)
