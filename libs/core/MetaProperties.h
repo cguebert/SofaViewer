@@ -18,7 +18,7 @@ struct CORE_API MetaProperty
 	virtual ~MetaProperty() {}
 };
 
-struct CORE_API Widget : public MetaProperty
+struct CORE_API Widget : virtual public MetaProperty
 {
 	const std::string& type()
 	{ return m_type; }
@@ -30,7 +30,7 @@ protected:
 	std::string m_type;
 };
 
-struct CORE_API Validator : public MetaProperty
+struct CORE_API Validator : virtual public MetaProperty
 {
 	// Must have a template function setting a validator functor
 	// template <class T> void init(std::function<bool(T&)>& func) {...}
@@ -147,6 +147,7 @@ private:
 
 //****************************************************************************//
 
+// Ensure that a value stays inside a specified range
 struct CORE_API Range : public Validator
 {
 	Range(float min, float max) : min(min), max(max) {}
@@ -184,6 +185,14 @@ struct CORE_API Range : public Validator
 	float min, max;
 };
 
+// TODO: No validation is done with the step yet
+struct CORE_API RangeWithStep : public Range
+{
+	RangeWithStep(float min, float max, float step) : Range(min, max), step(step) {}
+
+	float step;
+};
+
 //****************************************************************************//
 
 struct CORE_API Checkbox : public Widget // For int
@@ -203,12 +212,17 @@ struct CORE_API Directory : public Widget // For string
 	Directory() : Widget("directory") {}
 };
 
-struct CORE_API File : public Widget // For stirng
+struct CORE_API File : public Widget // For string
 {
 	File() : Widget("file") {}
 	File(const std::string& filter) : Widget("file"), filter(filter) {}
 
 	std::string filter;
+};
+
+struct CORE_API Slider : public Widget, public RangeWithStep // For numerical values
+{
+	Slider(float min, float max, float step) : Widget("slider"), RangeWithStep(min, max, step) {}
 };
 
 } // namespace meta

@@ -77,7 +77,6 @@ protected:
 	void addInstance(MeshNode* parent);
 	void removeInstance(MeshNode* item);
 
-	simplegui::SimpleGUI* m_gui = nullptr;
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;

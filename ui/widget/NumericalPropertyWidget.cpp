@@ -70,6 +70,53 @@ public:
 //****************************************************************************//
 
 template <class value_type>
+class SliderPropertyWidget : public PropretyWidgetContainer<value_type>
+{
+protected:
+	QSlider* m_slider = nullptr;
+	float m_scale = 1.f, m_offset = 0;
+
+public:
+	QWidget* createWidgets(BasePropertyWidget* parent)
+	{
+		m_slider = new QSlider(parent);
+		m_slider->setOrientation(Qt::Horizontal);
+		m_slider->setEnabled(!parent->readOnly());
+		QObject::connect(m_slider, &QSlider::valueChanged, parent, &BasePropertyWidget::setWidgetDirty);
+
+		auto rangeMeta = parent->property()->getMeta<meta::RangeWithStep>();
+		float minVal = 0, maxVal = 100, step = 1;
+		if (rangeMeta)
+		{
+			minVal = rangeMeta->min;
+			maxVal = rangeMeta->max;
+			step = rangeMeta->step;
+		}
+
+		m_scale = 1 / step;
+		m_offset = -minVal * m_scale;
+
+		float range = maxVal - minVal;
+		int intRange = static_cast<int>(range * m_scale);
+		m_slider->setMinimum(0);
+		m_slider->setMaximum(intRange);
+
+		return m_slider;
+	}
+	void readFromProperty(const value_type& v)
+	{
+		QSignalBlocker block(m_slider);
+		m_slider->setValue(static_cast<int>(m_offset + v * m_scale));
+	}
+	void writeToProperty(value_type& v)
+	{
+		v = static_cast<value_type>((m_slider->value() - m_offset) / m_scale);
+	}
+};
+
+//****************************************************************************//
+
+template <class value_type>
 class EnumIntPropertyWidget : public PropretyWidgetContainer<value_type>
 {
 protected:
@@ -180,11 +227,20 @@ public:
 
 //****************************************************************************//
 
+RegisterWidget<SimplePropertyWidget<bool, CheckboxPropertyWidget<bool>> > PW_bool("default");
+
 RegisterWidget<SimplePropertyWidget<int>> PW_int("default");
 RegisterWidget<SimplePropertyWidget<int, CheckboxPropertyWidget<int>> > PW_checkbox("checkbox");
 RegisterWidget<SimplePropertyWidget<int, EnumIntPropertyWidget<int>> > PW_int_enum("enum");
+RegisterWidget<SimplePropertyWidget<int, SliderPropertyWidget<int>> > PW_int_slider("slider");
+
 RegisterWidget<SimplePropertyWidget<unsigned int>> PW_unsigned_int("default");
 RegisterWidget<SimplePropertyWidget<unsigned int, CheckboxPropertyWidget<unsigned int>> > PW_unsigned_checkbox("checkbox");
 RegisterWidget<SimplePropertyWidget<unsigned int, EnumIntPropertyWidget<unsigned int>> > PW_unsigned_enum("enum");
+RegisterWidget<SimplePropertyWidget<unsigned int, SliderPropertyWidget<unsigned int>> > PW_unsigned_slider("slider");
+
 RegisterWidget<SimplePropertyWidget<float>> PW_float("default");
+RegisterWidget<SimplePropertyWidget<float, SliderPropertyWidget<float>> > PW_float_slider("slider");
+
 RegisterWidget<SimplePropertyWidget<double>> PW_double("default");
+RegisterWidget<SimplePropertyWidget<double, SliderPropertyWidget<double>> > PW_double_slider("slider");
