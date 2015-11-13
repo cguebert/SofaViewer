@@ -31,7 +31,11 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	{
 		m_simulation = sfe::getRemoteSimulation(serverAddress, std::to_string(serverPort));
 		if (!m_simulation)
+		{
+			gui.messageBox(simplegui::MessageBoxType::warning, "Connection error", "Could not connect to the server using these parameters.");
+			gui.closeDocument();
 			return;
+		}
 
 		auto helper = sfe::getClientSpecificHelper(m_simulation);
 		auto callback = helper->addCallback(sfec::ClientSpecificHelper::CallbackType::Shutdown, [this]() { serverShutdown(); });
@@ -52,4 +56,7 @@ void Document::serverShutdown()
 	m_stepButton->setEnabled(false);
 	m_resetButton->setEnabled(false);
 	m_updateGraphButton->setEnabled(false);
+
+//	m_gui->messageBox(simplegui::MessageBoxType::information, "Server shutdown", "The server has closed the connection");
+//	m_gui->closeDocument();
 }

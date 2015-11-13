@@ -22,9 +22,9 @@ SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow, QWidget* view, QWidget* but
 	createButtonsPanel();
 }
 
-simplegui::Menu& SimpleGUIImpl::getMenu(MenuType menuType)
+simplegui::Menu& SimpleGUIImpl::getMenu(simplegui::MenuType menuType)
 {
-	return *m_menus[static_cast<unsigned char>(menuType)];
+	return *m_menus[static_cast<int>(menuType)];
 }
 
 simplegui::Panel& SimpleGUIImpl::buttonsPanel()
@@ -114,8 +114,9 @@ std::string SimpleGUIImpl::getSaveFileName(const std::string& caption, const std
 		).toStdString();
 }
 
-int SimpleGUIImpl::messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons)
+int SimpleGUIImpl::messageBox(simplegui::MessageBoxType type, const std::string& caption, const std::string& text, int buttons)
 {
+	using simplegui::MessageBoxType;
 	switch (type)
 	{
 	case MessageBoxType::about:

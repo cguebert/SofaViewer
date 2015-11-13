@@ -179,7 +179,7 @@ void MeshDocument::initUI(simplegui::SimpleGUI& gui)
 {
 	m_graph.setRoot(m_rootNode);
 
-	auto& toolsMenu = gui.getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	auto& toolsMenu = gui.getMenu(simplegui::MenuType::Tools);
 	toolsMenu.addItem("Remove duplicate meshes", "Remove meshes that are identical to each other", [this](){ removeDuplicateMeshes(); });
 	toolsMenu.addItem("Remove unused meshes", "Remove meshes that have no instance", [this](){ removeUnusedMeshes(); });
 }

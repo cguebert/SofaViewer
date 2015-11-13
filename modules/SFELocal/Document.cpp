@@ -67,10 +67,11 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	SofaDocument::initUI(gui);
 
 	// Menu actions
-	auto& menu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	auto& menu = m_gui->getMenu(simplegui::MenuType::Tools);
+	m_serverButton = menu.addItem("Launch Server", "Launch a SFE server", [this](){ onServer(); } );
+	menu.addSeparator();
 	menu.addItem("Sofa paths", "Modify the directories where Sofa will look for meshes and textures", [this](){ modifyDataRepository(); } );
-	menu.addItem("Launch Server", "Launch a SFE server", [this](){ launchServer(); } );
-	menu.addItem("Stop Server", "Stop the SFE server", [this](){ m_server.stopServer(); });
+	
 }
 
 void Document::modifyDataRepository()
@@ -90,21 +91,34 @@ void Document::modifyDataRepository()
 	}
 }
 
-void Document::launchServer()
+void Document::onServer()
 {
 	if (m_server.isRunning())
+	{
+		m_server.stopServer();
+		m_serverButton->setTitle("Launch Server");
+		m_serverButton->setHelp("Launch a SFE server");
 		return;
+	}
 
-	auto dialog = m_gui->createDialog("Launch SFE Server");
+	auto dialog = m_gui->createDialog("SFE Server parameters");
 	auto& panel = dialog->content();
 
 	int port = 5074;
 	panel.addProperty(property::createRefProperty("Server port", port));
 
-	int readOnly = 0;
-	auto readOnlyProp = property::createRefProperty("Read only", readOnly, meta::Checkbox());
-	panel.addProperty(readOnlyProp);
+	bool readOnly = false;
+	panel.addProperty(property::createRefProperty("Read only", readOnly));
 
 	if (dialog->exec())
-		m_server.launchServer(port, readOnly == 1);
+	{
+		if (m_server.launchServer(port, readOnly))
+		{
+			m_serverButton->setTitle("Stop Server");
+			m_serverButton->setHelp("Stop the SFE server");
+		}
+		else
+			m_gui->messageBox(simplegui::MessageBoxType::warning, "SFE Server", "Could not start the SFE server with theses parameters.");
+
+	}
 }

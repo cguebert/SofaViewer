@@ -28,14 +28,14 @@ class SimpleGUIImpl : public simplegui::SimpleGUI
 public:
 	SimpleGUIImpl(MainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus);
 
-	simplegui::Menu& getMenu(MenuType menuType) override;
+	simplegui::Menu& getMenu(simplegui::MenuType menuType) override;
 	simplegui::Panel& buttonsPanel() override;
 	int addStatusBarZone(const std::string& text) override;
 	void setStatusBarText(int id, const std::string& text) override;
 	simplegui::Dialog::SPtr createDialog(const std::string& title) override;
 	std::string getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
 	std::string getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
-	int messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons) override;
+	int messageBox(simplegui::MessageBoxType type, const std::string& caption, const std::string& text, int buttons) override;
 	void updateView() override;
 	simplegui::Settings& settings() override;
 	void closeDocument() override;

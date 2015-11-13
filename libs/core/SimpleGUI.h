@@ -131,13 +131,12 @@ enum {
 
 /******************************************************************************/
 
+enum class MenuType { File, Tools, View, Help };
+enum class MessageBoxType { about, critical, information, question, warning };
 
 class CORE_API SimpleGUI
 {
 public:
-	enum class MenuType : unsigned char
-	{ File, Tools, View, Help };
-
 	using ObjectPropertiesPair = std::pair<GraphNode*, std::shared_ptr<ObjectProperties>>;
 
 	virtual ~SimpleGUI();
@@ -152,8 +151,7 @@ public:
 	virtual Dialog::SPtr createDialog(const std::string& title) = 0;
 	virtual std::string getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters) = 0; // Returns an empty string if the user cancels
 	virtual std::string getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters) = 0;
-
-	enum class MessageBoxType { about, critical, information, question, warning };
+	
 	// A combination of buttons can be set. Returns the button the user has clicked.
 	virtual int messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons = buttons::Ok) = 0;
 

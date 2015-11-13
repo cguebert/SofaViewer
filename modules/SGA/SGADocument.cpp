@@ -165,7 +165,7 @@ bool SGADocument::saveFile(const std::string& path)
 void SGADocument::initUI(simplegui::SimpleGUI& gui)
 {
 	m_gui = &gui;
-	auto& toolsMenu = m_gui->getMenu(simplegui::SimpleGUI::MenuType::Tools);
+	auto& toolsMenu = m_gui->getMenu(simplegui::MenuType::Tools);
 	toolsMenu.addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
 	toolsMenu.addItem("Export Sofa scene", "Convert to a Sofa simulation and export it", [this](){ convertAndExport(); });
 	toolsMenu.addSeparator();

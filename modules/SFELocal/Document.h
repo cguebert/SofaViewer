@@ -14,7 +14,8 @@ public:
 
 protected:
 	void modifyDataRepository();
-	void launchServer();
+	void onServer();
 
 	sfes::SFEServer m_server;
+	simplegui::Button::SPtr m_serverButton;
 };
