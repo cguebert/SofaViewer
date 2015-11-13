@@ -24,14 +24,14 @@ public:
 	void dragEnterEvent(QDragEnterEvent *event);
 	void closeEvent(QCloseEvent* event);
 
-private:
 	void newDoc();
 	void open();
 	bool save();
 	bool saveAs();
 	void about();
-	void openRecentFile();
+	void closeDoc();
 
+private:
 	void createActions();
 	void createMenus();
 	void loadModules();
@@ -45,6 +45,7 @@ private:
 	bool okToContinue();
 	void setCurrentFile(const QString &fileName);
 	void updateRecentFileActions();
+	void openRecentFile();
 
 	void setDocument(std::shared_ptr<BaseDocument> doc);
 

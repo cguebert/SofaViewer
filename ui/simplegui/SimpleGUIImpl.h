@@ -20,14 +20,13 @@ class SettingsImpl;
 class SimpleGUIImpl;
 
 class QLabel;
-class QMainWindow;
 class QMenu;
 class QWidget;
 
 class SimpleGUIImpl : public simplegui::SimpleGUI
 {
 public:
-	SimpleGUIImpl(QMainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus);
+	SimpleGUIImpl(MainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus);
 
 	simplegui::Menu& getMenu(MenuType menuType) override;
 	simplegui::Panel& buttonsPanel() override;
@@ -39,6 +38,7 @@ public:
 	int messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons) override;
 	void updateView() override;
 	simplegui::Settings& settings() override;
+	void closeDocument() override;
 
 	void clear();
 	void setDocument(std::shared_ptr<BaseDocument> doc);
@@ -57,7 +57,7 @@ protected:
 	using PanelImplPtr = std::shared_ptr<PanelImpl>;
 	using SettingsImplPtr = std::shared_ptr<SettingsImpl>;
 
-	QMainWindow* m_mainWindow;
+	MainWindow* m_mainWindow;
 	QWidget* m_mainView;
 	QWidget* m_buttonsPanelContainer;
 	std::vector<QMenu*> m_mainMenus;

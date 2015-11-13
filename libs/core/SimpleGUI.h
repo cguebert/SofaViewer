@@ -164,6 +164,8 @@ public:
 	virtual std::vector<ObjectPropertiesPair> getOpenedPropertiesDialogs() = 0;
 
 	virtual Settings& settings() = 0;
+
+	virtual void closeDocument() = 0; // Asks the UI to close the document (after all other events have been processed)
 };
 
 } // namespace simplegui

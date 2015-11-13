@@ -1,6 +1,7 @@
 #include <core/BaseDocument.h>
 #include <core/Graph.h>
 
+#include <ui/MainWindow.h>
 #include <ui/PropertiesDialog.h>
 
 #include <ui/simplegui/SimpleGUIImpl.h>
@@ -11,7 +12,7 @@
 
 #include <QtWidgets>
 
-SimpleGUIImpl::SimpleGUIImpl(QMainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus)
+SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow, QWidget* view, QWidget* buttonsPanelContainer, const std::vector<QMenu*>& menus)
 	: m_mainWindow(mainWindow)
 	, m_mainView(view)
 	, m_buttonsPanelContainer(buttonsPanelContainer)
@@ -129,6 +130,8 @@ int SimpleGUIImpl::messageBox(MessageBoxType type, const std::string& caption, c
 	case MessageBoxType::warning:
 		return QMessageBox::warning(m_mainView, QString::fromStdString(caption), QString::fromStdString(text), static_cast<QMessageBox::StandardButtons>(buttons));
 	}
+
+	return 0;
 }
 
 void SimpleGUIImpl::updateView()
@@ -218,6 +221,11 @@ void SimpleGUIImpl::dialogFinished(PropertiesDialog* dialog, int result)
 simplegui::Settings& SimpleGUIImpl::settings()
 {
 	return *m_settings;
+}
+
+void SimpleGUIImpl::closeDocument()
+{
+	QTimer::singleShot(0, m_mainWindow, &MainWindow::closeDoc);
 }
 
 void SimpleGUIImpl::createButtonsPanel()

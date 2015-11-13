@@ -220,8 +220,21 @@ void MainWindow::setCurrentFile(const QString &fileName)
 		updateRecentFileActions();
 	}
 
-	setWindowTitle(tr("%1[*] - %2").arg(shownName)
-								   .arg(tr("Sofa Front End Viewer")));
+	if (m_document)
+	{
+		auto docName = QString::fromStdString(m_document->documentType());
+		if (fileName.isEmpty())
+			setWindowTitle(tr("%1 - %2")
+				.arg(docName)
+				.arg(tr("Sofa Front End Viewer")));
+		else
+			setWindowTitle(tr("%1[*] - %2 - %3")
+				.arg(shownName)
+				.arg(docName)
+				.arg(tr("Sofa Front End Viewer")));
+	}
+	else
+		setWindowTitle(tr("Sofa Front End Viewer"));
 }
 
 void MainWindow::updateRecentFileActions()
@@ -315,6 +328,7 @@ bool MainWindow::loadFile(const QString& fileName)
 	if (!document->loadFile(cpath))
 	{
 		setDocument(nullptr);
+		setCurrentFile("");
 		statusBar()->showMessage(tr("Loading failed"), 2000);
 		return false;
 	}
@@ -367,6 +381,12 @@ void MainWindow::about()
 			tr("<h2>Sofa Front End Viewer</h2>"
 			   "<p>Copyright &copy; 2015 Christophe Guébert"
 			   "<p>Using Sofa and Sofa Front End"));
+}
+
+void MainWindow::closeDoc()
+{
+	setDocument(nullptr);
+	setCurrentFile("");
 }
 
 void MainWindow::setDocument(std::shared_ptr<BaseDocument> document)
