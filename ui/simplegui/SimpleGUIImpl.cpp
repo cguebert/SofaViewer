@@ -113,6 +113,24 @@ std::string SimpleGUIImpl::getSaveFileName(const std::string& caption, const std
 		).toStdString();
 }
 
+int SimpleGUIImpl::messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons)
+{
+	switch (type)
+	{
+	case MessageBoxType::about:
+		QMessageBox::about(m_mainView, QString::fromStdString(caption), QString::fromStdString(text));
+		return 0;
+	case MessageBoxType::critical:
+		return QMessageBox::critical(m_mainView, QString::fromStdString(caption), QString::fromStdString(text), static_cast<QMessageBox::StandardButtons>(buttons));
+	case MessageBoxType::information:
+		return QMessageBox::information(m_mainView, QString::fromStdString(caption), QString::fromStdString(text), static_cast<QMessageBox::StandardButtons>(buttons));
+	case MessageBoxType::question:
+		return QMessageBox::question(m_mainView, QString::fromStdString(caption), QString::fromStdString(text), static_cast<QMessageBox::StandardButtons>(buttons));
+	case MessageBoxType::warning:
+		return QMessageBox::warning(m_mainView, QString::fromStdString(caption), QString::fromStdString(text), static_cast<QMessageBox::StandardButtons>(buttons));
+	}
+}
+
 void SimpleGUIImpl::updateView()
 {
 	if (m_mainView)

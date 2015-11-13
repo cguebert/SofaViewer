@@ -36,6 +36,7 @@ public:
 	simplegui::Dialog::SPtr createDialog(const std::string& title) override;
 	std::string getOpenFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
 	std::string getSaveFileName(const std::string& caption, const std::string& path, const std::string& filters) override;
+	int messageBox(MessageBoxType type, const std::string& caption, const std::string& text, int buttons) override;
 	void updateView() override;
 	simplegui::Settings& settings() override;
 
