@@ -45,13 +45,17 @@ public:
 	virtual ~Panel();
 
 	virtual Button::SPtr addButton(const std::string& name, const std::string& help,
-						   CallbackFunc callback,
-						   int row = -1, int column = 0,
-						   int rowSpan = 1, int columnSpan = 1) = 0;
+								   CallbackFunc callback,
+								   int row = -1, int column = 0,
+								   int rowSpan = 1, int columnSpan = 1) = 0;
 
 	virtual void addProperty(Property::SPtr property,
 							 int row = -1, int column = 0,
 							 int rowSpan = 1, int columnSpan = 1) = 0;
+
+	virtual void addLabel(const std::string& text,
+						  int row = -1, int column = 0,
+						  int rowSpan = 1, int columnSpan = 1) = 0;
 };
 
 /******************************************************************************/

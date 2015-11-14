@@ -16,9 +16,9 @@ PanelImpl::PanelImpl(QWidget* parent, QGridLayout* layout)
 }
 
 simplegui::Button::SPtr PanelImpl::addButton(const std::string& name, const std::string& help,
-							 simplegui::CallbackFunc callback,
-							 int row, int column,
-							 int rowSpan, int columnSpan)
+											 simplegui::CallbackFunc callback,
+											 int row, int column,
+											 int rowSpan, int columnSpan)
 {
 	auto button = new QPushButton(QString::fromStdString(name));
 	button->setStatusTip(QString::fromStdString(help));
@@ -59,4 +59,15 @@ void PanelImpl::addProperty(Property::SPtr property,
 	}
 	else
 		m_layout->addWidget(widget, row, column, rowSpan, columnSpan);
+}
+
+void PanelImpl::addLabel(const std::string& text,
+						 int row, int column,
+						 int rowSpan, int columnSpan)
+{
+	auto label = new QLabel(QString::fromStdString(text));
+
+	if (row < 0)
+		row = m_layout->count() ? m_layout->rowCount() : 0;
+	m_layout->addWidget(label, row, column, rowSpan, columnSpan);
 }
