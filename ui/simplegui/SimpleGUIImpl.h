@@ -14,6 +14,7 @@ class ObjectProperties;
 class PropertiesDialog;
 
 class DialogImpl;
+class ExecuteByGUI;
 class MenuImpl;
 class PanelImpl;
 class SettingsImpl;
@@ -39,6 +40,7 @@ public:
 	void updateView() override;
 	simplegui::Settings& settings() override;
 	void closeDocument() override;
+	void executeByUI(simplegui::CallbackFunc func) override;
 
 	void clear();
 	void setDocument(std::shared_ptr<BaseDocument> doc);
@@ -61,6 +63,7 @@ protected:
 	QWidget* m_mainView;
 	QWidget* m_buttonsPanelContainer;
 	std::vector<QMenu*> m_mainMenus;
+	ExecuteByGUI* m_executeByGUI;
 
 	PanelImplPtr m_buttonsPanel;
 	SettingsImplPtr m_settings;

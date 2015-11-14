@@ -50,13 +50,11 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 
 void Document::serverShutdown()
 {
-	m_graph.setRoot(nullptr);
+	// We are in a SFE thread, many Qt functions will failed if called from here
+	auto gui = m_gui;
+	m_gui->executeByUI([gui](){ 
+		gui->messageBox(simplegui::MessageBoxType::information, "Server shutdown", "The server has closed the connection");
+	});
 
-	m_animateButton->setEnabled(false);
-	m_stepButton->setEnabled(false);
-	m_resetButton->setEnabled(false);
-	m_updateGraphButton->setEnabled(false);
-
-//	m_gui->messageBox(simplegui::MessageBoxType::information, "Server shutdown", "The server has closed the connection");
-//	m_gui->closeDocument();
+	m_gui->closeDocument();
 }

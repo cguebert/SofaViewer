@@ -18,6 +18,7 @@ set(HEADER_FILES
 	PropertiesDialog.h
 	simplegui/ButtonImpl.h
 	simplegui/DialogImpl.h
+	simplegui/ExecuteByGUI.h
 	simplegui/MenuImpl.h
 	simplegui/PanelImpl.h
 	simplegui/SettingsImpl.h
@@ -37,6 +38,7 @@ set(SOURCE_FILES
 	PropertiesDialog.cpp
 	simplegui/ButtonImpl.cpp
 	simplegui/DialogImpl.cpp
+	simplegui/ExecuteByGUI.cpp
 	simplegui/MenuImpl.cpp
 	simplegui/PanelImpl.cpp
 	simplegui/SettingsImpl.cpp

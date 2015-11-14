@@ -6,6 +6,7 @@
 
 #include <ui/simplegui/SimpleGUIImpl.h>
 #include <ui/simplegui/DialogImpl.h>
+#include <ui/simplegui/ExecuteByGUI.h>
 #include <ui/simplegui/MenuImpl.h>
 #include <ui/simplegui/PanelImpl.h>
 #include <ui/simplegui/SettingsImpl.h>
@@ -18,6 +19,7 @@ SimpleGUIImpl::SimpleGUIImpl(MainWindow* mainWindow, QWidget* view, QWidget* but
 	, m_buttonsPanelContainer(buttonsPanelContainer)
 	, m_mainMenus(menus)
 	, m_settings(std::make_shared<SettingsImpl>(mainWindow))
+	, m_executeByGUI(new ExecuteByGUI(mainWindow))
 {
 	createButtonsPanel();
 }
@@ -226,7 +228,15 @@ simplegui::Settings& SimpleGUIImpl::settings()
 
 void SimpleGUIImpl::closeDocument()
 {
-	QTimer::singleShot(0, m_mainWindow, &MainWindow::closeDoc);
+	auto ptr = m_mainWindow;
+	m_executeByGUI->addFunction([ptr](){
+		QTimer::singleShot(0, ptr, &MainWindow::closeDoc); 
+	});
+}
+
+void SimpleGUIImpl::executeByUI(simplegui::CallbackFunc func)
+{
+	m_executeByGUI->addFunction(func);
 }
 
 void SimpleGUIImpl::createButtonsPanel()

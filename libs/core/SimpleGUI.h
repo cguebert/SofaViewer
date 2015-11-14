@@ -164,6 +164,7 @@ public:
 	virtual Settings& settings() = 0;
 
 	virtual void closeDocument() = 0; // Asks the UI to close the document (after all other events have been processed)
+	virtual void executeByUI(CallbackFunc func) = 0; // Put the function on a queue that will be executed on the UI thread
 };
 
 } // namespace simplegui
