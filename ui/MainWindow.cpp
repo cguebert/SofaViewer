@@ -317,10 +317,44 @@ QString MainWindow::strippedName(const QString& fullFileName)
 bool MainWindow::loadFile(const QString& fileName)
 {
 	std::string cpath = fileName.toStdString();
-	auto document = DocumentFactory::instance().createForFile(cpath);
-	if(!document) // TODO: show a dialog so that the user can choose the correct document to use
+	auto& factory = DocumentFactory::instance();
+	auto possibleDocuments = factory.documentsToLoadFile(cpath);
+	std::string selectedDocument;
+	if (possibleDocuments.empty())
 	{
-		statusBar()->showMessage(tr("Cannot create a document to load this file"), 2000);
+		QStringList items;
+		for (const auto& doc : factory.documents())
+			items.push_back(QString::fromStdString(doc.name));
+
+		bool ok = false;
+		QString item = QInputDialog::getItem(this, tr("Unknown file type"), tr("Document type:"), items, 0, false, &ok);
+		if (!ok)
+			return false;
+
+		selectedDocument = item.toStdString();
+	}
+	else if (possibleDocuments.size() == 1)
+	{
+		selectedDocument = possibleDocuments.front();
+	}
+	else
+	{
+		QStringList items;
+		for (const auto& c : possibleDocuments)
+			items.push_back(QString::fromStdString(c));
+
+		bool ok = false;
+		QString item = QInputDialog::getItem(this, tr("Choose document type"), tr("Document type:"), items, 0, false, &ok);
+		if (!ok)
+			return false;
+
+		selectedDocument = item.toStdString();
+	}
+
+	auto document = factory.create(selectedDocument);
+	if(!document)
+	{
+		statusBar()->showMessage(tr("Could not create the document"), 2000);
 		return false;
 	}
 

@@ -32,20 +32,21 @@ std::shared_ptr<BaseDocument> DocumentFactory::create(const std::string& name) c
 	return nullptr;
 }
 
-std::shared_ptr<BaseDocument> DocumentFactory::createForFile(const std::string& fileName) const
+
+std::vector<std::string> DocumentFactory::documentsToLoadFile(const std::string& fileName) const
 {
 	auto suffixePos = fileName.find_last_of(".");
 	auto suffixe = fileName.substr(suffixePos + 1);
 	std::transform(suffixe.begin(), suffixe.end(), suffixe.begin(), ::tolower);
-	auto it = std::find_if(m_loadFilesAssociation.begin(), m_loadFilesAssociation.end(),
-						   [suffixe](const std::pair<std::string, std::string>& p){
-		return p.first == suffixe;
-	});
 
-	if(it == m_loadFilesAssociation.end())
-		return nullptr;
+	std::vector<std::string> documents;
+	for (auto& asso : m_loadFilesAssociation)
+	{
+		if (asso.first == suffixe)
+			documents.push_back(asso.second);
+	}
 
-	return create(it->second);
+	return documents;
 }
 
 int DocumentFactory::registerDocument(DocumentEntry&& entry)

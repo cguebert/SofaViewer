@@ -18,9 +18,10 @@ public:
 	~DocumentFactory();
 
 	std::shared_ptr<BaseDocument> create(const std::string& name) const;
-	std::shared_ptr<BaseDocument> createForFile(const std::string& fileName) const;
 
+	std::vector<std::string> documentsToLoadFile(const std::string& fileName) const;
 	std::vector<std::string> creatableDocuments() const;
+
 	std::string loadFilesFilter() const; // For all documents
 	std::string saveFilesFilter(const BaseDocument* document) const; // Only for current document
 
