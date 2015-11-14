@@ -60,7 +60,11 @@ void SimpleGUIImpl::clear()
 	// Menus
 	m_menus.clear();
 	for (auto menu : m_mainMenus)
+	{
+		if (menu->actions().empty())
+			menu->menuAction()->setVisible(false);
 		m_menus.push_back(std::make_shared<MenuImpl>(menu, true));
+	}
 
 	// Buttons box
 	createButtonsPanel();

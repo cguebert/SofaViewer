@@ -24,6 +24,7 @@ simplegui::Button::SPtr MenuImpl::addItem(const std::string& name, const std::st
 
 	QObject::connect(action, &QAction::triggered, callback);
 	m_menu->addAction(action);
+	m_menu->menuAction()->setVisible(true);
 
 	return std::make_shared<Action_ButtonImpl>(action);
 }
@@ -31,6 +32,7 @@ simplegui::Button::SPtr MenuImpl::addItem(const std::string& name, const std::st
 simplegui::Menu& MenuImpl::addMenu(const std::string& name)
 {
 	auto menu = m_menu->addMenu(QString::fromStdString(name));
+	m_menu->menuAction()->setVisible(true);
 	auto menuImpl = std::make_shared<MenuImpl>(menu);
 	m_subMenus.push_back(menuImpl);
 	return *menuImpl;
@@ -39,6 +41,7 @@ simplegui::Menu& MenuImpl::addMenu(const std::string& name)
 void MenuImpl::addSeparator()
 {
 	auto action = m_menu->addSeparator();
+	m_menu->menuAction()->setVisible(true);
 	if (m_freeActions)
 		m_actions.push_back(action);
 }

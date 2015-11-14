@@ -137,8 +137,10 @@ void MainWindow::createMenus()
 	m_fileMenu->addAction(m_exitAction);
 
 	m_toolsMenu = menuBar()->addMenu(tr("&Tools"));
+	m_toolsMenu->menuAction()->setVisible(false);
 
 	m_viewMenu = menuBar()->addMenu(tr("&View"));
+	m_viewMenu->menuAction()->setVisible(false);
 
 	m_helpMenu = menuBar()->addMenu(tr("&Help"));
 	m_helpMenu->addSeparator();
