@@ -88,6 +88,8 @@ private:
 	int meshIndex(int meshId);
 	int materialIndex(int materialId);
 
+	void findTextures(const std::string& modelPath);
+
 	MeshDocument* m_document;
 	simplerender::Scene& m_scene;
 	Graph& m_graph;

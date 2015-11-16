@@ -10,6 +10,8 @@
 
 #include <glm/glm.hpp>
 
+#include <fstream>
+
 namespace
 {
 
@@ -98,6 +100,11 @@ simplerender::Material::SPtr createMaterial(const aiMaterial* input)
 	return material;
 }
 
+bool doesFileExist(const std::string& path)
+{
+	return std::ifstream(path).good();
+}
+
 }
 
 MeshImport::MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph)
@@ -116,7 +123,10 @@ std::pair<MeshImport::Meshes, MeshImport::Materials> MeshImport::importMeshes(co
 		aiProcess_SortByPType);
 
 	if (scene)
+	{
 		parseScene(scene);
+		findTextures(filePath);
+	}
 
 	return std::make_pair(m_newMeshes, m_newMaterials);
 }
@@ -224,4 +234,25 @@ int MeshImport::materialIndex(int materialId)
 	}
 
 	return -1;
+}
+
+void MeshImport::findTextures(const std::string& modelPath)
+{
+	// Find the repertory of the model file
+	auto pos = modelPath.find_last_of("/\\");
+	if (pos == std::string::npos)
+		return;
+	std::string dir = modelPath.substr(0, pos);
+
+	// Modify the relative texture paths
+	for (auto& material : m_newMaterials)
+	{
+		auto& fileName = material->textureFilename;
+		if (!fileName.empty())
+		{
+			auto path = dir + "/" + fileName;
+			if (doesFileExist(path))
+				fileName = path;
+		}
+	}
 }
