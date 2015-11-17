@@ -115,6 +115,7 @@ void PropertiesDialog::addTab(QTabWidget* tabWidget, QString name, IntListIter b
 		groupBox->setLayout(layout);
 		QString title = QString::fromStdString(prop.property->name());
 		groupBox->setTitle(title);
+		groupBox->setToolTip(QString::fromStdString(prop.property->help()));
 		layout->addWidget(prop.widget->createWidgets());
 		scrollLayout->addWidget(groupBox);
 

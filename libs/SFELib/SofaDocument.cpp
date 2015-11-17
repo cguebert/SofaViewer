@@ -97,6 +97,7 @@ void SofaDocument::initUI(simplegui::SimpleGUI& gui)
 	m_resetButton = panel.addButton("Reset", "Reset the simulation", [this](){ resetSimulation(); }, 1, 0);
 
 	auto prop = property::createRefProperty("Dt", m_timestep);
+	prop->setHelp("Timestep of the simulation");
 	prop->setSaveTrigger(Property::SaveTrigger::asap);
 	panel.addProperty(prop, 1, 1);
 

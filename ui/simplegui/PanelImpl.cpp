@@ -43,9 +43,11 @@ void PanelImpl::addProperty(Property::SPtr property,
 		return;
 	}
 
+	
 	m_propertyWidgets.push_back(propWidget);
 
 	auto widget = propWidget->createWidgets();
+	widget->setToolTip(QString::fromStdString(property->help()));
 
 	if(row < 0)
 		row = m_layout->count() ? m_layout->rowCount() : 0;
@@ -53,8 +55,9 @@ void PanelImpl::addProperty(Property::SPtr property,
 	if(!property->name().empty())
 	{
 		auto containerLayout = new QFormLayout;
-		auto label = new QLabel(QString::fromStdString(property->name()));
-		containerLayout->addRow(QString::fromStdString(property->name()), widget);
+		auto name = QString::fromStdString(property->name());
+		auto label = new QLabel(name);
+		containerLayout->addRow(name, widget);
 		m_layout->addLayout(containerLayout, row, column, rowSpan, columnSpan);
 	}
 	else
