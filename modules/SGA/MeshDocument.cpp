@@ -177,6 +177,7 @@ bool MeshDocument::saveFile(const std::string& path)
 
 void MeshDocument::initUI(simplegui::SimpleGUI& gui)
 {
+	m_gui = &gui;
 	m_graph.setRoot(m_rootNode);
 
 	auto& toolsMenu = gui.getMenu(simplegui::MenuType::Tools);
@@ -437,8 +438,20 @@ void MeshDocument::addNode(MeshNode* parent)
 
 void MeshDocument::removeNode(MeshNode* item)
 {
-	if(item->parent)
+	if (item->parent)
+	{
+		// Remove the child instances
+		auto instanceNodes = convertToMeshNodes(getNodes(item, MeshNode::Type::Instance));
+		for(auto node : instanceNodes)
+			removeValue(m_scene.instances(), node->instance);
+
+		// Remove the node
 		m_graph.removeChild(item->parent, item);
+
+		// Update the view if any changes were made
+		if(!instanceNodes.empty())
+			m_gui->updateView();
+	}
 }
 
 void MeshDocument::addInstance(MeshNode* parent)
@@ -451,9 +464,9 @@ void MeshDocument::addInstance(MeshNode* parent)
 
 void MeshDocument::removeInstance(MeshNode* item)
 {
-	auto instances = m_scene.instances();
-	removeValue(instances, item->instance);
+	removeValue(m_scene.instances(), item->instance);
 	removeNode(item);
+	m_gui->updateView();
 }
 
 void MeshDocument::removeDuplicateMeshes()

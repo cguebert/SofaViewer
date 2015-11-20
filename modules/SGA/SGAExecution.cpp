@@ -159,18 +159,22 @@ void SGAExecution::parseNode(GraphNode* baseNode, sgaExec::CreationContext& cont
 	if (!meshNode)
 		return;
 
-	if (meshNode->instance) // Instance
-		convertObject(meshNode, context);
-	else if (meshNode->nodeType == MeshNode::Type::Node || meshNode->nodeType == MeshNode::Type::Root)
+	for (auto child : meshNode->children)
 	{
-		context.globalTransformationMatrix = meshNode->transformationMatrix * context.localTransformationMatrix;
-		context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
-		context.localTransformationMatrix = meshNode->transformationMatrix;
-		context.localTransformation = convertTransformation(context.localTransformationMatrix);
+		auto childNode = dynamic_cast<MeshNode*>(child.get());
+		if (!childNode)
+			continue;
 
-		sgaExec::CreationContext tmpContext = context;
-		for (auto child : meshNode->children)
+		if (childNode->instance) // Instance
+			convertObject(childNode, context);
+		else if (childNode->nodeType == MeshNode::Type::Node || childNode->nodeType == MeshNode::Type::Root)
 		{
+			sgaExec::CreationContext tmpContext = context;
+			context.globalTransformationMatrix = childNode->transformationMatrix * context.localTransformationMatrix;
+			context.globalTransformation = convertTransformation(context.globalTransformationMatrix);
+			context.localTransformationMatrix = childNode->transformationMatrix;
+			context.localTransformation = convertTransformation(context.localTransformationMatrix);
+			
 			parseNode(child.get(), context);
 			context = tmpContext; // Reset the context each time we come back
 		}
@@ -200,7 +204,7 @@ void SGAExecution::convertObject(MeshNode* item, sgaExec::CreationContext& conte
 		if (context.parent && context.parent.sofaNode())
 		{
 			auto wrapper = createSofaObject(collisionNode, context);
-			if (!physicsNode)
+			if (!context.hasSGAParent)
 			{
 				context.parent = wrapper;
 				context.setParent();

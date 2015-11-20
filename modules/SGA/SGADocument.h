@@ -80,7 +80,6 @@ protected:
 	SimulationProperties m_simulationProperties;
 
 	simplegui::Button::SPtr m_runButton;
-	simplegui::SimpleGUI* m_gui = nullptr;
 };
 
 inline Graph& SGADocument::graph()

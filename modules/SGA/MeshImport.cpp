@@ -41,6 +41,10 @@ simplerender::Mesh::SPtr createMesh(const aiMesh* input)
 		mesh->m_triangles.reserve(input->mNumFaces);
 		for (unsigned int j = 0; j < input->mNumFaces; ++j)
 			mesh->m_triangles.push_back({ input->mFaces[j].mIndices[0], input->mFaces[j].mIndices[1], input->mFaces[j].mIndices[2] });
+
+		mesh->m_normals.reserve(input->mNumVertices);
+		for (unsigned int j = 0; j < input->mNumVertices; ++j)
+			mesh->m_normals.push_back(convert(input->mNormals[j]));
 	}
 	else if (input->mPrimitiveTypes == aiPrimitiveType_LINE)
 	{
@@ -58,10 +62,6 @@ simplerender::Mesh::SPtr createMesh(const aiMesh* input)
 			mesh->m_texCoords.push_back(glm::vec2(t.x, t.y));
 		}
 	}
-
-	mesh->m_normals.reserve(input->mNumVertices);
-	for (unsigned int j = 0; j < input->mNumVertices; ++j)
-		mesh->m_normals.push_back(convert(input->mNormals[j]));
 
 	return mesh;
 }
@@ -118,12 +118,13 @@ std::pair<MeshImport::Meshes, MeshImport::Materials> MeshImport::importMeshes(co
 {
 	Assimp::Importer importer;
 	const aiScene* scene = importer.ReadFile(filePath,
-		aiProcess_Triangulate |
-		aiProcess_JoinIdenticalVertices |
-		aiProcess_SortByPType);
+	//	aiProcess_JoinIdenticalVertices |
+	//	aiProcess_SortByPType |
+		aiProcess_RemoveRedundantMaterials);
 
 	if (scene)
 	{
+	//	importer.ApplyPostProcessing(aiProcess_Triangulate);
 		parseScene(scene);
 		findTextures(filePath);
 	}
@@ -180,8 +181,11 @@ void MeshImport::addMeshes(const aiScene* scene)
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto inMesh = scene->mMeshes[i];
-		if (!inMesh->HasPositions() || !inMesh->HasFaces() || !inMesh->HasNormals() || 
-			(inMesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && inMesh->mPrimitiveTypes != aiPrimitiveType_LINE))
+		if (!inMesh->HasPositions() || !inMesh->HasFaces()) // Need vertices and faces
+			continue;
+		if (inMesh->mPrimitiveTypes == aiPrimitiveType_TRIANGLE && !inMesh->HasNormals()) // If triangles, need normals
+			continue;
+		if (inMesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && inMesh->mPrimitiveTypes != aiPrimitiveType_LINE) // Accept either triangles, or lines
 			continue;
 
 		auto node = m_document->createNode(inMesh->mName.length ? inMesh->mName.C_Str() : "mesh " + std::to_string(i), MeshNode::Type::Mesh, m_graph.root());

@@ -35,7 +35,7 @@ SGANode* getChild(GraphNode* parent, SGANode::Type type)
 	for (auto child : parent->children)
 	{
 		auto sgaNode = dynamic_cast<SGANode*>(child.get());
-		if (sgaNode->nodeType == type)
+		if (sgaNode && sgaNode->nodeType == type)
 			return sgaNode;
 	}
 
@@ -47,7 +47,7 @@ MeshNode* getChild(GraphNode* parent, MeshNode::Type type)
 	for (auto child : parent->children)
 	{
 		auto meshNode = dynamic_cast<MeshNode*>(child.get());
-		if (meshNode->nodeType == type)
+		if (meshNode && meshNode->nodeType == type)
 			return meshNode;
 	}
 
@@ -164,13 +164,12 @@ bool SGADocument::saveFile(const std::string& path)
 
 void SGADocument::initUI(simplegui::SimpleGUI& gui)
 {
-	m_gui = &gui;
-	auto& toolsMenu = m_gui->getMenu(simplegui::MenuType::Tools);
+	auto& toolsMenu = gui.getMenu(simplegui::MenuType::Tools);
 	toolsMenu.addItem("Import mesh", "Import a scene or a mesh", [this](){ importMesh(); });
 	toolsMenu.addItem("Export Sofa scene", "Convert to a Sofa simulation and export it", [this](){ convertAndExport(); });
 	toolsMenu.addSeparator();
 
-	auto& panel = m_gui->buttonsPanel();
+	auto& panel = gui.buttonsPanel();
 	m_runButton = panel.addButton("Run", "Convert to a Sofa simulation and run it", [this](){ runClicked(); });
 	m_runButton->setCheckable(true);
 

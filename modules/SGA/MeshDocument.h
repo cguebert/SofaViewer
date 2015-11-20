@@ -80,6 +80,7 @@ protected:
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
+	simplegui::SimpleGUI* m_gui = nullptr;
 
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
