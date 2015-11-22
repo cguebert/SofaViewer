@@ -30,6 +30,20 @@ namespace conversion
 		}
 	};
 
+	template <>
+	struct StringConversion<std::string>
+	{
+		static std::string toString(const std::string& val)
+		{
+			return val;
+		}
+
+		static void fromString(std::string& val, const std::string& text)
+		{
+			val = text;
+		}
+	};
+
 	template <class T>
 	struct StringConversion<std::vector<T>>
 	{
