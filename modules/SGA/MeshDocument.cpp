@@ -183,6 +183,7 @@ void MeshDocument::initUI(simplegui::SimpleGUI& gui)
 	auto& toolsMenu = gui.getMenu(simplegui::MenuType::Tools);
 	toolsMenu.addItem("Remove duplicate meshes", "Remove meshes that are identical to each other", [this](){ removeDuplicateMeshes(); });
 	toolsMenu.addItem("Remove unused meshes", "Remove meshes that have no instance", [this](){ removeUnusedMeshes(); });
+	toolsMenu.addItem("Remove unused materials", "Remove materials that have no instance", [this](){ removeUnusedMaterials(); });
 }
 
 void MeshDocument::initOpenGL()
@@ -553,17 +554,19 @@ void MeshDocument::removeUnusedMeshes()
 		auto meshPtr = mesh.get();
 		return instancedMeshes.end() == std::find(instancedMeshes.begin(), instancedMeshes.end(), meshPtr);
 	};
+
+	// Copy the unused meshes
 	auto& meshes = m_scene.meshes();
-	auto last = std::remove_if(meshes.begin(), meshes.end(), isUnused);
+	simplerender::Scene::Meshes unusedMeshes;
+	std::copy_if(meshes.begin(), meshes.end(), std::back_inserter(unusedMeshes), isUnused);
 
 	// Iterate over unused meshes
-	if (last != meshes.end())
+	if (!unusedMeshes.empty())
 	{
 		auto meshNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Mesh));
-		for (auto it = last, itEnd = meshes.end(); it != itEnd; ++it)
+		for (const auto& mesh : unusedMeshes)
 		{
 			// If there is a mesh node in the graph, remove it
-			auto mesh = *it;
 			auto itMesh = std::find_if(meshNodes.begin(), meshNodes.end(), [&mesh](MeshNode* node){
 				return node->mesh == mesh;
 			});
@@ -576,6 +579,59 @@ void MeshDocument::removeUnusedMeshes()
 		}
 
 		// Modifiy the scene's meshes list
+		auto last = std::remove_if(meshes.begin(), meshes.end(), isUnused);
 		meshes.erase(last, meshes.end());
+	}
+}
+
+void MeshDocument::removeUnusedMaterials()
+{
+	// Get the list of the instances
+	auto instanceNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Instance));
+	std::vector<simplerender::Material*> instancedMaterials;
+	for (auto& instanceNode : instanceNodes)
+	{
+		if (instanceNode->material)
+			instancedMaterials.push_back(instanceNode->material.get());
+	}
+
+	// Create a unique list of used materials
+	std::sort(instancedMaterials.begin(), instancedMaterials.end());
+	auto lastInstanced = std::unique(instancedMaterials.begin(), instancedMaterials.end());
+	if (lastInstanced != instancedMaterials.end())
+		instancedMaterials.erase(lastInstanced, instancedMaterials.end());
+
+	// Test if a material is used
+	auto isUnused = [&instancedMaterials](const simplerender::Material::SPtr& material){
+		auto materialPtr = material.get();
+		return instancedMaterials.end() == std::find(instancedMaterials.begin(), instancedMaterials.end(), materialPtr);
+	};
+
+	// Copy the unused materials
+	auto& materials = m_scene.materials();
+	simplerender::Scene::Materials unusedMaterials;
+	std::copy_if(materials.begin(), materials.end(), std::back_inserter(unusedMaterials), isUnused);
+
+	// Iterate over unused materials
+	if (!unusedMaterials.empty())
+	{
+		auto materialNodes = convertToMeshNodes(getNodes(m_rootNode.get(), MeshNode::Type::Material));
+		for (const auto& material : unusedMaterials)
+		{
+			// If there is a material node in the graph, remove it
+			auto itMaterial = std::find_if(materialNodes.begin(), materialNodes.end(), [&material](MeshNode* node){
+				return node->material == material;
+			});
+
+			if (itMaterial != materialNodes.end())
+			{
+				auto materialNode = *itMaterial;
+				m_graph.removeChild(materialNode->parent, materialNode);
+			}
+		}
+
+		// Modifiy the scene's materials list
+		auto last = std::remove_if(materials.begin(), materials.end(), isUnused);
+		materials.erase(last, materials.end());
 	}
 }

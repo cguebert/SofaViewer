@@ -66,6 +66,7 @@ public:
 
 	void removeDuplicateMeshes();
 	void removeUnusedMeshes();
+	void removeUnusedMaterials();
 
 protected:
 	void createGraphImages();
