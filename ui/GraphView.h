@@ -28,7 +28,7 @@ private:
 	void collapseItem(const QModelIndex&);
 	void showContextMenu(const QPoint& pos);
 
-	void graphCallback(uint8_t reason);
+	void graphCallback(int reason, GraphNode* node, int first, int last);
 	void setGraphItemExpandedState(size_t id, bool expanded);
 
 	QTreeView* m_graph;

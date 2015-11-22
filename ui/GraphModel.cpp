@@ -4,6 +4,21 @@
 
 #include <QPixmap>
 
+namespace
+{
+
+int indexOfChild(GraphNode* node)
+{
+	auto& children = node->parent->children;
+	auto it = std::find_if(children.begin(), children.end(), [node](const GraphNode::SPtr& ptr){
+		return ptr.get() == node;
+	});
+	auto index = std::distance(children.begin(), it);
+	return index;
+}
+
+}
+
 GraphModel::GraphModel(QObject* parent, Graph& graph)
 	: QAbstractItemModel(parent)
 	, m_graph(graph)
@@ -16,14 +31,35 @@ QModelIndexList GraphModel::getPersistentIndexList() const
 	return persistentIndexList();
 }
 
-void GraphModel::beginReset()
+void GraphModel::operation(int opVal, GraphNode* node, int first, int last)
 {
-	beginResetModel();
-}
+	auto op = static_cast<Graph::CallbackReason>(opVal);
+	switch (op)
+	{
+	case Graph::CallbackReason::BeginSetRoot:
+		beginResetModel();
+		break;
 
-void GraphModel::endReset()
-{
-	endResetModel();
+	case Graph::CallbackReason::EndSetRoot:
+		endResetModel();
+		break;
+
+	case Graph::CallbackReason::BeginInsertNode:
+		beginInsertRows(index(node), first, last);
+		break;
+
+	case Graph::CallbackReason::EndInsertNode:
+		endInsertRows();
+		break;
+
+	case Graph::CallbackReason::BeginRemoveNode:
+		beginRemoveRows(index(node), first, last);
+		break;
+
+	case Graph::CallbackReason::EndRemoveNode:
+		endRemoveRows();
+		break;
+	}
 }
 
 QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) const
@@ -42,16 +78,6 @@ QModelIndex GraphModel::index(int row, int column, const QModelIndex& parent) co
 		return createIndex(row, column, item->children[row].get());
 	else
 		return QModelIndex();
-}
-
-int indexOfChild(GraphNode* node)
-{
-	auto& children = node->parent->children;
-	auto it = std::find_if(children.begin(), children.end(), [node](const GraphNode::SPtr& ptr){
-		return ptr.get() == node;
-	});
-	auto index = std::distance(children.begin(), it);
-	return index;
 }
 
 QModelIndex GraphModel::parent(const QModelIndex& index) const
@@ -135,4 +161,12 @@ void GraphModel::updatePixmaps()
 			m_pixmaps.push_back(pix);
 		}		
 	}
+}
+
+QModelIndex GraphModel::index(GraphNode* node)
+{
+	if (!node || node == m_graph.root())
+		return createIndex(0, 0, node);
+
+	return createIndex(indexOfChild(node), 0, node);
 }

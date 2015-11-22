@@ -62,10 +62,9 @@ GraphNodes getNodes(GraphNode* root, const SelectFunction& selectFunc, Traversal
 
 void Graph::setRoot(GraphNode::SPtr root)
 {
-	executeCallback(CallbackReason::BeginSetNode);
+	executeCallback(CallbackReason::BeginSetRoot);
 	m_root = root;
-	executeCallback(CallbackReason::EndSetNode);
-
+	executeCallback(CallbackReason::EndSetRoot);
 }
 
 int Graph::addImage(const GraphImage& image)
@@ -75,41 +74,39 @@ int Graph::addImage(const GraphImage& image)
 	return id;
 }
 
-void Graph::addChild(GraphNode* parent, GraphNode::SPtr child)
-{
-	executeCallback(CallbackReason::BeginSetNode);
-	parent->children.push_back(child);
-	executeCallback(CallbackReason::EndSetNode);
-}
-
 void Graph::insertChild(GraphNode* parent, GraphNode::SPtr child, int position)
 {
-	executeCallback(CallbackReason::BeginSetNode);
 	if (position < 0)
+	{
+		auto last = parent->children.size();
+		executeCallback(CallbackReason::BeginInsertNode, parent, last, last);
 		parent->children.push_back(child);
+	}
 	else
+	{
+		executeCallback(CallbackReason::BeginInsertNode, parent, position, position);
 		parent->children.insert(parent->children.begin() + position, child);
-	executeCallback(CallbackReason::EndSetNode);
+	}
+	executeCallback(CallbackReason::EndInsertNode, child.get());
 }
 
 void Graph::removeChild(GraphNode* parent, GraphNode* child)
 {
-	executeCallback(CallbackReason::BeginSetNode);
-	auto& children = parent->children;
-	auto it = std::find_if(children.begin(), children.end(), [child](const GraphNode::SPtr node){
-		return node.get() == child;
-	});
+	auto index = graph::indexOfChild(parent, child);
+	if (index == -1)
+		return;
 
-	if (it != children.end())
-		children.erase(it);
-	executeCallback(CallbackReason::EndSetNode);
+	executeCallback(CallbackReason::BeginRemoveNode, parent, index, index);
+	auto& children = parent->children;
+	children.erase(children.begin() + index);
+	executeCallback(CallbackReason::EndRemoveNode);
 }
 
-void Graph::executeCallback(CallbackReason reason)
+void Graph::executeCallback(CallbackReason reason, GraphNode* node, int first, int last)
 {
 	if(m_updateCallback)
 	{
 		auto val = static_cast<uint8_t>(reason);
-		m_updateCallback(val);
+		m_updateCallback(val, node, first, last);
 	}
 }

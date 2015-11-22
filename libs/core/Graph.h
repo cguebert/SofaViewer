@@ -54,19 +54,18 @@ public:
 	const ImagesList& images() const;
 	int addImage(const GraphImage& image); // Return the id of this image
 
-	enum class CallbackReason : uint8_t
-	{ BeginSetNode, EndSetNode };
+	enum class CallbackReason : int
+	{ BeginSetRoot, EndSetRoot, BeginInsertNode, EndInsertNode, BeginRemoveNode, EndRemoveNode };
 
-	using CallbackFunc = std::function<void(uint8_t)>;
+	using CallbackFunc = std::function<void(int reason, GraphNode* node, int first, int last)>;
 	void setUpdateCallback(CallbackFunc func); // For the GUI to respond to modifications in the graph (for now, only when setRoot is called)
 
 	// The following methods execute the corresponding callbacks
-	void addChild(GraphNode* parent, GraphNode::SPtr child);
 	void insertChild(GraphNode* parent, GraphNode::SPtr child, int position);
 	void removeChild(GraphNode* parent, GraphNode* child);
 
 protected:
-	void executeCallback(CallbackReason reason);
+	void executeCallback(CallbackReason reason, GraphNode* node = nullptr, int first = 0, int last = 0);
 
 	GraphNode::SPtr m_root;
 	ImagesList m_images;

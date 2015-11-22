@@ -35,12 +35,16 @@ void GraphView::setDocument(std::shared_ptr<BaseDocument> doc)
 	if (oldModel)
 		delete oldModel;
 
+	m_graphItemsExpandedState.clear();
+
 	m_document = doc;
 	if (!m_document)
 		return;
 
 	auto& graph = m_document->graph();
-	graph.setUpdateCallback([this](uint16_t val){ graphCallback(val); });
+	graph.setUpdateCallback([this](int val, GraphNode* parent, int first, int last){ 
+		graphCallback(val, parent, first, last); 
+	});
 }
 
 void GraphView::openItem(const QModelIndex& index)
@@ -101,32 +105,24 @@ void GraphView::setGraphItemExpandedState(size_t id, bool expanded)
 		m_graphItemsExpandedState.emplace_back(id, expanded);
 }
 
-void GraphView::graphCallback(uint8_t reasonVal)
+void GraphView::graphCallback(int reasonVal, GraphNode* node, int first, int last)
 {
 	auto reason = static_cast<Graph::CallbackReason>(reasonVal);
 	auto model = dynamic_cast<GraphModel*>(m_graph->model());
 
+	if (model)
+		model->operation(reasonVal, node, first, last);
+
 	switch (reason)
 	{
-	case Graph::CallbackReason::BeginSetNode:
-	{
-		if (model)
-		{
-			model->beginReset();
-		}
-		break;
-	}
-
-	case Graph::CallbackReason::EndSetNode:
+	case Graph::CallbackReason::EndSetRoot:
 	{
 		if (!model)
 		{
 			model = new GraphModel(this, m_document->graph());
+			model->updatePixmaps();
 			m_graph->setModel(model);
 		}
-		else
-			model->updatePixmaps();
-		model->endReset();
 
 		m_updatingGraph = true;
 		m_graph->expandAll();
@@ -158,5 +154,10 @@ void GraphView::graphCallback(uint8_t reasonVal)
 		m_updatingGraph = false;
 		break;
 	}
+
+	case Graph::CallbackReason::EndInsertNode:
+		if (model)
+			m_graph->setExpanded(model->index(node), node->expanded);
+		break;
 	} // switch
 }

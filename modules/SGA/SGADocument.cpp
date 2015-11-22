@@ -342,7 +342,6 @@ void SGADocument::importMesh()
 
 	MeshImport importer(this, m_scene, m_graph);
 	std::tie(m_newMeshes, m_newMaterials) = importer.importMeshes(path);
-	m_graph.setRoot(m_rootNode); // Update the whole graph (TODO: update only the new nodes)
 }
 
 void SGADocument::addSGANode(GraphNode* parent, sga::ObjectDefinition::ObjectType type)
