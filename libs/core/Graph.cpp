@@ -64,7 +64,7 @@ void Graph::setRoot(GraphNode::SPtr root)
 {
 	executeCallback(CallbackReason::BeginSetRoot);
 	m_root = root;
-	executeCallback(CallbackReason::EndSetRoot);
+	executeCallback(CallbackReason::EndSetRoot, root.get());
 }
 
 int Graph::addImage(const GraphImage& image)

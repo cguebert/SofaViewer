@@ -17,8 +17,6 @@ GraphView::GraphView(QWidget* parent)
 	m_graph->setContextMenuPolicy(Qt::CustomContextMenu);
 
 	connect(m_graph, &QTreeView::doubleClicked, this, &GraphView::openItem);
-	connect(m_graph, &QTreeView::expanded, this, &GraphView::expandItem);
-	connect(m_graph, &QTreeView::collapsed, this, &GraphView::collapseItem);
 	connect(m_graph, &QTreeView::customContextMenuRequested, this, &GraphView::showContextMenu);
 }
 
@@ -34,8 +32,6 @@ void GraphView::setDocument(std::shared_ptr<BaseDocument> doc)
 	m_graph->setModel(nullptr);
 	if (oldModel)
 		delete oldModel;
-
-	m_graphItemsExpandedState.clear();
 
 	m_document = doc;
 	if (!m_document)
@@ -57,26 +53,6 @@ void GraphView::openItem(const QModelIndex& index)
 	}
 }
 
-void GraphView::expandItem(const QModelIndex& index)
-{
-	if (!m_updatingGraph && index.isValid())
-	{
-		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
-		if (item)
-			setGraphItemExpandedState(item->uniqueId, true);
-	}
-}
-
-void GraphView::collapseItem(const QModelIndex& index)
-{
-	if (!m_updatingGraph && index.isValid())
-	{
-		GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
-		if (item)
-			setGraphItemExpandedState(item->uniqueId, false);
-	}
-}
-
 void GraphView::showContextMenu(const QPoint& pos)
 {
 	auto index = m_graph->indexAt(pos);
@@ -92,17 +68,6 @@ void GraphView::showContextMenu(const QPoint& pos)
 				menu.exec(m_graph->mapToGlobal(pos));
 		}
 	}
-}
-
-void GraphView::setGraphItemExpandedState(size_t id, bool expanded)
-{
-	auto it = std::find_if(m_graphItemsExpandedState.begin(), m_graphItemsExpandedState.end(), [id](const std::pair<size_t, bool>& p)
-	{ return p.first == id; });
-
-	if (it != m_graphItemsExpandedState.end())
-		it->second = expanded;
-	else
-		m_graphItemsExpandedState.emplace_back(id, expanded);
 }
 
 void GraphView::graphCallback(int reasonVal, GraphNode* node, int first, int last)
@@ -124,34 +89,19 @@ void GraphView::graphCallback(int reasonVal, GraphNode* node, int first, int las
 			m_graph->setModel(model);
 		}
 
-		m_updatingGraph = true;
-		m_graph->expandAll();
-
-		// Restore the expanded state
-		auto itemsState = m_graphItemsExpandedState;
-		m_graphItemsExpandedState.clear();
-		auto indices = model->getPersistentIndexList();
-		for (auto index : indices)
+		if (node)
 		{
-			GraphNode* item = static_cast<GraphNode*>(index.internalPointer());
-			if (item)
+			m_graph->expandAll();
+
+			// Restore the expanded state
+			auto nodes = graph::getNodes(node, [](GraphNode*){ return true; });
+			for (auto node : nodes)
 			{
-				bool expanded = item->expanded; // First use the value set in the graph
-
-				// Then restore the state if the node existed before the update
-				auto uniqueId = item->uniqueId;
-				auto it = std::find_if(itemsState.begin(), itemsState.end(), [uniqueId](const std::pair<size_t, bool>& p)
-				{ return p.first == uniqueId; });
-
-				if (it != itemsState.end())
-					expanded = it->second;
-
-				m_graphItemsExpandedState.emplace_back(uniqueId, expanded);
-				m_graph->setExpanded(index, expanded);
+				if (!node->expanded)
+					m_graph->setExpanded(model->index(node), false);
 			}
 		}
 
-		m_updatingGraph = false;
 		break;
 	}
 
