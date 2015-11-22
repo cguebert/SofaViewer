@@ -144,15 +144,22 @@ bool SGADocument::loadFile(const std::string& path)
 	auto getPropertiesFunc = [this](GraphNode* item) 
 	{ return objectProperties(item); };
 
-	auto node = importXMLFile(path, createNodeFunc, getPropertiesFunc);
-	if (!node)
+	auto root = importXMLFile(path, createNodeFunc, getPropertiesFunc);
+	if (!root)
 		return false;
 
-	m_rootNode = node;
+	auto meshRoot = dynamic_cast<MeshNode*>(root.get());
+	if (!meshRoot)
+		return false;
+
+	m_rootNode = root;
 	m_graph.setRoot(m_rootNode);
-	auto meshRoot = dynamic_cast<MeshNode*>(node.get());
-	if(meshRoot)
-		updateNodes(meshRoot);
+	updateNodes(meshRoot);
+
+	// Get the meshes and materials groups nodes
+	m_meshesGroup = getChild(meshRoot, MeshNode::Type::MeshesGroup);
+	m_materialsGroup = getChild(meshRoot, MeshNode::Type::MaterialsGroup);
+
 	return true;
 }
 
@@ -262,7 +269,7 @@ void SGADocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	auto meshNode = dynamic_cast<MeshNode*>(baseItem);
 	if (meshNode)
 	{
-
+		MeshDocument::graphContextMenu(baseItem, menu);
 		switch (meshNode->nodeType)
 		{
 		case MeshNode::Type::Root:
@@ -271,18 +278,8 @@ void SGADocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 			return;
 		}
 
-		case MeshNode::Type::Node:
-		{
-			menu.addItem("Add node", "Add a new child node", [meshNode, this]() { addNode(meshNode); });
-			menu.addItem("Remove node", "Remove this node", [meshNode, this]() { removeNode(meshNode); });
-			menu.addSeparator();
-			menu.addItem("Add mesh instance", "Add a new mesh instance", [meshNode, this]() { addInstance(meshNode); });
-			return;
-		}
-
 		case MeshNode::Type::Instance:
 		{
-			menu.addItem("Remove instance", "Remove this mesh instance", [meshNode, this]() { removeNode(meshNode); });
 			menu.addSeparator();
 			for (auto type : { sga::ObjectDefinition::ObjectType::PhysicsObject, sga::ObjectDefinition::ObjectType::CollisionObject, sga::ObjectDefinition::ObjectType::VisualObject })
 			{

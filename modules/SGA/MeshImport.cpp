@@ -178,6 +178,10 @@ void MeshImport::parseScene(const aiScene* scene)
 
 void MeshImport::addMeshes(const aiScene* scene)
 {
+	auto meshesGroup = m_document->meshesGroup();
+	if (!meshesGroup)
+		meshesGroup = m_graph.root();
+
 	for (unsigned int i = 0; i < scene->mNumMeshes; ++i)
 	{
 		const auto inMesh = scene->mMeshes[i];
@@ -188,7 +192,9 @@ void MeshImport::addMeshes(const aiScene* scene)
 		if (inMesh->mPrimitiveTypes != aiPrimitiveType_TRIANGLE && inMesh->mPrimitiveTypes != aiPrimitiveType_LINE) // Accept either triangles, or lines
 			continue;
 
-		auto node = m_document->createNode(inMesh->mName.length ? inMesh->mName.C_Str() : "mesh " + std::to_string(i), MeshNode::Type::Mesh, m_graph.root());
+		auto node = m_document->createNode(inMesh->mName.length ? inMesh->mName.C_Str() : "mesh " + std::to_string(i),
+										   MeshNode::Type::Mesh,
+										   meshesGroup);
 
 		auto mesh = createMesh(inMesh);
 		node->mesh = mesh;
@@ -201,6 +207,10 @@ void MeshImport::addMeshes(const aiScene* scene)
 
 void MeshImport::addMaterials(const aiScene* scene)
 {
+	auto materialsGroup = m_document->materialsGroup();
+	if (!materialsGroup)
+		materialsGroup = m_graph.root();
+
 	for (unsigned int i = 0; i < scene->mNumMaterials; ++i)
 	{
 		const auto inMaterial = scene->mMaterials[i];
@@ -208,7 +218,9 @@ void MeshImport::addMaterials(const aiScene* scene)
 		aiString name;
 		inMaterial->Get(AI_MATKEY_NAME,name);
 
-		auto node = m_document->createNode(name.length ? name.C_Str() : "material " + std::to_string(i), MeshNode::Type::Material, m_graph.root());
+		auto node = m_document->createNode(name.length ? name.C_Str() : "material " + std::to_string(i),
+										   MeshNode::Type::Material,
+										   materialsGroup);
 		auto material = createMaterial(inMaterial);
 		node->material = material;
 		int index = m_scene.materials().size();

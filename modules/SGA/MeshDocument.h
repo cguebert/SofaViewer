@@ -22,7 +22,7 @@ class MeshNode : public GraphNode
 {
 public:
 	using SPtr = std::shared_ptr<MeshNode>;
-	enum class Type { Root, Node, Mesh, Material, Instance };
+	enum class Type { Root, Node, Mesh, Material, Instance, MeshesGroup, MaterialsGroup };
 
 	static SPtr create() { return std::make_shared<MeshNode>(); }
 
@@ -64,6 +64,9 @@ public:
 	MeshNode::SPtr createNode(const std::string& name, MeshNode::Type nodeType, GraphNode* parent, int position = -1);
 	GraphNode::SPtr createNode(const std::string& typeName, const std::string& id); // For the loading of a document
 
+	GraphNode* meshesGroup() const;
+	GraphNode* materialsGroup() const;
+
 	void removeDuplicateMeshes();
 	void removeUnusedMeshes();
 	void removeUnusedMaterials();
@@ -77,11 +80,14 @@ protected:
 	void removeNode(MeshNode* item);
 	void addInstance(MeshNode* parent);
 	void removeInstance(MeshNode* item);
+	void addMesh();
+	void addMaterial();
 
 	simplerender::Scene m_scene;
 	Graph m_graph;
 	SofaMouseManipulator m_mouseManipulator;
 	simplegui::SimpleGUI* m_gui = nullptr;
+	MeshNode *m_meshesGroup = nullptr, *m_materialsGroup = nullptr;
 
 	GraphNode::SPtr m_rootNode;
 	size_t m_nextNodeId = 1;
@@ -92,3 +98,9 @@ protected:
 
 inline Graph& MeshDocument::graph()
 { return m_graph; }
+
+inline GraphNode* MeshDocument::meshesGroup() const
+{ return m_meshesGroup; }
+
+inline GraphNode* MeshDocument::materialsGroup() const
+{ return m_materialsGroup; }

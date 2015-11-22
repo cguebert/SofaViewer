@@ -36,7 +36,7 @@ namespace
 
 const std::vector<std::string>& meshNodeTypeNames()
 {
-	static std::vector<std::string> typesNames = { "Root", "Node", "Mesh", "Material", "Instance" };
+	static std::vector<std::string> typesNames = { "Root", "Node", "Mesh", "Material", "Instance", "MeshesGroup", "MaterialsGroup" };
 	return typesNames;
 }
 
@@ -160,6 +160,8 @@ MeshDocument::MeshDocument(const std::string& type)
 {
 	createGraphImages();
 	m_rootNode = createNode("ModelViewer", MeshNode::Type::Root, nullptr);
+	m_meshesGroup = createNode("Meshes", MeshNode::Type::MeshesGroup, m_rootNode.get()).get();
+	m_materialsGroup = createNode("Materials", MeshNode::Type::MaterialsGroup, m_rootNode.get()).get();
 }
 
 bool MeshDocument::loadFile(const std::string& path)
@@ -367,19 +369,23 @@ void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
 	switch (item->nodeType)
 	{
 	case MeshNode::Type::Node:
-	{
 		menu.addItem("Add node", "Add a new child node", [item, this]() { addNode(item); });
 		menu.addItem("Remove node", "Remove this node", [item, this]() { removeNode(item); });
 		menu.addSeparator();
 		menu.addItem("Add mesh instance", "Add a new mesh instance", [item, this]() { addInstance(item); });
-		return;
-	}
+		break;
 
 	case MeshNode::Type::Instance:
-	{
 		menu.addItem("Remove instance", "Remove this mesh instance", [item, this]() { removeInstance(item); });
-		return;
-	}
+		break;
+
+	case MeshNode::Type::MeshesGroup:
+		menu.addItem("Add mesh", "Add a new mesh", [this]() { addMesh(); });
+		break;
+
+	case MeshNode::Type::MaterialsGroup:
+		menu.addItem("Add material", "Add a new material", [this]() { addMaterial(); });
+		break;
 	}
 }
 
@@ -390,6 +396,8 @@ void MeshDocument::createGraphImages()
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff00daff }))); // Mesh
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xffffa4a4 }))); // Material
 	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createSquaresImage({ 0xff80b1d3 }))); // Instance
+	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createDiskImage({ 0xff00daff }))); // Meshes group
+	m_graphMeshImages.push_back(m_graph.addImage(GraphImage::createDiskImage({ 0xffffa4a4 }))); // Materials group
 }
 
 void MeshDocument::updateNodes(MeshNode* item, const glm::mat4* transformation)
@@ -468,6 +476,24 @@ void MeshDocument::removeInstance(MeshNode* item)
 	removeValue(m_scene.instances(), item->instance);
 	removeNode(item);
 	m_gui->updateView();
+}
+
+void MeshDocument::addMesh()
+{
+	auto root = m_rootNode.get();
+	auto node = createNode(createNewName(root, MeshNode::Type::Mesh, "Mesh "), MeshNode::Type::Mesh, m_meshesGroup);
+	auto mesh = std::make_shared<simplerender::Mesh>();
+	node->mesh = mesh;
+	m_scene.addMesh(mesh);
+}
+
+void MeshDocument::addMaterial()
+{
+	auto root = m_rootNode.get();
+	auto node = createNode(createNewName(root, MeshNode::Type::Material, "Material "), MeshNode::Type::Material, m_materialsGroup);
+	auto material = std::make_shared<simplerender::Material>();
+	node->material = material;
+	m_scene.addMaterial(material);
 }
 
 void MeshDocument::removeDuplicateMeshes()
