@@ -126,7 +126,7 @@ std::pair<MeshImport::Meshes, MeshImport::Materials> MeshImport::importMeshes(co
 	{
 	//	importer.ApplyPostProcessing(aiProcess_Triangulate);
 		parseScene(scene);
-		findTextures(filePath);
+		findTextures(m_newMaterials, filePath);
 	}
 
 	return std::make_pair(m_newMeshes, m_newMaterials);
@@ -252,7 +252,7 @@ int MeshImport::materialIndex(int materialId)
 	return -1;
 }
 
-void MeshImport::findTextures(const std::string& modelPath)
+void MeshImport::findTextures(Materials& materials, const std::string& modelPath)
 {
 	// Find the repertory of the model file
 	auto pos = modelPath.find_last_of("/\\");
@@ -261,7 +261,7 @@ void MeshImport::findTextures(const std::string& modelPath)
 	std::string dir = modelPath.substr(0, pos);
 
 	// Modify the relative texture paths
-	for (auto& material : m_newMaterials)
+	for (auto& material : materials)
 	{
 		auto& fileName = material->textureFilename;
 		if (!fileName.empty())

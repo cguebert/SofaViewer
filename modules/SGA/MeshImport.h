@@ -76,6 +76,8 @@ public:
 
 	MeshImport(MeshDocument* doc, simplerender::Scene& scene, Graph& graph);
 	std::pair<Meshes, Materials> importMeshes(const std::string& filePath); // Import a 3d scene and adds it to the graph, returns the lists of the new meshes and new materials
+
+	static void findTextures(Materials& materials, const std::string& modelPath);
 	
 private:
 	void parseScene(const aiScene* scene);
@@ -87,8 +89,6 @@ private:
 
 	int meshIndex(int meshId);
 	int materialIndex(int materialId);
-
-	void findTextures(const std::string& modelPath);
 
 	MeshDocument* m_document;
 	simplerender::Scene& m_scene;

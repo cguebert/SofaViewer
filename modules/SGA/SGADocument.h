@@ -70,6 +70,9 @@ protected:
 
 	void createSGAGraphImages();
 
+	std::vector<std::string> modifyTexturesForSaving(const std::string& savePath); // Returns the original values
+	void restoreTexturesPaths(const std::vector<std::string>& paths);
+
 	sga::ObjectFactory m_sgaFactory;
 
 	std::vector<std::vector<std::string>> m_sgaObjectsLabels;

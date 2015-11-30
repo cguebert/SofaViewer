@@ -246,13 +246,14 @@ GraphNode::SPtr MeshDocument::createNode(const std::string& typeName, const std:
 		auto mesh = std::make_shared<simplerender::Mesh>();
 		m_scene.addMesh(mesh);
 		node->mesh = mesh;
-		m_newMeshes.push_back(node->mesh.get());
+		m_newMeshes.push_back(mesh.get());
 	}
 	else if (meshType == MeshNode::Type::Material)
 	{
 		auto material = std::make_shared<simplerender::Material>();
 		m_scene.addMaterial(material);
 		node->material = material;
+		m_newMaterials.push_back(material.get());
 	}
 	else if (meshType == MeshNode::Type::Instance)
 	{

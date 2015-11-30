@@ -13,6 +13,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <iostream>
+#include <fstream>
 
 int registerSGADocument()
 {
@@ -124,6 +125,29 @@ std::pair<int, SGANode*> indexOfNewNode(GraphNode* parent, sga::ObjectDefinition
 	return std::make_pair(-1, nullptr);
 }
 
+void copyFile(const std::string& from, const std::string& to)
+{
+	std::ifstream src(from, std::ios::binary);
+	std::ofstream dst(to, std::ios::binary);
+	dst << src.rdbuf();
+}
+
+std::string getDir(const std::string& filePath)
+{
+	auto pos = filePath.find_last_of("/\\");
+	if (pos == std::string::npos)
+		return "";
+	return filePath.substr(0, pos);
+}
+
+std::string getFilename(const std::string& filePath)
+{
+	auto pos = filePath.find_last_of("/\\");
+	if (pos == std::string::npos || pos + 1 == filePath.size())
+		return "";
+	return filePath.substr(pos + 1);
+}
+
 }
 
 SGADocument::SGADocument(const std::string& type)
@@ -156,6 +180,8 @@ bool SGADocument::loadFile(const std::string& path)
 	m_graph.setRoot(m_rootNode);
 	updateNodes(meshRoot);
 
+	MeshImport::findTextures(m_newMaterials, path);
+
 	// Get the meshes and materials groups nodes
 	m_meshesGroup = getChild(meshRoot, MeshNode::Type::MeshesGroup);
 	m_materialsGroup = getChild(meshRoot, MeshNode::Type::MaterialsGroup);
@@ -165,8 +191,11 @@ bool SGADocument::loadFile(const std::string& path)
 
 bool SGADocument::saveFile(const std::string& path)
 {
+	auto texturePaths = modifyTexturesForSaving(path);
 	auto getPropertiesFunc = [this](GraphNode* item) { return objectProperties(item); };
-	return exportToXMLFile(path, m_rootNode.get(), getPropertiesFunc);
+	auto result = exportToXMLFile(path, m_rootNode.get(), getPropertiesFunc);
+	restoreTexturesPaths(texturePaths);
+	return result;
 }
 
 void SGADocument::initUI(simplegui::SimpleGUI& gui)
@@ -451,5 +480,51 @@ void SGADocument::runClicked()
 	{
 		stopExecution();
 		m_runButton->setChecked(false);
+	}
+}
+
+std::vector<std::string> SGADocument::modifyTexturesForSaving(const std::string& savePath)
+{
+	std::vector<std::string> texPaths;
+
+	// Find the repertory of the saved file
+	std::string dir = getDir(savePath);
+	if (dir.empty()) 
+		return texPaths;
+
+	// TODO: ask the user how we want to treat textures (copy or keep where they are)
+//	enum class TexAction { Unknown, Copy, Keep };
+//	TexAction action = TexAction::Unknown;
+
+	for (auto& material : m_scene.materials())
+	{
+		auto& texPath = material->textureFilename;
+		if (!texPath.empty())
+		{
+			texPaths.push_back(texPath);
+			if (texPath.find(dir) != std::string::npos) // The texture can stay there, we can compute the relative path
+			{
+				texPath = texPath.substr(dir.size() + 1); // Removing the directory path, including the '/'
+			}
+			else // We must move the texture to be able to create a relative path
+			{
+				auto texName = getFilename(texPath);
+				copyFile(texPath, dir + '/' + texName);
+				texPath = texName;
+			}
+		}
+	}
+
+	return texPaths;
+}
+
+void SGADocument::restoreTexturesPaths(const std::vector<std::string>& paths)
+{
+	auto it = paths.begin();
+	for (auto& material : m_scene.materials())
+	{
+		auto& texPath = material->textureFilename;
+		if (!texPath.empty())
+			texPath = *it++;
 	}
 }
