@@ -14,6 +14,8 @@ public:
 
 	void setDocumentType(const std::string& type);
 
+	bool contains(const std::string& name) override;
+
 	void set(const std::string& name, int val) override;
 	void set(const std::string& name, double val) override;
 	void set(const std::string& name, const std::string& val) override;

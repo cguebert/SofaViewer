@@ -91,6 +91,8 @@ class CORE_API Settings
 public:
 	virtual ~Settings();
 
+	virtual bool contains(const std::string& name) = 0;
+
 	virtual void set(const std::string& name, int val) = 0;
 	virtual void set(const std::string& name, double val) = 0;
 	virtual void set(const std::string& name, const std::string& val) = 0;

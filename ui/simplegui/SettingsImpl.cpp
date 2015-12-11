@@ -18,6 +18,11 @@ void SettingsImpl::setDocumentType(const std::string& type)
 		m_settings->beginGroup(QString::fromStdString(type));
 }
 
+bool SettingsImpl::contains(const std::string& name)
+{
+	return m_settings->contains(QString::fromStdString(name));
+}
+
 void SettingsImpl::set(const std::string& name, int val)
 {
 	m_settings->setValue(QString::fromStdString(name), val);
