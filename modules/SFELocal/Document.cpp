@@ -37,8 +37,21 @@ bool Document::loadFile(const std::string& path)
 {
 	// Read settings
 	std::vector<std::string> sofaPaths;
-	if(m_gui->settings().get("dataRepositoryPaths", sofaPaths))
+	if (m_gui->settings().contains("dataRepositoryPaths"))
+	{
+		m_gui->settings().get("dataRepositoryPaths", sofaPaths);
 		m_simulation.getHelper()->setDataRepositoryPaths(sofaPaths);
+	}
+	else
+	{
+		namespace buttons = simplegui::buttons;
+		if (buttons::Yes == m_gui->messageBox(simplegui::MessageBoxType::question, "Sofa ressources",
+			"Do you want to set the SOFA share path now ?\n(Can be changed later in tools/Sofa paths)",
+			buttons::Yes | buttons::No))
+		{
+			modifyDataRepository();
+		}
+	}
 
 	m_simulation.setAnimate(false, true);
 	if (!m_simulation.loadFile(path))
@@ -71,7 +84,6 @@ void Document::initUI(simplegui::SimpleGUI& gui)
 	m_serverButton = menu.addItem("Launch Server", "Launch a SFE server", [this](){ onServer(); } );
 	menu.addSeparator();
 	menu.addItem("Sofa paths", "Modify the directories where Sofa will look for meshes and textures", [this](){ modifyDataRepository(); } );
-	
 }
 
 void Document::modifyDataRepository()

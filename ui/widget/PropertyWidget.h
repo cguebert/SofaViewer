@@ -31,6 +31,9 @@ public:
 	enum class Source { property, widget };
 	void resolveConflict(Source source);
 
+	BasePropertyWidget* parent() const { return m_parent; }
+	void setParent(BasePropertyWidget* parent) { m_parent = parent; }
+
 	/// The implementation of this method holds the widget creation and the signal / slot connections.
 	virtual QWidget* createWidgets() = 0;
 
@@ -67,6 +70,7 @@ protected:
 
 	Property::SPtr m_property;
 	State m_state;
+	BasePropertyWidget* m_parent = nullptr; /// If this property if the child of another (like in a list of values)
 };
 
 /*****************************************************************************/

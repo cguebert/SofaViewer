@@ -2,7 +2,7 @@
 
 #include <ui/widget/PropertyWidget.h>
 
-/// This class is used to specify how to graphically represent a data type,
+/// This class is used to specify how to graphically represent a data type
 template<class T>
 class PropretyWidgetContainer
 {
@@ -19,7 +19,7 @@ public:
 
 //****************************************************************************//
 
-/// This class manages the GUI of a BaseData, using the corresponding instance of DataWidgetContainer
+/// This class manages the GUI of a Property, using the corresponding instance of PropretyWidgetContainer
 template<class T, class Container = PropretyWidgetContainer<T> >
 class SimplePropertyWidget : public PropertyWidget<T>
 {

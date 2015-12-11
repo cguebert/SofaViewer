@@ -58,10 +58,12 @@ protected:
 	std::shared_ptr<PropertyValue<value_type>> m_propertyValue;
 	std::vector<std::shared_ptr<BasePropertyWidget>> m_propertyWidgets;
 	value_type m_value;
+	BasePropertyWidget* m_parent;
 
 public:
 	QWidget* createWidgets(BasePropertyWidget* parent)
 	{
+		m_parent = parent;
 		m_property = parent->property();
 		m_propertyValue = m_property->value<value_type>();
 		if (!m_propertyValue)
@@ -92,9 +94,12 @@ public:
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(list_traits::size(m_value));
-			QObject::connect(m_spinBox, &QSpinBox::editingFinished, [this]() { resize(); });
-			QObject::connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(m_spinBox, 1);
+
+			auto resizeButton = new QPushButton(QPushButton::tr("resize"));
+			QObject::connect(resizeButton, &QPushButton::clicked, [this]() { resize(); });
+			QObject::connect(resizeButton, &QPushButton::clicked, parent, &BasePropertyWidget::setWidgetDirty);
+			topLayout->addWidget(resizeButton);
 		}
 		else
 			topLayout->addStretch();
@@ -140,17 +145,16 @@ public:
 		int nb = m_spinBox->value();
 		int prevNb = list_traits::size(m_value);
 
-		if (nb != prevNb)
-			list_traits::resize(m_value, nb);
-		else if (m_formLayout)
+		if (m_formLayout && nb == prevNb)
 			return; // No need to recreate the same widgets
 
+		bool visible = m_scrollArea->isVisible();
 		m_scrollArea->setVisible(false);
 		m_propertyWidgets.clear();
-		
-		if (m_formLayout)
-			QWidget().setLayout(m_formLayout); // Free the form layout and everything in it
-		
+
+		list_traits::resize(m_value, nb);
+			
+		auto scrollAreaWidget = new QWidget;
 		m_formLayout = new QFormLayout;
 		m_formLayout->setContentsMargins(3, 3, 3, 3);
 
@@ -166,15 +170,16 @@ public:
 			for (auto& metaProp : metaProperties)
 				metaContainer.addExisting(metaProp);
 
-			std::shared_ptr<BasePropertyWidget> propWidget = m_widgetCreator->create(prop, m_scrollArea);
+			std::shared_ptr<BasePropertyWidget> propWidget = m_widgetCreator->create(prop, scrollAreaWidget);
+			propWidget->setParent(m_parent);
 			m_propertyWidgets.push_back(propWidget);
 			m_formLayout->addRow(QString::number(i), propWidget->createWidgets());
 		}
 
-		auto scrollAreaWidget = new QWidget;
 		scrollAreaWidget->setLayout(m_formLayout);
 		m_scrollArea->setWidget(scrollAreaWidget);
-		m_scrollArea->setVisible(true);
+		if (visible)
+			m_scrollArea->setVisible(true);
 	}
 	void toggleView(bool show)
 	{

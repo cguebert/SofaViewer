@@ -63,7 +63,7 @@ public:
 	}
 	void chooseDirectory()
 	{
-		auto dir = QFileDialog::getExistingDirectory(m_parent);
+		auto dir = QFileDialog::getExistingDirectory(m_parent, "", m_lineEdit->text());
 		if (!dir.isEmpty())
 		{
 			m_lineEdit->setText(dir);
