@@ -89,7 +89,7 @@ public:
 		}
 		else
 		{
-			// Add a spinbox to be able to resize the value
+			// Add a spinbox and a button to be able to resize the value
 			// and a button to show / hide the table view
 			auto container = new QWidget(parent);
 			auto layout = new QVBoxLayout(container);
@@ -104,9 +104,12 @@ public:
 			m_spinBox = new QSpinBox;
 			m_spinBox->setMaximum(INT_MAX);
 			m_spinBox->setValue(m_accessor->rowCount());
-			QObject::connect(m_spinBox, &QSpinBox::editingFinished, [this]() { resizeValue(); });
-			QObject::connect(m_spinBox, &QSpinBox::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(m_spinBox, 1);
+
+			auto resizeButton = new QPushButton(QPushButton::tr("resize"));
+			QObject::connect(resizeButton, &QPushButton::clicked, [this]() { resizeValue(); });
+			QObject::connect(resizeButton, &QPushButton::clicked, parent, &BasePropertyWidget::setWidgetDirty);
+			topLayout->addWidget(resizeButton);
 
 			layout->addLayout(topLayout);
 			layout->addWidget(m_view, 1);
