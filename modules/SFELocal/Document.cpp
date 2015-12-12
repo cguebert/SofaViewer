@@ -45,12 +45,13 @@ bool Document::loadFile(const std::string& path)
 	else
 	{
 		namespace buttons = simplegui::buttons;
-		if (buttons::Yes == m_gui->messageBox(simplegui::MessageBoxType::question, "Sofa ressources",
+		int result = m_gui->messageBox(simplegui::MessageBoxType::question, "Sofa ressources",
 			"Do you want to set the SOFA share path now ?\n(Can be changed later in tools/Sofa paths)",
-			buttons::Yes | buttons::No))
-		{
+			buttons::Yes | buttons::No | buttons::Ignore);
+		if (result == buttons::Yes)
 			modifyDataRepository();
-		}
+		else if (result == buttons::Ignore)
+			m_gui->settings().set("dataRepositoryPaths", sofaPaths); // Set an empty value, so that we will not ask again later
 	}
 
 	m_simulation.setAnimate(false, true);
