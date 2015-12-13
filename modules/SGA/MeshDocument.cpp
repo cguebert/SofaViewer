@@ -469,6 +469,7 @@ void MeshDocument::addInstance(MeshNode* parent)
 	auto instance = std::make_shared<simplerender::ModelInstance>();
 	node->instance = instance;
 	m_scene.addInstance(instance);
+	updateNodes(parent);
 }
 
 void MeshDocument::removeInstance(MeshNode* item)
