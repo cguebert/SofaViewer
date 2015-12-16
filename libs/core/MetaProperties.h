@@ -225,4 +225,9 @@ struct CORE_API Slider : public Widget, public RangeWithStep // For numerical va
 	Slider(float min, float max, float step) : Widget("slider"), RangeWithStep(min, max, step) {}
 };
 
+struct CORE_API Color : public Widget // For vec3 and vec4
+{
+	Color() : Widget("color") {}
+};
+
 } // namespace meta

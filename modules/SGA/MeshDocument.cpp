@@ -316,10 +316,10 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 		auto material = item->material;
 		if (material)
 		{
-			properties->createRefProperty("diffuse", material->diffuse);
-			properties->createRefProperty("ambient", material->ambient);
-			properties->createRefProperty("specular", material->specular);
-			properties->createRefProperty("emissive", material->emissive);
+			properties->createRefProperty("diffuse", material->diffuse, meta::Color());
+			properties->createRefProperty("ambient", material->ambient, meta::Color());
+			properties->createRefProperty("specular", material->specular, meta::Color());
+			properties->createRefProperty("emissive", material->emissive, meta::Color());
 			properties->createRefProperty("shininess", material->shininess);
 			properties->createRefProperty("texture", material->textureFilename, meta::File());
 		}
