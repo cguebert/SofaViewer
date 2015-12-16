@@ -4,13 +4,13 @@
 
 /// This class is used to specify how to graphically represent a data type
 template<class T>
-class PropretyWidgetContainer
+class PropertyWidgetContainer
 {
 protected:
 	typedef T value_type;
 
 public:
-	PropretyWidgetContainer() {}
+	PropertyWidgetContainer() {}
 
 	QWidget* createWidgets(BasePropertyWidget* parent);
 	void readFromProperty(const value_type& d);
@@ -19,8 +19,8 @@ public:
 
 //****************************************************************************//
 
-/// This class manages the GUI of a Property, using the corresponding instance of PropretyWidgetContainer
-template<class T, class Container = PropretyWidgetContainer<T> >
+/// This class manages the GUI of a Property, using the corresponding instance of PropertyWidgetContainer
+template<class T, class Container = PropertyWidgetContainer<T> >
 class SimplePropertyWidget : public PropertyWidget<T>
 {
 protected:

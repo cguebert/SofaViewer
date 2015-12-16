@@ -36,13 +36,10 @@ public:
 	}
 };
 
-template<> class PropretyWidgetContainer<int> : public SpinBoxPropertyWidgetContainer<int>{};
-template<> class PropretyWidgetContainer<unsigned int> : public SpinBoxPropertyWidgetContainer<unsigned int>{};
-
 //****************************************************************************//
 
 template <class value_type>
-class CheckboxPropertyWidget : public PropretyWidgetContainer<value_type>
+class CheckboxPropertyWidget : public PropertyWidgetContainer<value_type>
 {
 protected:
 	QCheckBox* m_checkBox = nullptr;
@@ -70,7 +67,7 @@ public:
 //****************************************************************************//
 
 template <class value_type>
-class SliderPropertyWidget : public PropretyWidgetContainer<value_type>
+class SliderPropertyWidget : public PropertyWidgetContainer<value_type>
 {
 protected:
 	QSlider* m_slider = nullptr;
@@ -117,7 +114,7 @@ public:
 //****************************************************************************//
 
 template <class value_type>
-class EnumIntPropertyWidget : public PropretyWidgetContainer<value_type>
+class EnumIntPropertyWidget : public PropertyWidgetContainer<value_type>
 {
 protected:
 	QComboBox* m_comboBox = nullptr;
@@ -154,14 +151,20 @@ protected:
 	QStringList m_enumValues;
 };
 
-
 //****************************************************************************//
 
-template <>
-class PropretyWidgetContainer<float>
+namespace
+{
+	template <class T> T fromString(const QString& text, bool* ok = nullptr);
+	template <> float fromString<float>(const QString& text, bool* ok) { return text.toFloat(ok); }
+	template <> double fromString<double>(const QString& text, bool* ok) { return text.toDouble(ok); }
+}
+
+template <class Real>
+class RealPropertyWidget
 {
 protected:
-	using value_type = float;
+	using value_type = Real;
 	QLineEdit* m_lineEdit = nullptr;
 
 public:
@@ -175,7 +178,7 @@ public:
 	void readFromProperty(const value_type& v)
 	{
 		QString t = m_lineEdit->text();
-		value_type n = t.toFloat();
+		value_type n = fromString<Real>(t);
 
 		if (v != n || t.isEmpty())
 			m_lineEdit->setText(QString::number(v));
@@ -183,42 +186,7 @@ public:
 	void writeToProperty(value_type& v)
 	{
 		bool ok;
-		value_type n = m_lineEdit->text().toFloat(&ok);
-
-		if(ok)
-			v = n;
-	}
-};
-
-//****************************************************************************//
-
-template <>
-class PropretyWidgetContainer<double>
-{
-protected:
-	using value_type = double;
-	QLineEdit* m_lineEdit = nullptr;
-
-public:
-	QWidget* createWidgets(BasePropertyWidget* parent)
-	{
-		m_lineEdit = new QLineEdit(parent);
-		m_lineEdit->setEnabled(!parent->readOnly());
-		QObject::connect(m_lineEdit, &QLineEdit::editingFinished, parent, &BasePropertyWidget::setWidgetDirty);
-		return m_lineEdit;
-	}
-	void readFromProperty(const value_type& v)
-	{
-		QString t = m_lineEdit->text();
-		value_type n = t.toDouble();
-
-		if (v != n || t.isEmpty())
-			m_lineEdit->setText(QString::number(v));
-	}
-	void writeToProperty(value_type& v)
-	{
-		bool ok;
-		value_type n = m_lineEdit->text().toDouble(&ok);
+		value_type n = fromString<Real>(m_lineEdit->text(), &ok);
 
 		if(ok)
 			v = n;
@@ -229,18 +197,18 @@ public:
 
 RegisterWidget<SimplePropertyWidget<bool, CheckboxPropertyWidget<bool>> > PW_bool("default");
 
-RegisterWidget<SimplePropertyWidget<int>> PW_int("default");
+RegisterWidget<SimplePropertyWidget<int, SpinBoxPropertyWidgetContainer<int>> > PW_int("default");
 RegisterWidget<SimplePropertyWidget<int, CheckboxPropertyWidget<int>> > PW_checkbox("checkbox");
 RegisterWidget<SimplePropertyWidget<int, EnumIntPropertyWidget<int>> > PW_int_enum("enum");
 RegisterWidget<SimplePropertyWidget<int, SliderPropertyWidget<int>> > PW_int_slider("slider");
 
-RegisterWidget<SimplePropertyWidget<unsigned int>> PW_unsigned_int("default");
+RegisterWidget<SimplePropertyWidget<unsigned int, SpinBoxPropertyWidgetContainer<unsigned int>> > PW_unsigned_int("default");
 RegisterWidget<SimplePropertyWidget<unsigned int, CheckboxPropertyWidget<unsigned int>> > PW_unsigned_checkbox("checkbox");
 RegisterWidget<SimplePropertyWidget<unsigned int, EnumIntPropertyWidget<unsigned int>> > PW_unsigned_enum("enum");
 RegisterWidget<SimplePropertyWidget<unsigned int, SliderPropertyWidget<unsigned int>> > PW_unsigned_slider("slider");
 
-RegisterWidget<SimplePropertyWidget<float>> PW_float("default");
+RegisterWidget<SimplePropertyWidget<float, RealPropertyWidget<float>> > PW_float("default");
 RegisterWidget<SimplePropertyWidget<float, SliderPropertyWidget<float>> > PW_float_slider("slider");
 
-RegisterWidget<SimplePropertyWidget<double>> PW_double("default");
+RegisterWidget<SimplePropertyWidget<double, RealPropertyWidget<double>> > PW_double("default");
 RegisterWidget<SimplePropertyWidget<double, SliderPropertyWidget<double>> > PW_double_slider("slider");

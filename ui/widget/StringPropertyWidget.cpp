@@ -5,7 +5,7 @@
 #include <QtWidgets>
 
 template<>
-class PropretyWidgetContainer<std::string>
+class PropertyWidgetContainer<std::string>
 {
 protected:
 	typedef std::string value_type;
