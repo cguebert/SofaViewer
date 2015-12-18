@@ -80,7 +80,10 @@ void Scene::render()
 			glUniformMatrix4fv(prog.mvLoc, 1, GL_FALSE, glm::value_ptr(modelview));
 		glUniformMatrix4fv(prog.mvpLoc, 1, GL_FALSE, glm::value_ptr(modelviewProjection));
 
-		glUniform4fv(prog.colLoc, 1, &material->diffuse[0]);
+		glUniform4fv(prog.difLoc, 1, glm::value_ptr(material->diffuse));
+		glUniform4fv(prog.ambLoc, 1, glm::value_ptr(material->ambient));
+		glUniform4fv(prog.specLoc, 1, glm::value_ptr(material->specular));
+		glUniform1f(prog.shinLoc, material->shininess);
 
 		if (prog.texLoc != -1)
 		{
@@ -105,8 +108,11 @@ void Scene::prepareProgram(ProgramStruct& ps, const char* vertexShader, const ch
 
 	ps.mvLoc = prog.uniformLocation("MV");
 	ps.mvpLoc = prog.uniformLocation("MVP");
-	ps.colLoc = prog.uniformLocation("diffuseColor");
-	ps.texLoc = prog.uniformLocation("texture");
+	ps.difLoc = prog.uniformLocation("diffuseColor");
+	ps.ambLoc = prog.uniformLocation("ambientColor");
+	ps.specLoc = prog.uniformLocation("specularColor");
+	ps.shinLoc = prog.uniformLocation("shininess");
+	ps.texLoc = prog.uniformLocation("tex0");
 }
 
 Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh, const Material* material)

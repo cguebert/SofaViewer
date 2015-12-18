@@ -11,7 +11,7 @@ OpenGLView::OpenGLView(QWidget *parent)
 	QSurfaceFormat format;
 	format.setDepthBufferSize(24);
 	format.setStencilBufferSize(8);
-	format.setVersion(3, 0);
+	format.setVersion(3, 3);
 	format.setProfile(QSurfaceFormat::CoreProfile);
 	setFormat(format);
 }

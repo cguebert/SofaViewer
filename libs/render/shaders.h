@@ -3,6 +3,9 @@ in vec4 vPosition;
 in vec4 vNormal;
 
 uniform vec4 diffuseColor;
+uniform vec4 ambientColor;
+uniform vec4 specularColor;
+uniform float shininess;
 
 out vec4 color;
 
@@ -14,7 +17,7 @@ void main()
 	vec3 R = normalize(-reflect(L, N));
 	
 	// Ambient term
-	vec4 ambient = vec4(0,0,0,0);
+	vec4 ambient = ambientColor;
 	
 	// Diffuse Term
 	vec4 diffuse = diffuseColor;
@@ -23,7 +26,7 @@ void main()
 	diffuse = clamp(diffuse, 0.0, 1.0);
 
 	// Specular Term
-	vec4 specular = vec4(1, 1, 1, 0) * pow(max(dot(R,E),0.0), 128.0 );
+	vec4 specular = specularColor * pow(max(dot(R,E),0.0), shininess);
 	specular = clamp(specular, 0.0, 1.0);
 
 	// Write final color
@@ -32,6 +35,7 @@ void main()
 )~~";
 
 const char* trianglesColorVertexShader = R"~~(#version 330 core
+#extension GL_ARB_explicit_attrib_location : enable
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 
@@ -54,9 +58,12 @@ void main()
 const char* trianglesTextureFragmentShader = R"~~(#version 330 core
 in vec4 vPosition;
 in vec4 vNormal;
-
 in vec2 vTexCoord;
-uniform sampler2D texture;
+
+uniform sampler2D tex0;
+uniform vec4 ambientColor;
+uniform vec4 specularColor;
+uniform float shininess;
 
 out vec4 color;
 
@@ -68,16 +75,16 @@ void main()
 	vec3 R = normalize(-reflect(L, N));
 	
 	// Ambient term
-	vec4 ambient = vec4(0,0,0,0);
+	vec4 ambient = ambientColor;
 	
 	// Diffuse Term
-	vec4 diffuse = texture2D(texture, vTexCoord);
+	vec4 diffuse = texture(tex0, vTexCoord);
 //	diffuse = diffuse * max(dot(N,L), 0.0);	// 1 faced
 	diffuse = diffuse * abs(dot(N,L));		// 2 faced
 	diffuse = clamp(diffuse, 0.0, 1.0);
 
 	// Specular Term
-	vec4 specular = vec4(1, 1, 1, 0) * pow(max(dot(R,E),0.0), 128.0 );
+	vec4 specular = specularColor * pow(max(dot(R,E),0.0), shininess);
 	specular = clamp(specular, 0.0, 1.0);
 
 	// Write final color
@@ -86,13 +93,13 @@ void main()
 )~~";
 
 const char* trianglesTextureVertexShader = R"~~(#version 330 core
+#extension GL_ARB_explicit_attrib_location : enable
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
+layout (location = 2) in vec2 texCoord;
 
 out vec4 vPosition;
 out vec4 vNormal;
-
-layout (location = 2) in vec2 texCoord;
 out vec2 vTexCoord;
 
 uniform mat4 MV;
@@ -122,6 +129,7 @@ void main()
 )~~";
 
 const char* linesVertexShader = R"~~(#version 330 core
+#extension GL_ARB_explicit_attrib_location : enable
 layout (location = 0) in vec3 position;
 
 uniform mat4 MVP;

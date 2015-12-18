@@ -53,7 +53,7 @@ protected:
 	struct ProgramStruct
 	{
 		ShaderProgram program;
-		int mvLoc = 0, mvpLoc = 0, colLoc = 0, texLoc = 0;
+		int mvLoc = 0, mvpLoc = 0, difLoc = 0, ambLoc = 0, specLoc = 0, shinLoc = 0, texLoc = 0;
 	};
 
 	void prepareProgram(ProgramStruct& ps, const char* vertexShader, const char* fragmentShader);
