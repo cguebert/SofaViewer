@@ -267,10 +267,11 @@ namespace property
 	template <class T>
 	void copyToVector(const T& from, T& to) { to = from; }
 
+	 // The enable_if is there to disable this function if the 2 types are the same (we want to use the previous function instead)
 	template <class T>
-	void copyToVector(const T& val, details::CopyVectorType<T>& vec)
+	void copyToVector(const T& val, typename std::enable_if<!std::is_same<T, details::CopyVectorType<T>>::value, details::CopyVectorType<T>&>::type vec)
 	{
-		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using value_type = std::decay_t<T>;
 		const bool extend0 = ArrayTraits<value_type>::isArray;
 		const bool fixed = ArrayTraits<value_type>::fixed;
 		using base_type = ArrayTraits<value_type>::value_type;
@@ -278,19 +279,19 @@ namespace property
 		ValueCopier<value_type, extend0, extend1, fixed>::toVector(val, vec);
 	}
 
-	template <class T> 
-	T& value(T& val) { return val; }
-
-	template <class T>
-	T& value(VectorWrapper<T>& val) { return val.value(); }
+	template <class T> T& value(T& val) { return val; }
+	template <class T> T& value(VectorWrapper<T>& val) { return val.value(); }
+	template <class T> const T& value(const T& val) { return val; }
+	template <class T> const T& value(const VectorWrapper<T>& val) { return val.value(); }
 
 	template <class T>
 	void copyFromVector(const T& from, T& to) { to = from; }
 
+	// The enable_if is there to disable this function if the 2 types are the same (we want to use the previous function instead)
 	template <class T>
-	void copyFromVector(const details::CopyVectorType<T>& vec, T& val)
+	void copyFromVector(typename std::enable_if<!std::is_same<T, details::CopyVectorType<T>>::value, const details::CopyVectorType<T>&>::type vec, T& val)
 	{
-		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using value_type = std::decay_t<T>;
 		const bool extend0 = ArrayTraits<value_type>::isArray;
 		const bool fixed = ArrayTraits<value_type>::fixed;
 		using base_type = ArrayTraits<value_type>::value_type;
@@ -304,7 +305,7 @@ namespace property
 	class PropertyValueType
 	{
 	private:
-		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using value_type = std::decay_t<T>;
 		static const bool extend0 = ArrayTraits<value_type>::isArray;
 		static const bool fixed = ArrayTraits<value_type>::fixed;
 		using base_type = ArrayBaseType<value_type>;
@@ -318,7 +319,7 @@ namespace property
 	template <class T>
 	Property::ValuePtr createValueCopy(T&& val)
 	{
-		using value_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using value_type = std::decay_t<T>;
 		const bool extend0 = ArrayTraits<value_type>::isArray;
 		const bool fixed = ArrayTraits<value_type>::fixed;
 		using base_type = ArrayBaseType<value_type>;
@@ -377,7 +378,7 @@ namespace property
 			assert(m_propertyValue != nullptr);
 		}
 
-		void writeToValue() override	{ details::copyFromVector(m_propertyValue->value(), m_value); }
+		void writeToValue() override	{ details::copyFromVector(details::value(m_propertyValue->value()), m_value); }
 		void readFromValue() override	{ details::copyToVector(m_value, details::value(m_propertyValue->value())); }
 	protected:
 		valType& m_value;
@@ -428,7 +429,7 @@ namespace property
 		}
 		else
 		{
-			auto wrapper = property::createValueRefWrapper(val, prop);
+			auto wrapper = createValueRefWrapper(val, prop);
 			return { prop, wrapper };
 		}
 	}

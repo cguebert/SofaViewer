@@ -8,7 +8,7 @@ template <class T>
 class VectorWrapper
 {
 public:
-	using value_type = std::remove_cv_t<T>;
+	using value_type = std::decay_t<T>;
 	using base_type = typename T::value_type;
 	using wrapper_type = VectorWrapper<value_type>;
 	VectorWrapper() {}

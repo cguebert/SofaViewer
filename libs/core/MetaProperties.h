@@ -48,7 +48,7 @@ public:
 	template <class T>
 	void add(T&& prop)
 	{
-		using prop_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using prop_type = std::decay_t<T>;
 		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
 
 		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
@@ -127,7 +127,7 @@ private:
 	template <class T>
 	void doAdd(T&& prop)
 	{
-		using prop_type = std::remove_cv_t<std::remove_reference_t<T>>;
+		using prop_type = std::decay_t<T>;
 		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
 		m_properties.push_back(ptr);
 

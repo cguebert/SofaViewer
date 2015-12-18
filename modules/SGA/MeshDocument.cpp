@@ -321,6 +321,7 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createRefProperty("specular", material->specular, meta::Color());
 			properties->createRefProperty("emissive", material->emissive, meta::Color());
 			properties->createRefProperty("shininess", material->shininess);
+		//	properties->createRefProperty("textures", material->textures);
 
 			std::vector<int> texTypes;
 			std::vector<std::string> texPaths;

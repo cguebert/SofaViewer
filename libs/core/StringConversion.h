@@ -70,6 +70,32 @@ namespace conversion
 		}
 	};
 
+	template <>
+	struct StringConversion<std::vector<std::string>>
+	{
+		static std::string toString(const std::vector<std::string>& val)
+		{
+			std::ostringstream out;
+
+			if (!val.empty())
+				out << val[0];
+
+			for (std::vector<std::string>::size_type i = 1, nb = val.size(); i < nb; ++i)
+				out << "|" << val[i];
+
+			return out.str();
+		}
+
+		static void fromString(std::vector<std::string>& val, const std::string& text)
+		{ 
+			val.clear();
+			std::istringstream in(text);
+			std::string t;
+			while (std::getline(in, t, '|'))
+				val.push_back(t);
+		}
+	};
+
 	template <class T>
 	struct StringConversion<VectorWrapper<T>>
 	{
