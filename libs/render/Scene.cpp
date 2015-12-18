@@ -88,7 +88,7 @@ void Scene::render()
 		if (prog.texLoc != -1)
 		{
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, material->textureId());
+			glBindTexture(GL_TEXTURE_2D, material->textureId(TextureType::Diffuse, 0));
 			glUniform1i(prog.texLoc, 0);
 		}
 
@@ -120,8 +120,7 @@ Scene::ProgramStruct& Scene::selectProgram(const Mesh::SPtr mesh, const Material
 	if (mesh->m_mergedTriangles.empty())
 		return m_linesProg;
 
-	auto texId = material->textureId();
-	if(mesh->m_texCoords.empty() || !texId)
+	if(mesh->m_texCoords.empty() || material->textures.empty())
 		return m_trianglesColorProg;
 
 	return m_trianglesTexturedProg;

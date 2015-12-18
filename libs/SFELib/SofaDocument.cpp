@@ -46,7 +46,7 @@ simplerender::Material::SPtr parseMaterial(const std::string& materialText)
 {
 	auto material = std::make_shared<simplerender::Material>();
 	std::istringstream in(materialText);
-	std::string dummy, element;
+	std::string dummy, element, diffuseTexture, bumpTexture;
 	int active;
 	in >> dummy;
 
@@ -60,10 +60,18 @@ simplerender::Material::SPtr parseMaterial(const std::string& materialText)
 		else if (element == "specular")  { in  >> active; parseColor(in, material->specular);  }
 		else if (element == "emissive")  { in  >> active; parseColor(in, material->emissive);  }
 		else if (element == "shininess") { in  >> active; in >> material->shininess; }
-		else if (element == "texture")   { in  >> active; std::getline(in, material->textureFilename); }
-		else if (element == "bump")      { in  >> active; std::getline(in, dummy); }
+		else if (element == "texture")   { in  >> active; std::getline(in, diffuseTexture); }
+		else if (element == "bump")      { in  >> active; std::getline(in, bumpTexture); }
 	}
-	material->textureFilename = trim(material->textureFilename);
+	
+	diffuseTexture = trim(diffuseTexture);
+	if (!diffuseTexture.empty() && diffuseTexture != "DEFAULT")
+		material->textures.emplace_back(simplerender::TextureType::Diffuse, diffuseTexture);
+
+	bumpTexture = trim(bumpTexture);
+	if (!bumpTexture.empty() && bumpTexture != "DEFAULT")
+		material->textures.emplace_back(simplerender::TextureType::Bump, bumpTexture);
+
 	parseColor(in, material->diffuse);
 
 	return material;
@@ -199,20 +207,20 @@ SofaDocument::SofaModel SofaDocument::createSofaModel(sfe::Object& visualModel)
 	m_scene.addMaterial(material);
 	m_newMaterials.push_back(material);
 
-	// Loading of the texture
-	if (!material->textureFilename.empty())
+	// Loading of the textures
+	auto helper = m_simulation.getHelper();
+	for(auto& tex : material->textures)
 	{
-		auto helper = m_simulation.getHelper();
 		// Find the texture file
-		if (!helper->findFile(material->textureFilename))
-			material->textureFilename = ""; // Not found
+		if (!helper->findFile(tex.filePath))
+			tex.filePath = ""; // Not found
 		else
 		{
-			auto contents = helper->loadFile(material->textureFilename);
+			auto contents = helper->loadFile(tex.filePath);
 			if (!contents.empty())
 			{
-				material->texture = std::make_shared<simplerender::Texture>();
-				material->texture->loadFromMemory(contents);
+				tex.texture = std::make_shared<simplerender::Texture>();
+				tex.texture->loadFromMemory(contents);
 			}
 		}
 	}

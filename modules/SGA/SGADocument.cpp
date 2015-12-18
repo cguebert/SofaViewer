@@ -498,19 +498,22 @@ std::vector<std::string> SGADocument::modifyTexturesForSaving(const std::string&
 
 	for (auto& material : m_scene.materials())
 	{
-		auto& texPath = material->textureFilename;
-		if (!texPath.empty())
+		for (auto& tex : material->textures)
 		{
-			texPaths.push_back(texPath);
-			if (texPath.find(dir) != std::string::npos) // The texture can stay there, we can compute the relative path
+			auto& texPath = tex.filePath;
+			if (!texPath.empty())
 			{
-				texPath = texPath.substr(dir.size() + 1); // Removing the directory path, including the '/'
-			}
-			else // We must move the texture to be able to create a relative path
-			{
-				auto texName = getFilename(texPath);
-				copyFile(texPath, dir + '/' + texName);
-				texPath = texName;
+				texPaths.push_back(texPath);
+				if (texPath.find(dir) != std::string::npos) // The texture can stay there, we can compute the relative path
+				{
+					texPath = texPath.substr(dir.size() + 1); // Removing the directory path, including the '/'
+				}
+				else // We must move the texture to be able to create a relative path
+				{
+					auto texName = getFilename(texPath);
+					copyFile(texPath, dir + '/' + texName);
+					texPath = texName;
+				}
 			}
 		}
 	}
@@ -523,8 +526,11 @@ void SGADocument::restoreTexturesPaths(const std::vector<std::string>& paths)
 	auto it = paths.begin();
 	for (auto& material : m_scene.materials())
 	{
-		auto& texPath = material->textureFilename;
-		if (!texPath.empty())
-			texPath = *it++;
+		for (auto& tex : material->textures)
+		{
+			auto& texPath = tex.filePath;
+			if (!texPath.empty())
+				texPath = *it++;
+		}
 	}
 }

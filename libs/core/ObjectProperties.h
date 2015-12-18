@@ -18,7 +18,8 @@ public:
 	
 	void addProperty(Property::SPtr prop);
 	using PropertyList = std::vector<Property::SPtr>;
-	const PropertyList& properties();
+	const PropertyList& properties() const;
+	Property::SPtr property(const std::string& name) const;
 
 	void addValueWrapper(BaseValueWrapper::SPtr wrap);
 	using ValueWrapperList = std::vector<BaseValueWrapper::SPtr>;
@@ -65,7 +66,7 @@ inline const std::string& ObjectProperties::name() const
 inline void ObjectProperties::addProperty(Property::SPtr prop)
 { m_properties.push_back(prop); }
 
-inline const ObjectProperties::PropertyList& ObjectProperties::properties()
+inline const ObjectProperties::PropertyList& ObjectProperties::properties() const
 { return m_properties; }
 
 inline void ObjectProperties::addValueWrapper(BaseValueWrapper::SPtr wrap)

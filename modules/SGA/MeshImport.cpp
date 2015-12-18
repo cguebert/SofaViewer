@@ -71,6 +71,17 @@ inline simplerender::Material::Color convert(const aiColor3D& c)
 	return simplerender::Material::Color(c.r, c.g, c.b, 1.0f);
 }
 
+void getTextures(simplerender::Material::SPtr material, const aiMaterial* input, aiTextureType aiType, simplerender::TextureType texType)
+{
+	aiString path;
+	int nb = input->GetTextureCount(aiType);
+	for (int i = 0; i < nb; ++i)
+	{
+		if(aiReturn_SUCCESS == input->GetTexture(aiType, i, &path))
+		material->textures.emplace_back(texType, path.C_Str());
+	}
+}
+
 simplerender::Material::SPtr createMaterial(const aiMaterial* input)
 {
 	auto material = std::make_shared<simplerender::Material>();
@@ -94,8 +105,10 @@ simplerender::Material::SPtr createMaterial(const aiMaterial* input)
 	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_SHININESS, floatValue))
 		material->shininess = floatValue;
 
-	if(aiReturn_SUCCESS == input->Get(AI_MATKEY_TEXTURE_DIFFUSE(0), path))
-		material->textureFilename = path.C_Str();
+	getTextures(material, input, aiTextureType_DIFFUSE, simplerender::TextureType::Diffuse);
+	getTextures(material, input, aiTextureType_SPECULAR, simplerender::TextureType::Specular);
+	getTextures(material, input, aiTextureType_HEIGHT, simplerender::TextureType::Bump);
+	getTextures(material, input, aiTextureType_NORMALS, simplerender::TextureType::Normal);
 
 	return material;
 }
@@ -263,12 +276,15 @@ void MeshImport::findTextures(Materials& materials, const std::string& modelPath
 	// Modify the relative texture paths
 	for (auto& material : materials)
 	{
-		auto& fileName = material->textureFilename;
-		if (!fileName.empty())
+		for (auto& tex : material->textures)
 		{
-			auto path = dir + "/" + fileName;
-			if (doesFileExist(path))
-				fileName = path;
+			auto& fileName = tex.filePath;
+			if (!fileName.empty())
+			{
+				auto path = dir + "/" + fileName;
+				if (doesFileExist(path))
+					fileName = path;
+			}
 		}
 	}
 }

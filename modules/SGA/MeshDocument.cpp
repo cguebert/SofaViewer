@@ -321,7 +321,16 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createRefProperty("specular", material->specular, meta::Color());
 			properties->createRefProperty("emissive", material->emissive, meta::Color());
 			properties->createRefProperty("shininess", material->shininess);
-			properties->createRefProperty("texture", material->textureFilename, meta::File());
+
+			std::vector<int> texTypes;
+			std::vector<std::string> texPaths;
+			for (const auto& tex : material->textures)
+			{
+				texPaths.push_back(tex.filePath);
+				texTypes.push_back(static_cast<int>(tex.type));
+			}
+			properties->createCopyProperty("textures types", texTypes, meta::Enum(simplerender::getTexturesTypes()));
+			properties->createCopyProperty("textures paths", texPaths, meta::File());
 		}
 		break;
 	}
@@ -353,7 +362,18 @@ void MeshDocument::closeObjectProperties(GraphNode* baseItem, ObjectPropertiesPt
 	else if (item->nodeType == MeshNode::Type::Mesh)
 		m_newMeshes.push_back(item->mesh.get());
 	else if (item->nodeType == MeshNode::Type::Material)
+	{
+		const auto& types = ptr->property("textures types")->value<std::vector<int>>()->value();
+		const auto& paths = ptr->property("textures paths")->value<std::vector<std::string>>()->value();
+
+		int nb = std::min(types.size(), paths.size());
+		auto& textures = item->material->textures;
+		textures.clear();
+		for (int i = 0; i < nb; ++i)
+			textures.emplace_back(static_cast<simplerender::TextureType>(types[i]), paths[i]);
+		
 		m_newMaterials.push_back(item->material.get());
+	}
 }
 
 void MeshDocument::graphContextMenu(GraphNode* baseItem, simplegui::Menu& menu)
