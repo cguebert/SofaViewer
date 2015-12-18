@@ -1,7 +1,6 @@
 #pragma once
 
 #include <core/core.h>
-#include <core/MetaProperties.h>
 #include <core/StringConversion.h>
 
 #include <memory>
