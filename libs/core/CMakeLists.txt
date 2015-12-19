@@ -17,6 +17,7 @@ set(HEADER_FILES
 	PropertiesUtils.h
 	SimpleGUI.h
 	StringConversion.h
+	StructMeta.h
 	VectorWrapper.h
 )
 

@@ -5,6 +5,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <typeindex>
 #include <type_traits>
 #include <vector>
 
@@ -27,6 +28,7 @@ protected:
 	Widget(const std::string& type)
 		: m_type(type) {}
 
+private:
 	std::string m_type;
 };
 
@@ -34,6 +36,14 @@ struct CORE_API Validator : virtual public MetaProperty
 {
 	// Must have a template function setting a validator functor
 	// template <class T> void init(std::function<bool(T&)>& func) {...}
+};
+
+struct CORE_API Serializator : virtual public MetaProperty
+{
+	// Must have a template function setting a serializator functor
+	// template <class T> void init(std::function<std::ostream&(std::ostream&, const T&)>& func) {...}
+	// And a deserializator functor
+	// template <class T> void init(std::function<std::istream&(std::istream&, T&)>& func) {...}
 };
 
 //****************************************************************************//
@@ -53,6 +63,9 @@ public:
 
 		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
 		static_assert(isValidator == false, "Validators can not be added through BaseMetaContainer");
+
+		const bool isSerializator = std::is_base_of<Serializator, prop_type>::value;
+		static_assert(isSerializator == false, "Serializators can not be added through BaseMetaContainer");
 
 		m_properties.push_back(ptr);
 	}
@@ -80,6 +93,8 @@ protected:
 	Properties m_properties;
 };
 
+//****************************************************************************//
+
 template <class prop_type, class value_type, bool isValidator>
 struct PropertyInit
 {
@@ -93,12 +108,15 @@ struct PropertyInit<prop_type, value_type, true>
 	{ prop.init(value); }
 };
 
+//****************************************************************************//
 
 template <class value_type>
 class MetaContainer : public BaseMetaContainer
 {
 public:
-	using validateFunc = std::function<bool(value_type&)>;
+	using ValidateFunc = std::function<bool(value_type&)>;
+	using SerializeFunc = std::function<std::ostream&(std::ostream&, const value_type&)>;
+	using DeserializeFunc = std::function<std::istream&(std::istream&, value_type&)>;
 
 	template <class... Args>
 	void add(Args&&... args)
@@ -135,14 +153,32 @@ private:
 		if (isValidator)
 		{
 			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
-			validateFunc func;
-			PropertyInit<prop_type, validateFunc, isValidator>::init(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
-			if (func)
+			ValidateFunc func;
+			PropertyInit<prop_type, ValidateFunc, isValidator>::init(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
+			if (func) 
 				m_validateFunctions.push_back(func);
+		}
+
+		const bool isSerializator = std::is_base_of<Serializator, prop_type>::value;
+		if (isSerializator)
+		{
+			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
+			SerializeFunc serFunc;
+			DeserializeFunc desFunc;
+
+			PropertyInit<prop_type, SerializeFunc, isSerializator>::init(propRef, serFunc);
+			if (serFunc) 
+				m_serializeFunction = serFunc;
+
+			PropertyInit<prop_type, DeserializeFunc, isSerializator>::init(propRef, desFunc);
+			if (desFunc) 
+				m_deserializeFunction = desFunc;
 		}
 	}
 
-	std::vector<validateFunc> m_validateFunctions;
+	std::vector<ValidateFunc> m_validateFunctions;
+	SerializeFunc m_serializeFunction;
+	DeserializeFunc m_deserializeFunction;
 };
 
 //****************************************************************************//

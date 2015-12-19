@@ -1,11 +1,8 @@
 #pragma once
 
-#include "Property.h"
-#include "MetaProperties.h"
-#include "VectorWrapper.h"
+#include <core/Property.h>
 
 #include <array>
-#include <vector>
 
 namespace property
 {
@@ -326,7 +323,19 @@ namespace property
 		const bool extend1 = ArrayTraits<base_type>::isArray;
 		return CopyValueCreator<value_type, extend0, extend1, fixed>::create(std::forward<T>(val));
 	}
+/*
+	template <class T, class M>
+	using has_meta = (bool)std::is_base_of<T, M>::value;
 
+	template <class T, class C, class... MetaArgs>
+	using has_meta = (bool)std::is_base_of<T, C>::value && (bool)std::is_base_of<T, MetaArgs...>::value;
+
+	template <class T, class... MetaArgs>
+	void verifyCompatibility()
+	{
+		static_assert();
+	}
+*/
 	} // namespace details
 
 	//****************************************************************************//
@@ -334,6 +343,7 @@ namespace property
 	template <class T, class... MetaArgs>
 	Property::ValuePtr createCopyValue(T&& val, MetaArgs&&... meta)
 	{
+	//	verifyCompatibility<T, MetaArgs...>();
 		auto valuePtr = details::createValueCopy(std::forward<T>(val));
 		using value_type = details::PropertyValueType<T>::property_type;
 		auto& metaContainer = dynamic_cast<meta::MetaContainer<value_type>&>(valuePtr->baseMetaContainer());
@@ -344,6 +354,7 @@ namespace property
 	template <class T, class... MetaArgs>
 	Property::ValuePtr createRefValue(T& val, MetaArgs&&... meta)
 	{
+	//	verifyCompatibility<T, MetaArgs...>();
 		auto valuePtr = std::make_shared<PropertyRefValue<T>>(val);
 		valuePtr->metaContainer().add(std::forward<MetaArgs>(meta)...);
 		return valuePtr;

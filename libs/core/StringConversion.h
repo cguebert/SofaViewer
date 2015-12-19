@@ -1,6 +1,6 @@
 #pragma once
 
-#include "VectorWrapper.h"
+#include <core/VectorWrapper.h>
 #include <core/MetaProperties.h>
 
 #include <sstream>
@@ -143,13 +143,13 @@ namespace conversion
 	{
 		static std::string toString(const T& val) 
 		{
-			static_assert(false, "Cannot save this type");
+		//	static_assert(false, "Cannot save this type");
 			return ""; 
 		}
 
 		static void fromString(T& val, const std::string& text) 
 		{
-			static_assert(false, "Cannot load this type");
+		//	static_assert(false, "Cannot load this type");
 		}
 	};
 

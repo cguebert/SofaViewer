@@ -1,10 +1,7 @@
 #pragma once
 
-#include "Property.h"
-#include "PropertiesUtils.h"
-
-#include <functional>
-#include <vector>
+#include <core/Property.h>
+#include <core/PropertiesUtils.h>
 
 class CORE_API ObjectProperties
 {

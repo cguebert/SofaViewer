@@ -3,10 +3,6 @@
 #include <core/core.h>
 #include <core/StringConversion.h>
 
-#include <memory>
-#include <string>
-#include <typeindex>
-
 class BasePropertyValue;
 template <class T> class PropertyValue;
 
