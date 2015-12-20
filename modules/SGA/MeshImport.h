@@ -29,7 +29,6 @@ namespace property
 {
 	namespace details
 	{
-
 		template <>
 		struct ArrayTraits<glm::vec2>
 		{

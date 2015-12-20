@@ -24,6 +24,9 @@ public:
 	virtual void deserialize(void* pVal, const std::string& text) const = 0;
 
 	virtual Property::SPtr getSubProperty(void* pVal) const = 0;
+	virtual const BaseMetaContainer& metaContainer() const = 0;
+
+	virtual bool isEqual(const void* pVal1, const void* pVal2) const = 0;
 
 private:
 	std::string m_name;
@@ -37,8 +40,12 @@ template <class T>
 class StructItem : public BaseStructItem
 {
 public:
-	StructItem(const std::string& name, size_t size, size_t offset)
-		: BaseStructItem(name, size, offset, std::type_index(typeid(T))) {}
+	template <class... Args>
+	StructItem(const std::string& name, size_t size, size_t offset, Args&&... args)
+		: BaseStructItem(name, size, offset, std::type_index(typeid(T))) 
+	{
+		m_metaContainer.add(std::forward<Args>(args)...);
+	}
 
 	std::string serialize(const void* pVal) const override
 	{ return conversion::toString(getVal(pVal)); }
@@ -49,7 +56,29 @@ public:
 	virtual Property::SPtr getSubProperty(void* pVal) const override
 	{
 		auto& val = getVal(pVal);
-		return property::createRefProperty(name(), val);
+		auto prop = property::createRefProperty(name(), val);
+		auto& metaContainer = prop->value()->baseMetaContainer();
+		for (const auto& meta : m_metaContainer.properties())
+			metaContainer.addExisting(meta);
+		return prop;
+	}
+
+	template <class... Args>
+	void setMeta(Args&&... args)
+	{
+		m_metaContainer.add(std::forward<Args>(args)...);
+	}
+
+	const BaseMetaContainer& metaContainer() const override
+	{
+		return m_metaContainer;
+	}
+
+	bool isEqual(const void* pVal1, const void* pVal2) const override
+	{
+		const auto& val1 = getVal(pVal1);
+		const auto& val2 = getVal(pVal2);
+		return val1 == val2;
 	}
 
 private:
@@ -70,11 +99,13 @@ private:
 
 //****************************************************************************//
 
-template <class T>
-std::shared_ptr<BaseStructItem> createStructItem(const std::string& name, size_t offset) 
-{ return std::make_shared<StructItem<T>>(name, sizeof(T), offset); }
+template <class T, class... Args>
+std::shared_ptr<StructItem<T>> createStructItem(const std::string& name, size_t offset, Args&&... args) 
+{ return std::make_shared<StructItem<T>>(name, sizeof(T), offset, std::forward<Args>(args)...); }
 
 #define STRUCT_ITEM(n, s, m) createStructItem<decltype(s::m)>(n, offsetof(s, m))
+#define STRUCT_ITEM_1META(n, s, m, meta) createStructItem<decltype(s::m)>(n, offsetof(s, m), meta)
+#define STRUCT_ITEM_2META(n, s, m, meta0, meta1) createStructItem<decltype(s::m)>(n, offsetof(s, m), meta0, meta1)
 
 //****************************************************************************//
 
@@ -168,6 +199,7 @@ struct ListTraits
 	static void resize(value_type& value, int nb) { }
 	static bool fixed(const value_type& value) { return true; }
 	static base_type& value(value_type& value, int) { return value; }
+	static const base_type& value(const value_type& value, int) { return value; }
 };
 
 template <class T>
@@ -180,6 +212,7 @@ struct ListTraits<std::vector<T>>
 	static void resize(value_type& value, int nb) { value.resize(nb); }
 	static bool fixed(const value_type& value) { return false; }
 	static base_type& value(value_type& value, int index) { return value[index]; }
+	static const base_type& value(const value_type& value, int index) { return value[index]; }
 };
 
 template <class T>
@@ -192,6 +225,7 @@ struct ListTraits<VectorWrapper<T>>
 	static void resize(value_type& wrapper, int nb) { wrapper.value().resize(nb); }
 	static bool fixed(const value_type& wrapper) { return wrapper.fixedSize(); }
 	static base_type& value(value_type& wrapper, int index) { return wrapper.value()[index]; }
+	static const base_type& value(const value_type& wrapper, int index) { return wrapper.value()[index]; }
 };
 
 } // unnamed namespace
@@ -203,6 +237,12 @@ struct CORE_API Struct : public Widget, public Serializator
 	Struct(const std::vector<BaseStructItem::SPtr>& items) : Widget("struct"), items(items) {}
 	const std::vector<BaseStructItem::SPtr> items;
 
+	template <class T>
+	static T& getValue(BasePropertyValue::SPtr value)
+	{
+		return std::dynamic_pointer_cast<PropertyValue<T>>(value)->value();
+	}
+
 	template <class T> 
 	void setSerializeFunctions(std::function<std::string(const T&)>& funcSerialize,
 		std::function<void(T&, const std::string& text)>& funcDeserialize) 
@@ -213,61 +253,133 @@ struct CORE_API Struct : public Widget, public Serializator
 		funcDeserialize = [this](T& val, const std::string& text)
 		{ details::deserialize(val, text, items); };
 
-		m_isFixedSizeFunc = [](Property::SPtr property) -> bool {
-			const auto& value = property->value<T>()->value();
+		m_isFixedSizeFunc = [](BasePropertyValue::SPtr propVal) -> bool {
+			const auto& value = getValue<T>(propVal);
 			return ListTraits<T>::fixed(value);
 		};
 
-		m_getSizeFunc = [](Property::SPtr property) -> int {
-			const auto& value = property->value<T>()->value();
+		m_getSizeFunc = [](BasePropertyValue::SPtr propVal) -> int {
+			const auto& value = getValue<T>(propVal);
 			return ListTraits<T>::size(value);
 		};
 
-		m_resizeSizeFunc = [](Property::SPtr property, int size) {
-			auto& value = property->value<T>()->value();
+		m_resizeSizeFunc = [](BasePropertyValue::SPtr propVal, int size) {
+			auto& value = getValue<T>(propVal);
 			return ListTraits<T>::resize(value, size);
 		};
 
-		m_getSubPropertyFunc = [this](Property::SPtr property, int index, int structItem) {
-			auto& value = property->value<T>()->value();
+		m_getSubPropertyFunc = [this](BasePropertyValue::SPtr propVal, int index, int structItem) {
+			auto& value = getValue<T>(propVal);
 			auto& subVal = ListTraits<T>::value(value, index);
 			assert(structItem >= 0 && structItem < static_cast<int>(items.size()));
 			return items[structItem]->getSubProperty(&subVal);
 		};
+
+		m_clonePropertyValueFunc = [](Property::SPtr property) -> BasePropertyValue::SPtr {
+			const auto& value = property->value<T>()->value();
+			return property::createCopyValue(value);
+		};
+
+		m_isModifiedFunc = [this](BasePropertyValue::SPtr propVal1, BasePropertyValue::SPtr propVal2) -> bool{
+			const auto& value1 = getValue<T>(propVal1);
+			const auto& value2 = getValue<T>(propVal2);
+			const int size1 = ListTraits<T>::size(value1);
+			const int size2 = ListTraits<T>::size(value2);
+			if (size1 != size2)
+				return true;
+			
+			// We compare only the data that is exposed via meta::Struct
+			int nbItems = items.size();
+			for (int i = 0; i < size1; ++i)
+			{
+				const auto& subVal1 = ListTraits<T>::value(value1, i);
+				const auto& subVal2 = ListTraits<T>::value(value2, i);
+				for (int j = 0; j < nbItems; ++j)
+				{
+					if (!items[j]->isEqual(&subVal1, &subVal2))
+						return true;
+				}
+			}
+
+			return false;
+		};
+
+		m_setValueFunc = [](BasePropertyValue::SPtr to, BasePropertyValue::SPtr from) {
+			auto& value1 = getValue<T>(to);
+			const auto& value2 = getValue<T>(from);
+			value1 = value2;
+		};
+
+		m_validateFunc = [](BasePropertyValue::SPtr propVal) {
+			auto propValT = std::dynamic_pointer_cast<PropertyValue<T>>(propVal);
+			auto& value = propValT->value();
+			return propValT->validate(value);
+		};
 	}
 
-	bool isFixedSize(Property::SPtr property) const
+	bool isFixedSize(BasePropertyValue::SPtr value) const
 	{
 		if (m_isFixedSizeFunc)
-			return m_isFixedSizeFunc(property);
+			return m_isFixedSizeFunc(value);
 		return true;
 	}
 
-	int getSize(Property::SPtr property) const
+	int getSize(BasePropertyValue::SPtr value) const
 	{
 		if (m_getSizeFunc)
-			return m_getSizeFunc(property);
+			return m_getSizeFunc(value);
 		return 0;
 	}
 
-	void resize(Property::SPtr property, int size) const
+	void resize(BasePropertyValue::SPtr value, int size) const
 	{
 		if (m_resizeSizeFunc)
-			m_resizeSizeFunc(property, size);
+			m_resizeSizeFunc(value, size);
 	}
 
-	Property::SPtr getSubProperty(Property::SPtr property, int index, int structItem)
+	Property::SPtr getSubProperty(BasePropertyValue::SPtr value, int index, int structItem)
 	{
 		if (m_getSubPropertyFunc)
-			return m_getSubPropertyFunc(property, index, structItem);
+			return m_getSubPropertyFunc(value, index, structItem);
 		return nullptr;
 	}
 
+	BasePropertyValue::SPtr cloneProperty(Property::SPtr property)
+	{
+		if (m_clonePropertyValueFunc)
+			return m_clonePropertyValueFunc(property);
+		return nullptr;
+	}
+
+	bool isModified(BasePropertyValue::SPtr val1, BasePropertyValue::SPtr val2)
+	{
+		if (m_isModifiedFunc)
+			return m_isModifiedFunc(val1, val2);
+		return false;
+	}
+
+	void setValue(BasePropertyValue::SPtr to, BasePropertyValue::SPtr from)
+	{
+		if (m_setValueFunc)
+			m_setValueFunc(to, from);
+	}
+
+	bool validate(BasePropertyValue::SPtr propVal)
+	{
+		if (m_validateFunc)
+			return m_validateFunc(propVal);
+		return false;
+	}
+
 private:
-	std::function<bool(Property::SPtr)> m_isFixedSizeFunc;
-	std::function<int(Property::SPtr)> m_getSizeFunc;
-	std::function<void(Property::SPtr, int)> m_resizeSizeFunc;
-	std::function<Property::SPtr(Property::SPtr, int, int)> m_getSubPropertyFunc;
+	std::function<bool(BasePropertyValue::SPtr)> m_isFixedSizeFunc;
+	std::function<int(BasePropertyValue::SPtr)> m_getSizeFunc;
+	std::function<void(BasePropertyValue::SPtr, int)> m_resizeSizeFunc;
+	std::function<Property::SPtr(BasePropertyValue::SPtr, int, int)> m_getSubPropertyFunc;
+	std::function<BasePropertyValue::SPtr(Property::SPtr)> m_clonePropertyValueFunc;
+	std::function<bool(BasePropertyValue::SPtr, BasePropertyValue::SPtr)> m_isModifiedFunc;
+	std::function<void(BasePropertyValue::SPtr, BasePropertyValue::SPtr)> m_setValueFunc;
+	std::function<bool(BasePropertyValue::SPtr)> m_validateFunc;
 };
 
 } // namespace meta

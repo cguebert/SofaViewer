@@ -26,12 +26,16 @@ public:
 	void toggleView(bool show);
 
 protected:
+	void readFromProperty(BasePropertyValue::SPtr value);
+	void writeToProperty(BasePropertyValue::SPtr value);
+
 	QSpinBox* m_spinBox = nullptr;
 	QPushButton* m_toggleButton = nullptr;
 	QScrollArea* m_scrollArea = nullptr;
 	QFormLayout* m_formLayout = nullptr;
 
 	meta::Struct* m_structProperty;
+	BasePropertyValue::SPtr m_value, m_resetValue;
 
 	std::vector<const BasePropertyWidgetCreator*> m_widgetCreators;
 	std::vector<std::shared_ptr<BasePropertyWidget>> m_propertyWidgets;

@@ -11,8 +11,14 @@ StructPropertyWidget::StructPropertyWidget(Property::SPtr prop, QWidget* parent)
 	for (const auto& item : m_structProperty->items)
 	{
 		std::string widget;
+		auto meta = item->metaContainer().get<meta::Widget>();
+		if (meta)
+			widget = meta->type();
 		m_widgetCreators.push_back(PropertyWidgetFactory::instance().creator(item->type(), widget));
 	}
+
+	m_value = m_structProperty->cloneProperty(m_property);
+	m_resetValue = m_structProperty->cloneProperty(m_property);
 }
 
 QWidget* StructPropertyWidget::createWidgets()
@@ -31,15 +37,15 @@ QWidget* StructPropertyWidget::createWidgets()
 	QObject::connect(m_toggleButton, &QPushButton::toggled, [this](bool toggled){ toggleView(toggled); });
 	topLayout->addWidget(m_toggleButton);
 
-	if (!m_structProperty->isFixedSize(m_property))
+	if (!m_structProperty->isFixedSize(m_value))
 	{
 		m_spinBox = new QSpinBox;
 		m_spinBox->setMaximum(INT_MAX);
-		m_spinBox->setValue(m_structProperty->getSize(m_property));
+		m_spinBox->setValue(m_structProperty->getSize(m_value));
 		topLayout->addWidget(m_spinBox, 1);
 
 		auto resizeButton = new QPushButton(QPushButton::tr("resize"));
-		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { resize(); });
+		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { writeToProperty(m_value); resize(); });
 		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { setWidgetDirty(); });
 		topLayout->addWidget(resizeButton);
 	}
@@ -57,10 +63,11 @@ QWidget* StructPropertyWidget::createWidgets()
 	return container;
 }
 
-void StructPropertyWidget::readFromProperty()
+void StructPropertyWidget::readFromProperty(BasePropertyValue::SPtr value)
 {
+	m_structProperty->setValue(m_value, value);
 	int prevNb = m_spinBox->value();
-	int nb = m_structProperty->getSize(m_property);
+	int nb = m_structProperty->getSize(m_value);
 
 	if (prevNb != nb)
 	{
@@ -76,31 +83,50 @@ void StructPropertyWidget::readFromProperty()
 	}
 }
 
-void StructPropertyWidget::writeToProperty()
+void StructPropertyWidget::writeToProperty(BasePropertyValue::SPtr value)
 {
 	for (auto w : m_propertyWidgets)
 		w->updatePropertyValue();
+
+	if(value != m_value)
+		m_structProperty->setValue(value, m_value);
+}
+
+void StructPropertyWidget::readFromProperty()
+{
+	readFromProperty(m_property->value());
+}
+
+void StructPropertyWidget::writeToProperty()
+{
+	m_structProperty->setValue(m_resetValue, m_property->value());
+	writeToProperty(m_resetValue);
+	m_structProperty->setValue(m_property->value(), m_resetValue);
 }
 
 bool StructPropertyWidget::isModified()
 {
-	return false;
+	writeToProperty(m_value);
+	return m_structProperty->isModified(m_value, m_resetValue);
 }
 
 void StructPropertyWidget::resetWidget()
 {
-
+	readFromProperty(m_resetValue);
 }
 
 void StructPropertyWidget::validate()
 {
-
+	auto tempValue = m_structProperty->cloneProperty(m_property);
+	writeToProperty(tempValue);
+	if (m_structProperty->validate(tempValue))
+		readFromProperty(tempValue);
 }
 
 void StructPropertyWidget::resize()
 {
 	int nb = m_spinBox->value();
-	int prevNb = m_structProperty->getSize(m_property);
+	int prevNb = m_structProperty->getSize(m_value);
 
 	if (m_formLayout && nb == prevNb)
 		return; // No need to recreate the same widgets
@@ -109,23 +135,22 @@ void StructPropertyWidget::resize()
 	m_scrollArea->setVisible(false);
 	m_propertyWidgets.clear();
 
-	m_structProperty->resize(m_property, nb);
+	m_structProperty->resize(m_value, nb);
 			
 	auto scrollAreaWidget = new QWidget;
 	m_formLayout = new QFormLayout;
 	m_formLayout->setContentsMargins(3, 3, 3, 3);
 
 	int nbStructItems = m_structProperty->items.size();
-
 	for (int i = 0; i < nb; ++i)
 	{
 		auto container = new QWidget;
 		auto subLayout = new QFormLayout;
 		for (int j = 0; j < nbStructItems; ++j)
 		{
-			auto prop = m_structProperty->getSubProperty(m_property, i, j);
+			auto prop = m_structProperty->getSubProperty(m_value, i, j);
 			std::shared_ptr<BasePropertyWidget> propWidget = m_widgetCreators[j]->create(prop, container);
-			propWidget->setParent(m_parent);
+			propWidget->setParent(this);
 			m_propertyWidgets.push_back(propWidget);
 			subLayout->addRow(QString::fromStdString(prop->name()), propWidget->createWidgets());
 		}
@@ -137,6 +162,8 @@ void StructPropertyWidget::resize()
 	m_scrollArea->setWidget(scrollAreaWidget);
 	if (visible)
 		m_scrollArea->setVisible(true);
+
+	setWidgetDirty();
 }
 
 void StructPropertyWidget::toggleView(bool show)

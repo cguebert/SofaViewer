@@ -97,7 +97,11 @@ public:
 			topLayout->addWidget(m_spinBox, 1);
 
 			auto resizeButton = new QPushButton(QPushButton::tr("resize"));
-			QObject::connect(resizeButton, &QPushButton::clicked, [this]() { resize(); });
+			QObject::connect(resizeButton, &QPushButton::clicked, [this]() { 
+				for (auto w : m_propertyWidgets) 
+					w->updatePropertyValue(); 
+				resize(); 
+			});
 			QObject::connect(resizeButton, &QPushButton::clicked, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(resizeButton);
 		}
