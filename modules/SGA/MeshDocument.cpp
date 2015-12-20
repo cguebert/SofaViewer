@@ -324,8 +324,8 @@ MeshDocument::ObjectPropertiesPtr MeshDocument::objectProperties(GraphNode* base
 			properties->createRefProperty("shininess", material->shininess);
 			properties->createRefProperty("textures", material->textures, 
 				meta::Struct({ 
-					{"type", meta::STRUCT_ITEM(simplerender::TextureData, type)}, 
-					{"path", meta::STRUCT_ITEM(simplerender::TextureData, filePath)} 
+					{"type", meta::STRUCT_ITEM(simplerender::TextureData, type)},
+					{"path", meta::STRUCT_ITEM(simplerender::TextureData, filePath)}
 				})
 			);
 

@@ -36,15 +36,15 @@ struct CORE_API Validator : virtual public MetaProperty
 {
 	// Must have a template function setting a validator functor
 	// This function must return true if the value passed is changed
-	// template <class T> void init(std::function<bool(T&)>& func) {...}
+	// template <class T> void setValidate(std::function<bool(T&)>& func) {...}
 };
 
 struct CORE_API Serializator : virtual public MetaProperty
 {
 	// Must have a template function setting a serializator functor
-	// template <class T> void init(std::function<std::ostream&(std::ostream&, const T&)>& func) {...}
+	// template <class T> void setSerialize(std::function<std::string(const value_type&)>& func) {...}
 	// And a deserializator functor
-	// template <class T> void init(std::function<std::istream&(std::istream&, T&)>& func) {...}
+	// template <class T> void setDeserialize(std::function<void(value_type&, const std::string&)>& func) {...}
 };
 
 //****************************************************************************//
@@ -97,17 +97,28 @@ protected:
 //****************************************************************************//
 
 template <class prop_type, class value_type, bool isValidator>
-struct PropertyInit
-{
-	static void init(prop_type& prop, value_type& value) {}
-};
+struct GetValidateFunc
+{ static void get(prop_type& prop, value_type& value) {} };
 
 template <class prop_type, class value_type>
-struct PropertyInit<prop_type, value_type, true>
-{
-	static void init(prop_type& prop, value_type& value)
-	{ prop.init(value); }
-};
+struct GetValidateFunc<prop_type, value_type, true>
+{ static void get(prop_type& prop, value_type& value) { prop.setValidate(value); } };
+
+template <class prop_type, class value_type, bool isSerializator>
+struct GetSerializeFunc
+{ static void get(prop_type& prop, value_type& value) {} };
+
+template <class prop_type, class value_type>
+struct GetSerializeFunc<prop_type, value_type, true>
+{ static void get(prop_type& prop, value_type& value) { prop.setSerialize(value); } };
+
+template <class prop_type, class value_type, bool isSerializator>
+struct GetDeserializeFunc
+{ static void get(prop_type& prop, value_type& value) {} };
+
+template <class prop_type, class value_type>
+struct GetDeserializeFunc<prop_type, value_type, true>
+{ static void get(prop_type& prop, value_type& value) { prop.setDeserialize(value); } };
 
 //****************************************************************************//
 
@@ -116,8 +127,8 @@ class MetaContainer : public BaseMetaContainer
 {
 public:
 	using ValidateFunc = std::function<bool(value_type&)>;
-	using SerializeFunc = std::function<std::ostream&(std::ostream&, const value_type&)>;
-	using DeserializeFunc = std::function<std::istream&(std::istream&, value_type&)>;
+	using SerializeFunc = std::function<std::string(const value_type&)>;
+	using DeserializeFunc = std::function<void(value_type&, const std::string&)>;
 
 	template <class... Args>
 	void add(Args&&... args)
@@ -131,6 +142,19 @@ public:
 		for (auto& func : m_validateFunctions)
 			changed |= func(value);
 		return changed;
+	}
+
+	std::string serialize(const value_type& value) const
+	{
+		if (m_serializeFunction)
+			return m_serializeFunction(value);
+		return "";
+	}
+
+	void deserialize(value_type& value, const std::string& text) const
+	{
+		if (m_deserializeFunction)
+			m_deserializeFunction(value, text);
 	}
 
 private:
@@ -155,7 +179,7 @@ private:
 		{
 			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
 			ValidateFunc func;
-			PropertyInit<prop_type, ValidateFunc, isValidator>::init(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
+			GetValidateFunc<prop_type, ValidateFunc, isValidator>::get(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
 			if (func) 
 				m_validateFunctions.push_back(func);
 		}
@@ -167,11 +191,11 @@ private:
 			SerializeFunc serFunc;
 			DeserializeFunc desFunc;
 
-			PropertyInit<prop_type, SerializeFunc, isSerializator>::init(propRef, serFunc);
+			GetSerializeFunc<prop_type, SerializeFunc, isSerializator>::get(propRef, serFunc);
 			if (serFunc) 
 				m_serializeFunction = serFunc;
 
-			PropertyInit<prop_type, DeserializeFunc, isSerializator>::init(propRef, desFunc);
+			GetDeserializeFunc<prop_type, DeserializeFunc, isSerializator>::get(propRef, desFunc);
 			if (desFunc) 
 				m_deserializeFunction = desFunc;
 		}
@@ -190,7 +214,7 @@ struct CORE_API Range : public Validator
 	Range(float min, float max) : min(min), max(max) {}
 
 	template <class T>
-	void init(std::function<bool(T&)>& func)
+	void setValidate(std::function<bool(T&)>& func)
 	{
 		func = [this](T& val)
 		{
@@ -203,7 +227,7 @@ struct CORE_API Range : public Validator
 	}
 
 	template <class T>
-	void init(std::function<bool(std::vector<T>&)>& func)
+	void setValidate(std::function<bool(std::vector<T>&)>& func)
 	{
 		func = [this](std::vector<T>& val)
 		{

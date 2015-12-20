@@ -58,14 +58,10 @@ namespace conversion
 	struct StringConversion<std::string>
 	{
 		static std::string toString(const std::string& val)
-		{
-			return val;
-		}
+		{ return val; }
 
 		static void fromString(std::string& val, const std::string& text)
-		{
-			val = text;
-		}
+		{ val = text; }
 	};
 
 	template <class T>
@@ -136,36 +132,43 @@ namespace conversion
 	{
 		static std::string toString(const T& val) { return details::StringConversion<T>::toString(val); }
 		static void fromString(T& val, const std::string& text) { details::StringConversion<T>::fromString(val, text); }
+		static std::string toString(const T& val, const meta::MetaContainer<T>& meta) { return details::StringConversion<T>::toString(val); }
+		static void fromString(T& val, const std::string& text, const meta::MetaContainer<T>& meta) { details::StringConversion<T>::fromString(val, text); }
 	};
 
 	template <class T>
 	struct ConversionSelector<T, false>
 	{
 		static std::string toString(const T& val) 
-		{
-		//	static_assert(false, "Cannot save this type");
-			return ""; 
-		}
+		{ static_assert(false, "Cannot save this type"); return ""; }
 
 		static void fromString(T& val, const std::string& text) 
-		{
-		//	static_assert(false, "Cannot load this type");
-		}
+		{ static_assert(false, "Cannot load this type"); }
+
+		static std::string toString(const T& val, const meta::MetaContainer<T>& meta) 
+		{ return meta.serialize(val); }
+
+		static void fromString(T& val, const std::string& text, const meta::MetaContainer<T>& meta) 
+		{ meta.deserialize(val, text); }
 	};
 
-	}
+	} // namespace details
 
 	//****************************************************************************//
 
 	template <class T>
 	std::string toString(const T& val)
-	{
-		return details::ConversionSelector<T, details::is_streamable<T>::value>::toString(val);
-	}
+	{ return details::ConversionSelector<T, details::is_streamable<std::decay_t<T>>::value>::toString(val); }
 
 	template <class T>
 	void fromString(T& val, const std::string& text)
-	{
-		return details::ConversionSelector<T, details::is_streamable<T>::value>::fromString(val, text);
-	}
+	{ return details::ConversionSelector<T, details::is_streamable<std::decay_t<T>>::value>::fromString(val, text); }
+
+	template <class T>
+	std::string toString(const T& val, const meta::MetaContainer<T>& meta)
+	{ return details::ConversionSelector<T, details::is_streamable<std::decay_t<T>>::value>::toString(val, meta); }
+
+	template <class T>
+	void fromString(T& val, const std::string& text, const meta::MetaContainer<T>& meta)
+	{ return details::ConversionSelector<T, details::is_streamable<std::decay_t<T>>::value>::fromString(val, text, meta); }
 }

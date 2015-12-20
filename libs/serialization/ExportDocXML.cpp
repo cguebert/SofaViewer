@@ -16,6 +16,34 @@ std::string removeWhitespaces(const std::string& val)
 	return ret;
 }
 
+std::string replaceAll(const std::string& val, const std::string& from, const std::string& to)
+{
+	if (from.empty())
+		return val;
+
+	std::string ret = val;
+	auto fromSize = from.size(), toSize = to.size();
+	size_t pos = 0;
+	while ((pos = val.find(from, pos)) != std::string::npos)
+	{
+		ret.replace(pos, fromSize, to);
+		pos += toSize;
+	}
+
+	return ret;
+}
+
+std::string encodeXML(const std::string& val)
+{
+	// Certainly not the most efficient way of doing it
+	auto v = replaceAll(val, "\"", "&quot;");
+	v = replaceAll(v, "&", "&amp;");
+	v = replaceAll(v, "\'", "&apos;");
+	v = replaceAll(v, "<", "&lt;");
+	v = replaceAll(v, ">", "&gt;");
+	return v;
+}
+
 class XMLExporter
 {
 public:
@@ -40,7 +68,7 @@ void XMLExporter::startNode(const std::string& type, const XMLExporter::Attribut
 	indent();
 	m_out << "<" << type << " ";
 	for (auto& att : attributes)
-		m_out << att.first << "=\"" << att.second << "\" ";
+		m_out << att.first << "=\"" << encodeXML(att.second) << "\" ";
 	m_out << ">\n";
 
 	m_currentNodes.push_back(type);
@@ -59,7 +87,7 @@ void XMLExporter::addObject(const std::string& type, const XMLExporter::Attribut
 	indent();
 	m_out << "<" << type << " ";
 	for (auto& att : attributes)
-		m_out << att.first << "=\"" << att.second << "\" ";
+		m_out << att.first << "=\"" << encodeXML(att.second) << "\" ";
 	m_out << "/>\n";
 }
 

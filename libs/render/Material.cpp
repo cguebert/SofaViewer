@@ -45,9 +45,10 @@ void Material::init()
 unsigned int Material::textureId(TextureType type, int id) const
 {
 	int i = 0;
+	auto typeVal = static_cast<unsigned int>(type);
 	for (auto& tex : textures)
 	{
-		if (tex.type == type)
+		if (tex.type == typeVal)
 		{
 			if (i == id)
 				return tex.texture ? tex.texture->id() : 0;

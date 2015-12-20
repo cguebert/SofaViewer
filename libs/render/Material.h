@@ -22,9 +22,11 @@ TextureType getTextureType(const std::string& name); // Return the corresponding
 
 struct TextureData
 {
-	TextureData(TextureType type, std::string filePath) : type(type), filePath(filePath) {}
+	TextureData() = default;
+	TextureData(TextureType type, std::string filePath) 
+		: type(static_cast<unsigned int>(type)), filePath(filePath) {}
 
-	TextureType type;
+	unsigned int type = 0;
 	std::string filePath;
 	std::shared_ptr<Texture> texture;
 };

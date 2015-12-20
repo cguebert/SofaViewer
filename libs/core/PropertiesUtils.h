@@ -425,7 +425,7 @@ namespace property
 			static Property::SPtr createProperty(const std::string& name, T& val, MetaArgs&&... meta)
 			{ return createCopyProperty(name, val, std::forward<MetaArgs>(meta)...); }
 		};
-	}
+	} // namespace details
 
 	// For simple types, only create a ref property
 	// For more complex types, create a copy property and a ValueRefWrapper

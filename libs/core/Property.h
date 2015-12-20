@@ -102,10 +102,10 @@ public:
 	{ return m_metaProperties; }
 
 	std::string toString() const
-	{ return conversion::toString(value()); }
+	{ return conversion::toString(value(), m_metaProperties); }
 
 	void fromString(const std::string& text)
-	{ conversion::fromString(value(), text); }
+	{ conversion::fromString(value(), text, m_metaProperties); }
 
 protected:
 	meta::MetaContainer<T> m_metaProperties;
