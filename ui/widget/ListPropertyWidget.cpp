@@ -100,7 +100,7 @@ public:
 			QObject::connect(resizeButton, &QPushButton::clicked, [this]() { 
 				for (auto w : m_propertyWidgets) 
 					w->updatePropertyValue(); 
-				resize(); 
+				resize(m_spinBox->value()); 
 			});
 			QObject::connect(resizeButton, &QPushButton::clicked, parent, &BasePropertyWidget::setWidgetDirty);
 			topLayout->addWidget(resizeButton);
@@ -129,7 +129,7 @@ public:
 			if (m_spinBox)
 				m_spinBox->setValue(nb);
 
-			resize();
+			resize(nb);
 		}
 		else
 		{
@@ -144,10 +144,11 @@ public:
 
 		v = m_value;
 	}
-	void resize()
+	void resize(int nb)
 	{
-		int nb = m_spinBox->value();
-		int prevNb = list_traits::size(m_value);
+		if (nb == -1)
+			nb = list_traits::size(m_value);
+		int prevNb = m_propertyWidgets.size();
 
 		if (m_formLayout && nb == prevNb)
 			return; // No need to recreate the same widgets
@@ -188,7 +189,7 @@ public:
 	void toggleView(bool show)
 	{
 		if (show && !m_formLayout)
-			resize();
+			resize(-1);
 		m_scrollArea->setVisible(show);
 		m_toggleButton->setText(show ? QPushButton::tr("hide") : QPushButton::tr("show"));
 	}

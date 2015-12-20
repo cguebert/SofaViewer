@@ -45,7 +45,7 @@ QWidget* StructPropertyWidget::createWidgets()
 		topLayout->addWidget(m_spinBox, 1);
 
 		auto resizeButton = new QPushButton(QPushButton::tr("resize"));
-		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { writeToProperty(m_value); resize(); });
+		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { writeToProperty(m_value); resize(m_spinBox->value()); });
 		QObject::connect(resizeButton, &QPushButton::clicked, [this]() { setWidgetDirty(); });
 		topLayout->addWidget(resizeButton);
 	}
@@ -71,15 +71,13 @@ void StructPropertyWidget::readFromProperty(BasePropertyValue::SPtr value)
 
 	if (prevNb != nb)
 	{
-		if (m_spinBox)
-			m_spinBox->setValue(nb);
-
-		resize();
+		m_spinBox->setValue(nb);
+		resize(nb);
 	}
 	else
 	{
 		for (auto w : m_propertyWidgets)
-			w->updateWidgetValue();
+			w->resolveConflict(Source::property);
 	}
 }
 
@@ -99,7 +97,6 @@ void StructPropertyWidget::readFromProperty()
 
 void StructPropertyWidget::writeToProperty()
 {
-	m_structProperty->setValue(m_resetValue, m_property->value());
 	writeToProperty(m_resetValue);
 	m_structProperty->setValue(m_property->value(), m_resetValue);
 }
@@ -123,10 +120,12 @@ void StructPropertyWidget::validate()
 		readFromProperty(tempValue);
 }
 
-void StructPropertyWidget::resize()
+void StructPropertyWidget::resize(int nb)
 {
-	int nb = m_spinBox->value();
-	int prevNb = m_structProperty->getSize(m_value);
+	if (nb == -1)
+		nb = m_structProperty->getSize(m_value);
+	int nbStructItems = m_structProperty->items.size();
+	int prevNb = m_propertyWidgets.size() / nbStructItems;
 
 	if (m_formLayout && nb == prevNb)
 		return; // No need to recreate the same widgets
@@ -141,7 +140,6 @@ void StructPropertyWidget::resize()
 	m_formLayout = new QFormLayout;
 	m_formLayout->setContentsMargins(3, 3, 3, 3);
 
-	int nbStructItems = m_structProperty->items.size();
 	for (int i = 0; i < nb; ++i)
 	{
 		auto container = new QWidget;
@@ -169,7 +167,7 @@ void StructPropertyWidget::resize()
 void StructPropertyWidget::toggleView(bool show)
 {
 	if (show && !m_formLayout)
-		resize();
+		resize(-1);
 	m_scrollArea->setVisible(show);
 	m_toggleButton->setText(show ? QPushButton::tr("hide") : QPushButton::tr("show"));
 }

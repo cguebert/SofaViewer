@@ -22,7 +22,7 @@ public:
 	void resetWidget() override;
 	void validate() override;
 
-	void resize();
+	void resize(int nb);
 	void toggleView(bool show);
 
 protected:
