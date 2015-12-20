@@ -30,6 +30,7 @@ set(SOURCE_FILES
 	ObjectProperties.cpp
 	Property.cpp
 	SimpleGUI.cpp
+	StructMeta.cpp
 )
 
 add_library(${PROJECT_NAME} SHARED ${HEADER_FILES} ${SOURCE_FILES})

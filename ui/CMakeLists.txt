@@ -26,6 +26,7 @@ set(HEADER_FILES
 	widget/PropertyWidget.h
 	widget/PropertyWidgetFactory.h
 	widget/SimplePropertyWidget.h
+	widget/StructPropertyWidget.h
 	widget/TablePropertyWidget.h
 )
 
@@ -49,6 +50,7 @@ set(SOURCE_FILES
 	widget/PropertyWidget.cpp
 	widget/PropertyWidgetFactory.cpp
 	widget/StringPropertyWidget.cpp
+	widget/StructPropertyWidget.cpp
 	widget/TablePropertyWidget.cpp
 )
 

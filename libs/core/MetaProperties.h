@@ -35,16 +35,17 @@ private:
 struct CORE_API Validator : virtual public MetaProperty
 {
 	// Must have a template function setting a validator functor
-	// This function must return true if the value passed is changed
+	// This functor must return true if the value passed is changed
 	// template <class T> void setValidate(std::function<bool(T&)>& func) {...}
 };
 
 struct CORE_API Serializator : virtual public MetaProperty
 {
-	// Must have a template function setting a serializator functor
-	// template <class T> void setSerialize(std::function<std::string(const value_type&)>& func) {...}
-	// And a deserializator functor
-	// template <class T> void setDeserialize(std::function<void(value_type&, const std::string&)>& func) {...}
+	// Must have a template function setting a serializator functor and a deserializator functor
+	// template <class T> void setSerializeFunctions(
+	//		std::function<std::string(const value_type&)>& func,
+	//		std::function<void(value_type&, const std::string&)>& func
+	//	)
 };
 
 //****************************************************************************//
@@ -96,29 +97,21 @@ protected:
 
 //****************************************************************************//
 
-template <class prop_type, class value_type, bool isValidator>
+template <class prop_type, class func_type, bool isValidator>
 struct GetValidateFunc
-{ static void get(prop_type& prop, value_type& value) {} };
+{ static void get(prop_type& prop, func_type& func) {} };
 
-template <class prop_type, class value_type>
-struct GetValidateFunc<prop_type, value_type, true>
-{ static void get(prop_type& prop, value_type& value) { prop.setValidate(value); } };
+template <class prop_type, class func_type>
+struct GetValidateFunc<prop_type, func_type, true>
+{ static void get(prop_type& prop, func_type& func) { prop.setValidate(func); } };
 
-template <class prop_type, class value_type, bool isSerializator>
-struct GetSerializeFunc
-{ static void get(prop_type& prop, value_type& value) {} };
+template <class prop_type, class func_type1, class func_type2, bool isSerializator>
+struct GetSerializeFunctions
+{ static void get(prop_type& prop, func_type1& func1,  func_type2& func2) {} };
 
-template <class prop_type, class value_type>
-struct GetSerializeFunc<prop_type, value_type, true>
-{ static void get(prop_type& prop, value_type& value) { prop.setSerialize(value); } };
-
-template <class prop_type, class value_type, bool isSerializator>
-struct GetDeserializeFunc
-{ static void get(prop_type& prop, value_type& value) {} };
-
-template <class prop_type, class value_type>
-struct GetDeserializeFunc<prop_type, value_type, true>
-{ static void get(prop_type& prop, value_type& value) { prop.setDeserialize(value); } };
+template <class prop_type,  class func_type1, class func_type2>
+struct GetSerializeFunctions<prop_type, func_type1, func_type2, true>
+{ static void get(prop_type& prop, func_type1& func1,  func_type2& func2) { prop.setSerializeFunctions(func1, func2); } };
 
 //****************************************************************************//
 
@@ -191,13 +184,9 @@ private:
 			SerializeFunc serFunc;
 			DeserializeFunc desFunc;
 
-			GetSerializeFunc<prop_type, SerializeFunc, isSerializator>::get(propRef, serFunc);
-			if (serFunc) 
-				m_serializeFunction = serFunc;
-
-			GetDeserializeFunc<prop_type, DeserializeFunc, isSerializator>::get(propRef, desFunc);
-			if (desFunc) 
-				m_deserializeFunction = desFunc;
+			GetSerializeFunctions<prop_type, SerializeFunc, DeserializeFunc, isSerializator>::get(propRef, serFunc, desFunc);
+			if (serFunc) m_serializeFunction = serFunc;
+			if (desFunc) m_deserializeFunction = desFunc;
 		}
 	}
 

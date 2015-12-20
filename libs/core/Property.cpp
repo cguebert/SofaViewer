@@ -31,14 +31,3 @@ void Property::setValue(ValuePtr value)
 	if(value)
 		m_type = value->type();
 }
-
-//****************************************************************************//
-
-namespace meta
-{
-
-BaseStructItemData::~BaseStructItemData() 
-{
-}
-
-}

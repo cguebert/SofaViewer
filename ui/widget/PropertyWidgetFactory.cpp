@@ -1,6 +1,19 @@
 #include <ui/widget/PropertyWidgetFactory.h>
 #include <ui/widget/PropertyWidget.h>
 
+#include <ui/widget/StructPropertyWidget.h>
+
+namespace
+{
+
+const BasePropertyWidgetCreator* getStructPropertyWidgetCreator()
+{
+	static PropertyWidgetCreator<StructPropertyWidget> structPropertyWidgetCreator;
+	return &structPropertyWidgetCreator;
+}
+
+}
+
 PropertyWidgetFactory& PropertyWidgetFactory::instance()
 {
 	static PropertyWidgetFactory instance;
@@ -25,6 +38,9 @@ std::unique_ptr<BasePropertyWidget> PropertyWidgetFactory::create(std::shared_pt
 
 const BasePropertyWidgetCreator* PropertyWidgetFactory::creator(const std::type_index type, const std::string& widgetName) const
 {
+	if (widgetName == "struct")
+		return getStructPropertyWidgetCreator();
+
 	auto mapIt = registry.find(type);
 	if(mapIt == registry.end())
 		return nullptr;
