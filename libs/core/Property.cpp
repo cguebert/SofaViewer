@@ -1,4 +1,5 @@
 #include <core/Property.h>
+#include <core/StructMeta.h>
 
 Property::Property()
 	: m_type(std::type_index(typeid(int)))
@@ -29,4 +30,15 @@ void Property::setValue(ValuePtr value)
 	m_value = value;
 	if(value)
 		m_type = value->type();
+}
+
+//****************************************************************************//
+
+namespace meta
+{
+
+BaseStructItemData::~BaseStructItemData() 
+{
+}
+
 }

@@ -11,7 +11,7 @@ class CORE_API BaseStructItemData
 public:
 	BaseStructItemData(size_t size, size_t offset, std::type_index type)
 		: m_size(size), m_offset(offset), m_type(type) {}
-	virtual ~BaseStructItemData() {}
+	virtual ~BaseStructItemData();
 
 	size_t offset() const { return m_offset; }
 	size_t size() const { return m_size; }

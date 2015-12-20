@@ -35,6 +35,7 @@ private:
 struct CORE_API Validator : virtual public MetaProperty
 {
 	// Must have a template function setting a validator functor
+	// This function must return true if the value passed is changed
 	// template <class T> void init(std::function<bool(T&)>& func) {...}
 };
 
