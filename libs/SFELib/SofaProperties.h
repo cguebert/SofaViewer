@@ -42,7 +42,7 @@ template <class T>
 class VectorDataWrapper : public BaseDataWrapper
 {
 public:
-	using value_type = typename T::value_type;
+	using value_type = typename T::vector_type;
 	VectorDataWrapper(sfe::Data data, Property::SPtr property)
 		: BaseDataWrapper(data, property)
 	{ m_propertyValue = property->value<T>(); }

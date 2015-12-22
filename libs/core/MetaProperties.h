@@ -7,7 +7,16 @@
 #include <string>
 #include <typeindex>
 #include <type_traits>
+#include <utility>
 #include <vector>
+
+// There is another version for VectorWrappers, that returns its contents instead of itself
+template <class T> T& getContents(T& val) { return val; }
+template <class T> const T& getContents(const T& val) { return val; }
+template <class T> struct contents { using type = T; };
+
+template <class T> struct value_type { using type = T; };
+template <class T> struct value_type<std::vector<T>> { using type = T; };
 
 namespace meta
 {
@@ -119,9 +128,10 @@ template <class value_type>
 class MetaContainer : public BaseMetaContainer
 {
 public:
-	using ValidateFunc = std::function<bool(value_type&)>;
-	using SerializeFunc = std::function<std::string(const value_type&)>;
-	using DeserializeFunc = std::function<void(value_type&, const std::string&)>;
+	using contents_type = typename contents<value_type>::type;
+	using ValidateFunc = std::function<bool(contents_type&)>;
+	using SerializeFunc = std::function<std::string(const contents_type&)>;
+	using DeserializeFunc = std::function<void(contents_type&, const std::string&)>;
 
 	template <class... Args>
 	void add(Args&&... args)
@@ -131,23 +141,24 @@ public:
 
 	bool validate(value_type& value) const
 	{
+		auto& contents = getContents(value);
 		bool changed = false;
 		for (auto& func : m_validateFunctions)
-			changed |= func(value);
+			changed |= func(contents);
 		return changed;
 	}
 
 	std::string serialize(const value_type& value) const
 	{
 		if (m_serializeFunction)
-			return m_serializeFunction(value);
+			return m_serializeFunction(getContents(value));
 		return "";
 	}
 
 	void deserialize(value_type& value, const std::string& text) const
 	{
 		if (m_deserializeFunction)
-			m_deserializeFunction(value, text);
+			m_deserializeFunction(getContents(value), text);
 	}
 
 private:
@@ -165,12 +176,12 @@ private:
 	{
 		using prop_type = std::decay_t<T>;
 		MetaProperty::SPtr ptr = std::make_shared<prop_type>(std::forward<T>(prop));
+		prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
 		m_properties.push_back(ptr);
 
 		const bool isValidator = std::is_base_of<Validator, prop_type>::value;
 		if (isValidator)
 		{
-			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
 			ValidateFunc func;
 			GetValidateFunc<prop_type, ValidateFunc, isValidator>::get(propRef, func); // Even if the code is not executed, it is still created, so I have to go though another level of indirection
 			if (func) 
@@ -180,7 +191,6 @@ private:
 		const bool isSerializator = std::is_base_of<Serializator, prop_type>::value;
 		if (isSerializator)
 		{
-			prop_type& propRef = dynamic_cast<prop_type&>(*ptr.get());
 			SerializeFunc serFunc;
 			DeserializeFunc desFunc;
 
@@ -198,18 +208,19 @@ private:
 //****************************************************************************//
 
 // Ensure that a value stays inside a specified range
-struct CORE_API Range : public Validator
+template <class bound_type>
+struct Range : public Validator
 {
-	Range(float min, float max) : min(min), max(max) {}
+	Range(bound_type min, bound_type max) : min(min), max(max) {}
 
 	template <class T>
 	void setValidate(std::function<bool(T&)>& func)
 	{
+		static_assert(std::is_same<T, bound_type>::value, "Please use the type of the value for the template parameter of meta::Range");
 		func = [this](T& val)
 		{
-			T tmin = static_cast<T>(min), tmax = static_cast<T>(max);
-			if (val < tmin) { val = tmin; return true; }
-			if (val > tmax) { val = tmax; return true; }
+			if (val < min) { val = min; return true; }
+			if (val > max) { val = max; return true; }
 
 			return false;
 		};
@@ -218,29 +229,33 @@ struct CORE_API Range : public Validator
 	template <class T>
 	void setValidate(std::function<bool(std::vector<T>&)>& func)
 	{
+		static_assert(std::is_same<T, bound_type>::value, "Please use the type of the value for the template parameter of meta::Range");
 		func = [this](std::vector<T>& val)
 		{
 			bool changed = false;
 			for (auto& v : val)
 			{
-				T tmin = static_cast<T>(min), tmax = static_cast<T>(max);
-				if (v < tmin) { v = tmin; changed = true; }
-				if (v > tmax) { v = tmax; changed = true; }
+				if (v < min) { v = min; changed = true; }
+				if (v > max) { v = max; changed = true; }
 			}
 
 			return changed;
 		};
 	}
 
-	float min, max;
+	bound_type min, max;
 };
 
 // TODO: No validation is done with the step yet
-struct CORE_API RangeWithStep : public Range
+template <class bound_type>
+struct RangeWithStep : public Range<bound_type>
 {
-	RangeWithStep(float min, float max, float step) : Range(min, max), step(step) {}
+	RangeWithStep(bound_type min, bound_type max, bound_type step) 
+		: Range<bound_type>(min, max)
+		, step(step) 
+	{}
 
-	float step;
+	bound_type step;
 };
 
 //****************************************************************************//
@@ -270,9 +285,13 @@ struct CORE_API File : public Widget // For string
 	std::string filter;
 };
 
-struct CORE_API Slider : public Widget, public RangeWithStep // For numerical values
+template <class bound_type>
+struct Slider : public Widget, public RangeWithStep<bound_type> // For numerical values
 {
-	Slider(float min, float max, float step) : Widget("slider"), RangeWithStep(min, max, step) {}
+	Slider(bound_type min, bound_type max, bound_type step) 
+		: Widget("slider")
+		, RangeWithStep<bound_type>(min, max, step) 
+	{}
 };
 
 struct CORE_API Color : public Widget // For vec3 and vec4

@@ -8,19 +8,19 @@ template <class T>
 class VectorWrapper
 {
 public:
-	using value_type = std::decay_t<T>;
-	using base_type = typename T::value_type;
-	using wrapper_type = VectorWrapper<value_type>;
+	using vector_type = std::decay_t<T>;
+	using value_type = typename T::value_type;
+	using wrapper_type = VectorWrapper<vector_type>;
 	VectorWrapper() {}
-	VectorWrapper(const value_type& value) : m_value(value) {}
-	VectorWrapper(value_type&& value) : m_value(std::move(value)) {}
+	VectorWrapper(const vector_type& value) : m_value(value) {}
+	VectorWrapper(vector_type&& value) : m_value(std::move(value)) {}
 
-	operator value_type() const { return m_value; }
-	void operator=(const value_type& val) { m_value = val; }
+	operator vector_type() const { return m_value; }
+	void operator=(const vector_type& val) { m_value = val; }
 
-	const value_type& value() const
+	const vector_type& value() const
 	{ return m_value; }
-	value_type& value()
+	vector_type& value()
 	{ return m_value; }
 
 	bool operator==(const wrapper_type& rhs)
@@ -28,9 +28,9 @@ public:
 	bool operator!=(const wrapper_type& rhs)
 	{ return m_value != rhs.m_value; }
 
-	const base_type& get(int row, int column) const
+	const value_type& get(int row, int column) const
 	{ return m_value[row * m_columnCount + column]; }
-	void set(int row, int column, const base_type& val)
+	void set(int row, int column, const value_type& val)
 	{ m_value[row * m_columnCount + column] = val; }
 
 	int columnCount() const // Length of an array
@@ -53,3 +53,18 @@ protected:
 	int m_columnCount = 1;
 	bool m_fixedSize = false;
 };
+
+template <class T> 
+T& getContents(VectorWrapper<T>& wrapper)
+{ return wrapper.value(); }
+
+template <class T> 
+const  T& getContents(const VectorWrapper<T>& wrapper)
+{ return wrapper.value(); }
+
+template <class T>
+struct contents;
+
+template <class T>
+struct contents<VectorWrapper<T>>
+{ using type = T; };

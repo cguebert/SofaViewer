@@ -71,7 +71,7 @@ class SliderPropertyWidget : public PropertyWidgetContainer<value_type>
 {
 protected:
 	QSlider* m_slider = nullptr;
-	float m_scale = 1.f, m_offset = 0;
+	float m_scale = 1, m_offset = 0;
 
 public:
 	QWidget* createWidgets(BasePropertyWidget* parent)
@@ -81,7 +81,7 @@ public:
 		m_slider->setEnabled(!parent->readOnly());
 		QObject::connect(m_slider, &QSlider::valueChanged, parent, &BasePropertyWidget::setWidgetDirty);
 
-		auto rangeMeta = parent->property()->getMeta<meta::RangeWithStep>();
+		auto rangeMeta = parent->property()->getMeta<meta::RangeWithStep<value_type>>();
 		float minVal = 0, maxVal = 100, step = 1;
 		if (rangeMeta)
 		{

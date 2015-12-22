@@ -31,7 +31,7 @@ class ListTraits<VectorWrapper<T>>
 {
 public:
 	using value_type = VectorWrapper<T>;
-	using base_type = typename value_type::base_type;
+	using base_type = typename value_type::value_type;
 
 	static int size(const value_type& wrapper) { return wrapper.value().size(); }
 	static void resize(value_type& wrapper, int nb) { wrapper.value().resize(nb); }

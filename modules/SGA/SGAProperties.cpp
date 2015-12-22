@@ -72,7 +72,13 @@ Property::SPtr createProperty(sga::Property sgaProp)
 	return std::make_shared<Property>(name, false, help, group);
 }
 
-template<class T>
+template <class T> T fromString(const std::string& text);
+template <> int fromString(const std::string& text) { return std::stoi(text); }
+template <> unsigned int fromString(const std::string& text) { return std::stoi(text); }
+template <> float fromString(const std::string& text) { return std::stof(text); }
+template <> double fromString(const std::string& text) { return std::stod(text); }
+
+template<class T, class value_type = T>
 void addMeta(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
 {
 	const auto& attributes = sgaProp.attributes();
@@ -81,14 +87,14 @@ void addMeta(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
 	auto minIt = attributes.find("min"), maxIt = attributes.find("max");
 	if (minIt != attributes.end() || maxIt != attributes.end())
 	{
-		float minVal = minIt != attributes.end() ? std::stof(minIt->second) : std::numeric_limits<float>::min();
-		float maxVal = maxIt != attributes.end() ? std::stof(maxIt->second) : std::numeric_limits<float>::max();
-		metaContainer.add(meta::Range(minVal, maxVal));
+		value_type minVal = minIt != attributes.end() ? fromString<value_type>(minIt->second) : std::numeric_limits<value_type>::lowest();
+		value_type maxVal = maxIt != attributes.end() ? fromString<value_type>(maxIt->second) : std::numeric_limits<value_type>::max();
+		metaContainer.add(meta::Range<value_type>(minVal, maxVal));
 	}
 }
 
 template<>
-void addMeta<std::string>(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
+void addMeta<std::string, std::string>(sga::Property sgaProp, BasePropertyValue::SPtr valuePtr)
 {}
 
 template <class T, class... MetaArgs>
@@ -119,7 +125,7 @@ BaseValueWrapper::SPtr createVectorWrapper(sga::Property sgaProp, bool fixedSize
 	wrapper.setFixedSize(fixedSize);
 	wrapper.setColumnCount(columnCount);
 	auto value = property::createCopyValue(std::move(wrapper));
-//	addMeta<WrapperType>(sgaProp, value);
+	addMeta<WrapperType, T>(sgaProp, value);
 	prop->setValue(value);
 
 	return std::make_shared<VectorPropertyWrapper<WrapperType>>(sgaProp, prop);
@@ -179,7 +185,7 @@ void addProperty(ObjectProperties::SPtr properties, sga::Property sgaProp)
 	}
 }
 
-}
+} // unnamed namespace
 
 ObjectProperties::SPtr createSGAObjectProperties(sga::ObjectDefinition definition)
 {

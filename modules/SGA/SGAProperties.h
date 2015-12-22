@@ -42,7 +42,7 @@ template <class T>
 class VectorPropertyWrapper : public BasePropertyWrapper
 {
 public:
-	using value_type = typename T::value_type;
+	using value_type = typename T::vector_type;
 	VectorPropertyWrapper(sga::Property sgaProp, Property::SPtr property)
 		: BasePropertyWrapper(sgaProp, property)
 	{ m_propertyValue = property->value<T>(); }
