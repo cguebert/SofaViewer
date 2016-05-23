@@ -88,8 +88,6 @@ A **double click** on the created object will open its properties.
 
 The *Run* button will convert the graph to a SOFA simulation, and run it. Clicking it again to stop the simulation (destroy it), and return to the edition mode.
 
-![SGA_Execution](http://i.imgsafe.org/b7214cd.jpg)
-
 #### Export to SOFA scene
 
 We then can export the scene. Go to *Tools/Export Sofa scene* and save the file.  
